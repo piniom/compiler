@@ -1,0 +1,5 @@
+foo main() -> Int = {
+    // let result: Int = 0;
+    /* let result: Int = 0; */
+    result // Invalid because variable 'result' has not been declared 
+}

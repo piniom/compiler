@@ -1,0 +1,5 @@
+foo main() -> Int = {
+    0
+}
+
+/* That program is invalid because there is a multi line comment without ending 

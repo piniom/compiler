@@ -1,0 +1,11 @@
+// Invalid because there is no main function defined
+
+// foo main() -> Int = { 
+//     0
+// }
+
+/*
+foo main() -> Int = {
+    0
+}
+*/

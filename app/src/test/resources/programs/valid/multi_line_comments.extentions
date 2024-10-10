@@ -1,0 +1,19 @@
+
+/*
+That is 
+a multi line
+comment
+*/
+
+/*  <-  to start comment       
+        to end comment  ->  */ 
+
+/* Comment could start as the beginning of a line */
+foo /*BUT*/ main /*COULD*/ ( /*BE*/ ) /*INSERTED*/ -> /*LITERALLY*/ Int /*EVERYWHERE*/ = /*IN*/ { /*BETWEEN WORKING CODE */
+    let mut result: Int = 0;
+    /* result = 1; */ 
+    result /* program should return 0 */
+} 
+
+/* Program could ends with comments */
+ 
