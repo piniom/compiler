@@ -5,6 +5,7 @@ fun main() -> Int = {
     }
 
     loop {
+        // firstLoop lable does not exists here
         break@firstLoop 1;
     }
 
