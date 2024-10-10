@@ -124,4 +124,7 @@ Shortcuting means that the second expression is not evaluated if the resulting v
 ## Entrypoint
 Every program must have a `main` function declared. It's the entrypoint to the program.
 
+## Comments
+Single line `//` and multiline `*/ some text /*` comments are allowed.
+
 
