@@ -1,0 +1,7 @@
+fun main() -> Int = {
+    loop@firstLoop {
+        loop@firstLoop {
+            break@firstLoop 1;
+        }
+    }
+}

@@ -1,0 +1,13 @@
+fun main() -> Int = {
+    // The value of that expression should be 3
+    loop@firstLoop {
+        loop@secondLoop {
+            loop@thirdLoop {
+                // Such loop label does not exists
+                break@firstLoop 3;
+            }
+            break 2;
+        }
+        break 1;
+    }
+}

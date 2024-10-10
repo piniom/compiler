@@ -1,0 +1,4 @@
+fun main() -> Int = {
+    // Use of break outside of loop
+    break 1;
+}

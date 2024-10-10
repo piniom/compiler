@@ -1,0 +1,6 @@
+fun main() -> Int = {
+    loop@firstLoop {
+        // Such loop label does not exists
+        break@secondLoop 1;
+    }
+}

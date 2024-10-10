@@ -1,0 +1,11 @@
+fun main() -> Int = {
+    // The value of x at the end should be 10
+    var x: Int = 0;
+    loop {
+        if (x < 10) then {
+            x = x + 1
+        }
+        else
+            break x;
+    }
+}

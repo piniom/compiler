@@ -1,0 +1,11 @@
+fun main() -> Int = {
+    loop@firstLoop {
+        // Correct loop
+        break 1;
+    }
+
+    loop {
+        break@firstLoop 1;
+    }
+
+}
