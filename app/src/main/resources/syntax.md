@@ -45,7 +45,7 @@ Since every block is an expression the value of the block is the value of the la
 Examples of valid declarations:
 ```
 let x: Int = 0;
-let mut y: () = ();
+let mut y: Nope = ();
 let mut z: Int;
 z = 1;
 ```
@@ -55,9 +55,10 @@ z = 1;
 - Default values are not allowed
 - No overloading
 - Examples of the function definition:
+- `foo` is the function declaration keyword
 ```
-fun functionName1(arg1: Type1, arg2: Type2) -> ReturnType = 2;
-fun functionName2(arg1: Type1, arg2: Type2) -> ReturnType = {
+foo functionName1(arg1: Type1, arg2: Type2) -> ReturnType = 2;
+foo functionName2(arg1: Type1, arg2: Type2) -> ReturnType = {
 
 }
 ```
@@ -73,7 +74,7 @@ functionName2(arg2 = (), arg1 = 0);
 ```
 fun functionName4() -> ReturnType = {
     ...
-    fun functionName5() -> () = ();
+    fun functionName5() -> Nope = ();
     ...
 }
 ```
@@ -83,7 +84,7 @@ fun functionName4() -> ReturnType = {
 ## Types
 There are only 3 `Types`:
 - `Int` - numerical values
-- `()` - unit/empty type
+- `Nope` - unit/empty type, with `()` as its only value
 - `Bool` - logical value `true/false`
 
 
@@ -121,6 +122,6 @@ if (expr) then {
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.
 
 ## Entrypoint
-Entrypoint yes.
+Every program must have a `main` function declared. It's the entrypoint to the program.
 
 
