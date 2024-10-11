@@ -130,4 +130,9 @@ foo main() -> Int = 0;
 ## Comments
 Single line `//` and multiline `/* some text */` comments are allowed.
 
+## Comparison operators 
+`==` is used to test for equality.
+
+Additionaly the `Int` type supports `>`, `>=`, `<`, `<=` with standard behaviour.
+
 
