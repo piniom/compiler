@@ -1,0 +1,8 @@
+foo main() -> Int {
+    // Functions which are declared using the bracket notation do not need the delimiter to separate them
+    foo function(a: Bool, b: Bool) -> Bool = {a and b} foo function2(a: Bool, b: Bool) -> Bool = (a or b)
+
+    // However variable declaration as well as blocks do need to be separated by semicolon
+    let a: Bool = true; let b: Bool = false;
+    {{a and b}; {a or b}}
+}
