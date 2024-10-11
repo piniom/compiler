@@ -1,0 +1,3 @@
+foo main() -> Int = {
+    let : Bool = false;
+}
