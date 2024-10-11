@@ -1,4 +1,4 @@
-foo main() -> Int {
+foo main() -> Int = {
     // Correct block where the last expression is the value of the block
     {
         2 * 4;

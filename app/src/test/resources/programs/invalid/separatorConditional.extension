@@ -1,4 +1,4 @@
-foo main() -> Int {
+foo main() -> Int = {
     // Tricky example, the nested if is delimited and as such does not return
     // so the empty type would have to be returned but this goes against the rule stating that the branches of an 'if' must evaluate to the same type
     if true
