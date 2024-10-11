@@ -54,8 +54,8 @@ z = 1;
 - The body of a function is an expression.
 - Default values are not allowed
 - No overloading
-- Examples of the function definition:
 - `foo` is the function declaration keyword
+- Examples of the function definition:
 ```
 foo functionName1(arg1: Type1, arg2: Type2) -> ReturnType = 2;
 foo functionName2(arg1: Type1, arg2: Type2) -> ReturnType = {
@@ -122,7 +122,10 @@ if (expr) then {
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.
 
 ## Entrypoint
-Every program must have a `main` function declared. It's the entrypoint to the program.
+Every program must have a `main` function declared. It's the entrypoint to the program. The `main` entrypoint must return an `Int`.
+```
+foo main() -> Int = 0;
+```
 
 ## Comments
 Single line `//` and multiline `*/ some text /*` comments are allowed.
