@@ -122,12 +122,12 @@ if (expr) then {
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.
 
 ## Entrypoint
-Every program must have a `main` function declared. It's the entrypoint to the program. The `main` entrypoint must return an `Int`.
+Every program must have a `main` function declared. It's the entrypoint to the program. The `main` entrypoint takes no arguments and must return an `Int`. Th
 ```
 foo main() -> Int = 0;
 ```
 
 ## Comments
-Single line `//` and multiline `*/ some text /*` comments are allowed.
+Single line `//` and multiline `/* some text */` comments are allowed.
 
 
