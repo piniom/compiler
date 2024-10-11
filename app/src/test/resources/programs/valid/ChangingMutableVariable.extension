@@ -1,0 +1,11 @@
+foo main() -> Int = {
+    let mut x: Int = 0;
+    let mut flag: Bool = false;
+    let mut nope: Nope = ();
+
+    x = 1;
+    flag = true;
+    nope = ();
+
+    // x should be 1
+}
