@@ -1,0 +1,6 @@
+// Using a function returning 'Int' as condition
+foo getValue() -> Int = 1
+
+foo main() -> Int = {
+    if getValue() then 1 else 0
+}

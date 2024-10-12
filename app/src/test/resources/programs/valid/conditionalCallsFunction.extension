@@ -1,0 +1,8 @@
+// Conditional that calls a function in the condition
+foo greaterThan(a: Int, b: Int) -> Bool = {
+    if a > b then true else false
+}
+
+foo main() -> Int = {
+    if greaterThan(10, 5) then 1 else 0
+}
