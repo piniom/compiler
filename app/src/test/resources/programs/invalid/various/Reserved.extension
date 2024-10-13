@@ -1,0 +1,19 @@
+// Identifiers should not be reserved keywords
+
+foo main() -> Int {
+  let foo : Int = 1;
+  let mut while : Bool = true;
+  let mut false : Nope = ();
+  let if : Int = 69;
+  let then : Int = 1;
+  let mut let : Int = 42;
+  let mut : Int = 1234567;
+  let mut mut : Bool = false;
+  let else : Bool = 45;
+  let loop : Int = 1989;
+  let true : Bool = false;
+  let false : Bool = false;
+  let or : Bool = false or true;
+  let and : Bool = true and false;
+  let not : Bool = not true;
+}

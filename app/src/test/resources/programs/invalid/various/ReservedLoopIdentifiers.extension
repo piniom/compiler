@@ -1,0 +1,15 @@
+// Loop identifiers should not be reserved keywords
+
+foo main() -> Int = {
+  loop@loop { break 1; }
+  loop@let { break 1; }
+  loop@if { break 1; }
+  loop@then { break 1; }
+  loop@else { break 1; }
+  loop@mut { break 1; }
+  loop@or { break 1; }
+  loop@not { break 1; }
+  loop@and { break 1; }
+  loop@false { break 1; }
+  loop@true { break 1; }
+}
