@@ -2,7 +2,6 @@
 
 foo main() -> Int {
   let foo : Int = 1;
-  let mut while : Bool = true;
   let mut false : Nope = ();
   let if : Int = 69;
   let then : Int = 1;
