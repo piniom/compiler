@@ -32,8 +32,6 @@ Since every block is an expression the value of the block is the value of the la
 `(expr)` denotes an arbitrary expression and may not be a valid language statement.
 
 ## Variables
-**TODO**: decide on the keywords
-
 - Each `variable` is **immutable** by default. 
 
 - `let` and `let mut` are used to declare a `constant` and a `variable` respectively.
@@ -72,9 +70,9 @@ functionName2(arg2 = (), arg1 = 0);
 ```
 - Declaring functions within functions is allowed
 ```
-fun functionName4() -> ReturnType = {
+foo functionName4() -> ReturnType = {
     ...
-    fun functionName5() -> Nope = ();
+    foo functionName5() -> Nope = ();
     ...
 }
 ```
@@ -111,7 +109,7 @@ if (expr) then {
 ## Loops
 
 - There is only one loop called `loop`.
-- Breaking is done by using `break (expr);`.
+- Breaking is done by using `break (expr);` or `break;` which is equivalent to `break ();`.
 - The value of the loop is the value of the expression after the `break`.
 - All `break` expressions must evaluate to the same type.
 - Loops have identifiers `loop@identifier`.
@@ -122,7 +120,7 @@ if (expr) then {
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.
 
 ## Entrypoint
-Every program must have a `main` function declared. It's the entrypoint to the program. The `main` entrypoint takes no arguments and must return an `Int`. Th
+Every program must have a `main` function declared. It's the entrypoint to the program. The `main` entrypoint takes no arguments and must return an `Int`. 
 ```
 foo main() -> Int = 0;
 ```
