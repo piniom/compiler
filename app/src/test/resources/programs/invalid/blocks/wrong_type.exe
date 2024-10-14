@@ -1,0 +1,8 @@
+foo main() -> Int = {
+    Int a;
+    Int b;
+    /**/
+    Int m = {
+        a>b;
+    };
+}

@@ -1,0 +1,12 @@
+foo main() -> Int = {
+    Int a;
+    Int b;
+    /**/
+    Int max = {
+        if(a>b) then {
+            a;
+        } else {
+            b;
+        };
+    };
+}
