@@ -1,0 +1,18 @@
+//////////////////////// <- that is a still valid single line comment
+
+/* /* /* /* /*   
+No matter how many multi-line start markers we put. There is only one needed to finish a comment.
+*/ 
+
+
+/*
+// <- has no effect here,
+this is a still multi line comment
+*/
+
+foo main() -> Int = {
+    0
+}
+
+
+//  /*   <- That is a single line comment, /* has no effect here 
