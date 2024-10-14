@@ -1,0 +1,4 @@
+// 'if' condition is not a 'Bool' type
+foo main() -> Int = {
+    if 5 then 1 else 0
+}
