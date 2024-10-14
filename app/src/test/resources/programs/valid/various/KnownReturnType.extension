@@ -1,0 +1,11 @@
+foo fun() -> Int = 2;
+
+foo main() -> Int = {
+    let mut x: Int = 0;
+    if (fun() == 2) then {
+        fun()
+    }
+    else {
+        ()
+    }
+}

@@ -1,0 +1,6 @@
+foo fun() -> Int = 2;
+
+foo main() -> Int = {
+    let mut x: Int = 0;
+    x = fun()
+}
