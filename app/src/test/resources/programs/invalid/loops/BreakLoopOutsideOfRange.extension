@@ -1,4 +1,4 @@
-fun main() -> Int = {
+foo main() -> Int = {
     loop@firstLoop {
         // Correct loop
         break 1;

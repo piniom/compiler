@@ -1,4 +1,4 @@
-fun main() -> Int = {
+foo main() -> Int = {
     loop {
         // Inconsitient type of break for Int and Bool
         if true then {

@@ -1,4 +1,4 @@
-fun main() -> Int = {
+foo main() -> Int = {
     // The value of that expression should be 3
     loop@firstLoop {
         loop@secondLoop {
