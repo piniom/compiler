@@ -8,5 +8,6 @@ foo main() -> Int = {
         }
     }
     ext = 2;
+    // Should return 1
     nested(3)
 }
