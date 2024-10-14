@@ -1,0 +1,5 @@
+// Using uninitialized variable in 'if' condition
+foo main() -> Int = {
+    let mut flag: Bool;
+    if flag then 1 else 0
+}

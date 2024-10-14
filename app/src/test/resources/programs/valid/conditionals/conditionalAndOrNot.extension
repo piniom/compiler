@@ -1,0 +1,4 @@
+// Use of logical operators 'and', 'or', 'not'
+foo main() -> Int = {
+    if true and not false then 1 else 0
+}
