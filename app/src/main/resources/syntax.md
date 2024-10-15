@@ -33,12 +33,10 @@ Since every block is an expression the value of the block is the value of the la
 
 ## Variables
 - Each `variable` is **immutable** by default. 
-
 - `let` and `let mut` are used to declare a `constant` and a `variable` respectively.
-
 - `Variables` may and `constants` must be initialized upon declaration.
-
 - The declaration `keyword` is followed by the `name` of the `variable` and its `type`.
+- The value of the declaration expression and assigment expression is `()`. 
 
 Examples of valid declarations:
 ```
@@ -50,9 +48,10 @@ z = 1;
 ## Functions
 - Names of the arguments are the function's public contract.
 - The body of a function is an expression.
-- Default values are not allowed
-- No overloading
-- `foo` is the function declaration keyword
+- Default values are not allowed.
+- No overloading.
+- `foo` is the function declaration keyword.
+- The value of the function definition expression is `()`.
 - Examples of the function definition:
 ```
 foo functionName1(arg1: Type1, arg2: Type2) -> ReturnType = 2;
@@ -81,16 +80,16 @@ foo functionName4() -> ReturnType = {
 
 ## Types
 There are only 3 `Types`:
-- `Int` - numerical values
-- `Nope` - unit/empty type, with `()` as its only value
-- `Bool` - logical value `true/false`
+- `Int` - numerical values.
+- `Nope` - unit/empty type, with `()` as its only value.
+- `Bool` - logical value `true/false`.
 
 
 ## Conditionals
 - The conditionals use `if`, `then`, and `else` keywords with `expressions` in-between. 
 - The `expression` after the `if` keyword must evaluate to a `Bool` type.
 - `then` and `else` blocks must evaluate to the same type.
-- If no `else` expression is provided the `then` expression must evaluate to `()`
+- If no `else` expression is provided the `then` expression must evaluate to `()`.
 ```
 if true then 1 else 2;
 
@@ -114,7 +113,7 @@ if (expr) then {
 - All `break` expressions must evaluate to the same type.
 - Loops have identifiers `loop@identifier`.
 - Breaking out of the specific `loop` in a nested `loop` scenario is done by using `break@identifier`.
-- Loop identifiers follow the same naming rules as `variables` and `functions`
+- Loop identifiers follow the same naming rules as `variables` and `functions`.
 
 ## `and`, `or`, `not` with shortcircuit
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.
@@ -126,7 +125,7 @@ foo main() -> Int = 0;
 ```
 
 ## Comments
-Single line `//` and multiline `/* some text */` comments are allowed.
+Single line `//` and multiline `/* some text */` comments are allowed. Comments nesting is allowed.
 
 ## Comparison operators 
 `==` is used to test for equality.

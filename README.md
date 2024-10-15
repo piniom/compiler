@@ -11,5 +11,5 @@ stage{STAGE_NUMBER}/feature-name
 ```
 `STAGE_NUMBER` is the number of the week. This way we can keep track of what branches correspond to which weakly milestones. 
 - Create a PR with a linked issue. 
-
+- Link the PR to the milestone
 ...
