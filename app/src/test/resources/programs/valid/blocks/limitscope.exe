@@ -1,0 +1,24 @@
+foo main() -> Int = {
+    let mut a:Int;
+    let mut b:Int;
+    let mut c:Int;
+    let mut d:Int;
+    /**/
+    {
+        Int i = a;
+        if(b>i)then{
+            i=b;
+        }
+        i=i+1;
+        c=i;
+    };
+
+    {
+        Int i = a;
+        if(b>i)then{
+            i=b;
+        }
+        i=i+1;
+        d=i;
+    };
+}

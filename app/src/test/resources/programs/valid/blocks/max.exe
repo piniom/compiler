@@ -1,8 +1,8 @@
 foo main() -> Int = {
-    Int a;
-    Int b;
+    let mut a: Int;
+    let mut b: Int;
     /**/
-    Int max = {
+    let max: Int = {
         if(a>b) then {
             a;
         } else {
