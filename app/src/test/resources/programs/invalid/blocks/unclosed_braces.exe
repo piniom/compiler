@@ -1,0 +1,11 @@
+foo main() -> Int = {
+    let mut a: Int;
+    let mut b: Int;
+    /**/
+    let max = {
+        if(a>b) then {
+            a;
+        } else {
+            b;
+        };
+}
