@@ -1,5 +1,4 @@
 foo main() -> Int = {
-    // Indeterminate behaviour because language specification does not determine the value of the variable declaration
-    // If this does not convince you consider the case where 'let mut x: Nope' is to be returned
+    // Value of variable declaration is always Nope type which is in conflict with main returned type
     let x: Int = 42
 }
