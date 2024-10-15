@@ -125,7 +125,7 @@ foo main() -> Int = 0;
 ```
 
 ## Comments
-Single line `//` and multiline `/* some text */` comments are allowed.
+Single line `//` and multiline `/* some text */` comments are allowed. Comments nesting is allowed.
 
 ## Comparison operators 
 `==` is used to test for equality.
