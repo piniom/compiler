@@ -5,7 +5,7 @@ foo main() -> Int = {
     let mut d:Int;
     /**/
     {
-        Int i = a;
+        let mut i: Int = a;
         if(b>i)then{
             i=b;
         }
@@ -14,7 +14,7 @@ foo main() -> Int = {
     };
 
     {
-        Int i = a;
+        let mut i: Int = a;
         if(b>i)then{
             i=b;
         }

@@ -1,8 +1,8 @@
 foo main() -> Int = {
-    Int a;
-    Int b;
+    let mut a: Int;
+    let mut b: Int;
     /**/
-    Int m = {
+    let m: Int = {
         a>b;
     };
 }
