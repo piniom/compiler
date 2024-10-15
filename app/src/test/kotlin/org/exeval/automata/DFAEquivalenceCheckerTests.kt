@@ -1,15 +1,8 @@
-package org.example.automata
+package org.exeval.automata
 
+import org.exeval.automata.interfaces.DFA
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
-
-// TODO: Delete it after stage2 introduction commit
-interface IDFA<S> {
-    val startState: S
-    fun isDead(state: S): Boolean
-    fun isAccepting(state: S): Boolean
-    fun transitions(state: S): Map<Char, S>
-}
 
 class DFAEquivalentCheckerTests {
 
@@ -29,8 +22,8 @@ class DFAEquivalentCheckerTests {
      automaProvider.abStarStringDFA to listOf(automaProvider.abStarStringDFA),
      automaProvider.baStarIntDFA to listOf(automaProvider.baStarIntDFA))
 
-    private fun <T, S>testAutomatas(dfa1: IDFA<T>, dfa2: IDFA<S>, expected: Boolean) {
-        val dfaChecker = DFAEquivalentChecker()
+    private fun <T, S>testAutomatas(dfa1: DFA<T>, dfa2: DFA<S>, expected: Boolean) {
+        val dfaChecker = DFAEquivalenceCheckerTool()
         assertEquals(expected, dfaChecker.areEquivalent(dfa1, dfa2))
     }
 

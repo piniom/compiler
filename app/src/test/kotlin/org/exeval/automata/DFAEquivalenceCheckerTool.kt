@@ -1,12 +1,14 @@
-package org.example.automata;
+package org.exeval.automata
 
-import kotlin.collections.mutableMapOf
 import java.util.LinkedList
 import java.util.Queue
+import org.exeval.automata.interfaces.DFAEquivalenceChecker
+import org.exeval.automata.interfaces.DFA
+import kotlin.collections.mutableMapOf
 
-class DFAEquivalentChecker {
+class DFAEquivalenceCheckerTool : DFAEquivalenceChecker {
 
-    fun <S, T>areEquivalent(dfa1: IDFA<S>, dfa2: IDFA<T>): Boolean {
+    override fun <S, T>areEquivalent(dfa1: DFA<S>, dfa2: DFA<T>): Boolean {
         if (dfa1.isAccepting(dfa1.startState).xor(dfa2.isAccepting(dfa2.startState)))
             return false
         val visitedMap = mutableMapOf<S, MutableMap<T, Boolean>>()
@@ -46,7 +48,7 @@ class DFAEquivalentChecker {
         return true
     }
 
-    private fun <S, T>checkIfShouldCountinue(dfa1: IDFA<S>, dfa2: IDFA<T>,
+    private fun <S, T>checkIfShouldCountinue(dfa1: DFA<S>, dfa2: DFA<T>,
      entry: Map.Entry<Char, S>, secondMap: Map<Char, T>): Boolean? {
         if (secondMap[entry.key] == null && !dfa1.isDead(entry.value))
             return false

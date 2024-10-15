@@ -1,21 +1,22 @@
-package org.example.automata
+package org.exeval.automata
 
+import org.exeval.automata.interfaces.DFA
 import io.mockk.every
 import io.mockk.mockk
 
 class SampleDFAProvider 
 {
-    val emptyIntDFA: IDFA<Int> = initEmptyIntDFA()
-    val emptyStringDFA: IDFA<String> = initEmptyStringDFA()
-    val aStarIntDFA: IDFA<Int> = initAStarIntDFA()
-    val aStarStringDFA: IDFA<String> = initAStarStringDFA()
-    val aLastAcceptingIntDFA: IDFA<Int> = initALastAcceptingIntDFA()
-    val bLastAcceptingStringDFA: IDFA<String> = initBLastAcceptingStringDFA()
-    val abStarStringDFA: IDFA<String> = initABStarStringDFA()
-    val baStarIntDFA: IDFA<Int> = initBAStarStringDFA()
+    val emptyIntDFA: DFA<Int> = initEmptyIntDFA()
+    val emptyStringDFA: DFA<String> = initEmptyStringDFA()
+    val aStarIntDFA: DFA<Int> = initAStarIntDFA()
+    val aStarStringDFA: DFA<String> = initAStarStringDFA()
+    val aLastAcceptingIntDFA: DFA<Int> = initALastAcceptingIntDFA()
+    val bLastAcceptingStringDFA: DFA<String> = initBLastAcceptingStringDFA()
+    val abStarStringDFA: DFA<String> = initABStarStringDFA()
+    val baStarIntDFA: DFA<Int> = initBAStarStringDFA()
 
-    private fun initEmptyIntDFA(): IDFA<Int> {
-        var dfa = mockk<IDFA<Int>>()
+    private fun initEmptyIntDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
         every { dfa.startState } returns 0
         every { dfa.isDead(0) } returns true
         every { dfa.isAccepting(0) } returns true
@@ -23,8 +24,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initEmptyStringDFA(): IDFA<String> {
-        var dfa = mockk<IDFA<String>>()
+    private fun initEmptyStringDFA(): DFA<String> {
+        var dfa = mockk<DFA<String>>()
         every { dfa.startState } returns ""
         every { dfa.isDead("") } returns true
         every { dfa.isAccepting("") } returns true
@@ -32,8 +33,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initAStarIntDFA(): IDFA<Int> {
-        var dfa = mockk<IDFA<Int>>()
+    private fun initAStarIntDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
         every { dfa.startState } returns 0
         every { dfa.isDead(0) } returns false
         every { dfa.isAccepting(0) } returns true
@@ -44,8 +45,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initAStarStringDFA(): IDFA<String> {
-        var dfa = mockk<IDFA<String>>()
+    private fun initAStarStringDFA(): DFA<String> {
+        var dfa = mockk<DFA<String>>()
         every { dfa.startState } returns ""
         every { dfa.isDead("") } returns false
         every { dfa.isAccepting("") } returns true
@@ -56,8 +57,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initALastAcceptingIntDFA(): IDFA<Int> {
-        var dfa = mockk<IDFA<Int>>()
+    private fun initALastAcceptingIntDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
         every { dfa.startState } returns 0
         every { dfa.isDead(0) } returns false
         every { dfa.isAccepting(0) } returns false
@@ -71,8 +72,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initBLastAcceptingStringDFA(): IDFA<String> {
-        var dfa = mockk<IDFA<String>>()
+    private fun initBLastAcceptingStringDFA(): DFA<String> {
+        var dfa = mockk<DFA<String>>()
         every { dfa.startState } returns "kot"
         every { dfa.isDead("kot") } returns false
         every { dfa.isAccepting("kot") } returns false
@@ -89,8 +90,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initABStarStringDFA(): IDFA<String> {
-        var dfa = mockk<IDFA<String>>()
+    private fun initABStarStringDFA(): DFA<String> {
+        var dfa = mockk<DFA<String>>()
         every { dfa.startState } returns "kot"
         every { dfa.isDead("kot") } returns false
         every { dfa.isAccepting("kot") } returns true
@@ -104,8 +105,8 @@ class SampleDFAProvider
         return dfa
     }
 
-    private fun initBAStarStringDFA(): IDFA<Int> {
-        var dfa = mockk<IDFA<Int>>()
+    private fun initBAStarStringDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
         every { dfa.startState } returns 0
         every { dfa.isDead(0) } returns false
         every { dfa.isAccepting(0) } returns true
