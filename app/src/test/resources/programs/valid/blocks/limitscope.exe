@@ -12,7 +12,6 @@ foo main() -> Int = {
         i=i+1;
         c=i;
     };
-
     {
         let mut i: Int = a;
         if(b>i)then{
@@ -20,5 +19,6 @@ foo main() -> Int = {
         }
         i=i+1;
         d=i;
+        d;
     };
 }
