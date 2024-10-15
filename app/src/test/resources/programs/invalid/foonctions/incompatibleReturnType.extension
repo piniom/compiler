@@ -1,0 +1,7 @@
+foo g() -> Int = {
+    ()
+}
+
+foo main() -> Int = {
+    g()
+}
