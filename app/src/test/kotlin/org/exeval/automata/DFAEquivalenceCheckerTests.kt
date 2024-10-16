@@ -3,6 +3,8 @@ package org.exeval.automata
 import org.exeval.automata.interfaces.DFA
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.exeval.automata.tools.DFAEquivalenceCheckerTool
+import org.exeval.automata.providers.SampleDFAProvider
 
 class DFAEquivalentCheckerTests {
 

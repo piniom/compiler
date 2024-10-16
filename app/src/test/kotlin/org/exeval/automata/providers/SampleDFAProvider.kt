@@ -1,4 +1,4 @@
-package org.exeval.automata
+package org.exeval.automata.providers
 
 import org.exeval.automata.interfaces.DFA
 import io.mockk.every
