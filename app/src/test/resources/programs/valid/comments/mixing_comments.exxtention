@@ -1,8 +1,8 @@
 //////////////////////// <- that is a still valid single line comment
 
 /* /* /* /* /*   
-No matter how many multi-line start markers we put. There is only one needed to finish a comment.
-*/ 
+We have nested comments
+*/ */ */ */ */ 
 
 
 /*
