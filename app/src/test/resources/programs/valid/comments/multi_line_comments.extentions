@@ -8,6 +8,17 @@ comment
 /*  <-  to start comment       
         to end comment  ->  */ 
 
+/*      
+as we have nested comments,
+    /*   
+        like here, 
+        /*  and even here! */  
+    */ 
+that is still a comment
+*/ 
+
+
+
 /* Comment could start as the beginning of a line */
 foo /*BUT*/ main /*COULD*/ ( /*BE*/ ) /*INSERTED*/ -> /*LITERALLY*/ Int /*EVERYWHERE*/ = /*IN*/ { /*BETWEEN WORKING CODE */
     let mut result: Int = 0;
