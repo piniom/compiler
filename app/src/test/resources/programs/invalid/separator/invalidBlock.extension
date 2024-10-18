@@ -1,0 +1,9 @@
+foo main() -> Int = {
+    // The block with no returned statement returns the Nope type
+    // but since the block statement ends the main, Nope would have to be returned from the main instead of Int value
+    {
+        2 * 4;
+        1 + 3;
+        7 / 7;
+    }
+}
