@@ -28,16 +28,24 @@ dependencies {
     // MockK for mocking
     testImplementation("io.mockk:mockk:1.13.4")
 
+    // Cucumber with JUnit engine for larger, flow tests.
+    testImplementation("io.cucumber:cucumber-java:7.20.1")
+    testImplementation("io.cucumber:cucumber-junit:7.20.1")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // Easy logger with SLF4J backed.
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
+    implementation("org.slf4j:slf4j-simple:2.0.16")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(22)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -49,4 +57,30 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+    finalizedBy("cucumberTest")
+}
+
+configurations.register("cucumberRuntime") {
+    extendsFrom(configurations["testImplementation"])
+}
+
+tasks.register("cucumberTest") {
+    group = "verification"
+    description = "Runs compiler flow tests on example programs."
+    dependsOn("assemble", "testClasses")
+    var tags = "not @notImplemented"
+    if (project.hasProperty("cucumberTags")) {
+        tags = project.property("cucumberTags") as String
+    }
+    doLast {
+        javaexec {
+            mainClass = "io.cucumber.core.cli.Main"
+            classpath = configurations["cucumberRuntime"] + sourceSets["main"].output + sourceSets["test"].output
+            args = listOf(
+                "--plugin", "pretty",
+                "--plugin", "html:build/reports/cucumber-report.html",
+                "--tags", tags
+            )
+        }
+    }
 }
