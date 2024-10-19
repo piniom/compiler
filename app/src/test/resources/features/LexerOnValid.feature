@@ -74,6 +74,17 @@ Feature: Lexer without errors
 			| valid/loops/MultipleBreaksWithTheSameType.exe       |
 			| valid/loops/NestedLoopsBreaksProperlyWithLabels.exe |
 
+	@separators @notImplemented
+	Scenario Outline: Valid separators do not cause lexer errors
+		Given ExEval source code file "<sourceFile>"
+		When source code is passed through lexer
+		Then no errors are returned
+		Examples:
+			| sourceFile                              |
+			| valid/separator/delimitedStatements.exe |
+			| valid/separator/instructionBlock.exe    |
+			| valid/separator/valueOfFunctions.exe    |
+
 	@variables @notImplemented
 	Scenario Outline: Valid variables do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
