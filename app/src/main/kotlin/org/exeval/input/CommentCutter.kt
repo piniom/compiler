@@ -2,32 +2,51 @@ package org.exeval.input
 
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
+import org.exeval.utilities.SimpleDiagnostics
+import org.exeval.utilities.interfaces.Diagnostics
+import org.exeval.utilities.interfaces.OperationResult
+
+private typealias Result = OperationResult<Char?>
 
 class CommentCutter(private val inner: Input) : Input by inner {
-    override fun nextChar(): Char? {
-        val nextChar: Char = inner.nextChar() ?: return null
+    public companion object {
+        public const val NOT_FINISHED_COMMENT_ERROR_MESSAGE = "Comment has not been finished."
+    }
+
+    override fun nextChar(): Result {
+        val beginLocation = location
+
+        val nextResult = inner.nextChar()
+        val nextChar = nextResult.result ?: return nextResult
+        val diagnostics = nextResult.diagnostics
 
         return when (tryMatchFirstCharacter(nextChar)) {
-            FirstCharGuessType.MAYBE_COMMENT_START -> processPotentialCommentStart(nextChar)
-            FirstCharGuessType.MAYBE_COMMENNT_END -> processPotentialCommentEnd(nextChar)
-            else -> nextChar
+            FirstCharGuessType.MAYBE_COMMENT_START -> processPotentialCommentStart(beginLocation, nextChar, diagnostics)
+            FirstCharGuessType.MAYBE_COMMENT_END -> processPotentialCommentEnd(nextChar, diagnostics)
+            else -> nextResult
         }
     }
 
-    private fun processPotentialCommentStart(firstChar: Char): Char? {
+    private fun processPotentialCommentStart(beginLocation: Location, firstChar: Char, diagnostics: List<Diagnostics>): Result {
         val locationAfterFirstChar = location
-        return when (tryGetCommentType(inner.nextChar())) {
-            CommentType.SINGLE_LINE -> cutUntilNewLine()
-            CommentType.MULTI_LINE -> cutUntilCommentFinish()
-            else -> setLocationAndReturn(locationAfterFirstChar, firstChar)
+        val nextResult = nextCharWithDiagnostic(diagnostics)
+
+        return when (tryGetCommentType(nextResult.result)) {
+            CommentType.SINGLE_LINE -> cutUntilNewLine(nextResult.diagnostics)
+            CommentType.MULTI_LINE -> cutUntilCommentFinish(beginLocation, nextResult)
+            else -> setLocationAndReturn(locationAfterFirstChar, Result(firstChar, nextResult.diagnostics))
         }
     }
 
-    private fun processPotentialCommentEnd(firstChar: Char): Char? {
+    private fun processPotentialCommentEnd(firstChar: Char, diagnostics: List<Diagnostics>): Result {
         val locationAfterFirstChar = location
-        return if (isCommentEndSecondChar(inner.nextChar()))
-            return inner.nextChar()
-        else setLocationAndReturn(locationAfterFirstChar, firstChar)
+
+        val nextResult = nextCharWithDiagnostic(diagnostics)
+        val nextChar = nextResult.result
+
+        return if (isCommentEndSecondChar(nextChar))
+            return nextCharWithDiagnostic(nextResult.diagnostics)
+        else setLocationAndReturn(locationAfterFirstChar, Result(firstChar, nextResult.diagnostics))
     }
 
     private fun isCommentEndSecondChar(char: Char?): Boolean {
@@ -49,7 +68,7 @@ class CommentCutter(private val inner: Input) : Input by inner {
         if (canBeCommentStart(char))
             return FirstCharGuessType.MAYBE_COMMENT_START
         if (canBeCommentEnd(char))
-            return FirstCharGuessType.MAYBE_COMMENNT_END
+            return FirstCharGuessType.MAYBE_COMMENT_END
         return null
     }
 
@@ -64,22 +83,31 @@ class CommentCutter(private val inner: Input) : Input by inner {
         }
     }
 
-    private fun setLocationAndReturn(location: Location, char: Char): Char {
+    private fun setLocationAndReturn(location: Location, result: Result): Result {
         this.location = location
-        return char
+        return result
     }
 
-    private fun cutUntilNewLine(): Char? {
-        var nextChar: Char
+    private fun nextCharWithDiagnostic(diagnostics: List<Diagnostics>): Result {
+        val result = inner.nextChar()
+        return OperationResult(result.result, diagnostics + result.diagnostics)
+    }
+
+    private fun cutUntilNewLine(diagnostics: List<Diagnostics>): Result {
+        var result: Result
 
         do {
-            nextChar = inner.nextChar() ?: return null
-        } while (!isNewLine(nextChar))
+            result = nextCharWithDiagnostic(diagnostics)
+        } while (!isNewLine(result.result) && !isFinish(result.result))
 
-        return nextChar
+        return result
     }
 
-    private fun cutUntilCommentFinish(): Char? {
+    private fun isFinish(result: Char?): Boolean {
+        return result == null
+    }
+
+    private fun cutUntilCommentFinish(beginLocation: Location, lastResult: Result): Result {
         val commentLevelsAtStart = 1
         val commentLevelsToFinish = 0
 
@@ -89,34 +117,44 @@ class CommentCutter(private val inner: Input) : Input by inner {
         var hasMultiLine = false
         var nestedCounter = commentLevelsAtStart
 
-        var prevChar: Char
-        var nextChar: Char = Char.MIN_VALUE
+        var prevChar: Result
+        var nextChar = lastResult
         var locationAtEnd = location
         var prevLocation = location
         var currLocation = location
 
         while (nestedCounter > commentLevelsToFinish) {
             prevChar = nextChar
-            nextChar = inner.nextChar() ?: return null
+            nextChar = nextCharWithDiagnostic(nextChar.diagnostics)
+
+            if(isFinish(nextChar.result)){
+                val notFinishedDiagnostic = generateNotFinishedDiagnostic(beginLocation)
+                return Result(null, nextChar.diagnostics + notFinishedDiagnostic)
+            }
 
             locationAtEnd = prevLocation
             prevLocation = currLocation
             currLocation = location
 
-            if (isNewLine(nextChar))
+            if (isNewLine(nextChar.result))
                 hasMultiLine = true
             else
-                when (prevChar to nextChar) {
+                when (prevChar.result to nextChar.result) {
                     '*' to '/' -> --nestedCounter
                     '/' to '*' -> ++nestedCounter
                 }
         }
 
         location = locationAtEnd
-        return if (hasMultiLine) multiLineReplacement else sameLineReplacement
+        val replacement = if (hasMultiLine) multiLineReplacement else sameLineReplacement
+        return Result(replacement, nextChar.diagnostics)
     }
 
-    private fun isNewLine(char: Char): Boolean {
+    private fun generateNotFinishedDiagnostic(beginLocation: Location): Diagnostics {
+        return SimpleDiagnostics(NOT_FINISHED_COMMENT_ERROR_MESSAGE, beginLocation, location)
+    }
+
+    private fun isNewLine(char: Char?): Boolean {
         return char == '\n'
     }
 
@@ -125,6 +163,7 @@ class CommentCutter(private val inner: Input) : Input by inner {
     }
 
     private enum class FirstCharGuessType {
-        MAYBE_COMMENT_START, MAYBE_COMMENNT_END
+        MAYBE_COMMENT_START, MAYBE_COMMENT_END
     }
+
 }
