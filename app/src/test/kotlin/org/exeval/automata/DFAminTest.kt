@@ -3,6 +3,7 @@ package org.exeval.lexer
 import org.exeval.automata.interfaces.DFA
 import org.exeval.lexer.interfaces.DFAMinimizer
 import org.exeval.lexer.DFAmin
+import org.junit.jupiter.api.Test
 
 class DFAminTest{
     @Test
