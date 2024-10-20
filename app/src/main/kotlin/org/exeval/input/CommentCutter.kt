@@ -9,8 +9,8 @@ import org.exeval.utilities.interfaces.OperationResult
 private typealias Result = OperationResult<Char?>
 
 class CommentCutter(private val inner: Input) : Input by inner {
-    public companion object {
-        public const val NOT_FINISHED_COMMENT_ERROR_MESSAGE = "Comment has not been finished."
+    companion object {
+        const val NOT_FINISHED_COMMENT_ERROR_MESSAGE = "Comment has not been finished."
     }
 
     override fun nextChar(): Result {
@@ -27,7 +27,11 @@ class CommentCutter(private val inner: Input) : Input by inner {
         }
     }
 
-    private fun processPotentialCommentStart(beginLocation: Location, firstChar: Char, diagnostics: List<Diagnostics>): Result {
+    private fun processPotentialCommentStart(
+        beginLocation: Location,
+        firstChar: Char,
+        diagnostics: List<Diagnostics>
+    ): Result {
         val locationAfterFirstChar = location
         val nextResult = nextCharWithDiagnostic(diagnostics)
 
@@ -127,7 +131,7 @@ class CommentCutter(private val inner: Input) : Input by inner {
             prevChar = nextChar
             nextChar = nextCharWithDiagnostic(nextChar.diagnostics)
 
-            if(isFinish(nextChar.result)){
+            if (isFinish(nextChar.result)) {
                 val notFinishedDiagnostic = generateNotFinishedDiagnostic(beginLocation)
                 return Result(null, nextChar.diagnostics + notFinishedDiagnostic)
             }
