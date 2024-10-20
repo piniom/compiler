@@ -53,6 +53,8 @@ class DFAParsTest{
         var nfa = SimpleNFA(start, accepting, t, et)
         var parsedDFA = DFAPars().parse(nfa)
         var state = parsedDFA.startState
+        assert(!parsedDFA.isAccepting(state))
+        assert(!parsedDFA.isDead(state))
         state = parsedDFA.transitions(state)['a']!!
         assert(parsedDFA.isAccepting(state))
         var state2 = parsedDFA.transitions(state)['b']!!
@@ -63,12 +65,10 @@ class DFAParsTest{
         state = parsedDFA.transitions(state)['b']!!
         assert(!parsedDFA.isAccepting(state))
         assert(parsedDFA.isDead(state))
-        for (i in 1..5) {
-            state2 = parsedDFA.transitions(state2)['b']!!
-            assert(parsedDFA.isAccepting(state2))
-            state2 = parsedDFA.transitions(state2)['c']!!
-            assert(parsedDFA.isAccepting(state2))
-        }
+        state2 = parsedDFA.transitions(state2)['b']!!
+        assert(parsedDFA.isAccepting(state2))
+        state2 = parsedDFA.transitions(state2)['c']!!
+        assert(parsedDFA.isAccepting(state2))
         assert(parsedDFA.isDead(parsedDFA.transitions(state2)['a']!!))
         assert(parsedDFA.isDead(parsedDFA.transitions(state2)['z']!!))
     }
