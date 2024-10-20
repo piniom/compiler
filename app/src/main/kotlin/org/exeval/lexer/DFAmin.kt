@@ -5,7 +5,7 @@ import org.exeval.lexer.interfaces.DFAMinimizer
 
 class DFAmin<S> : DFAMinimizer<S> {
     private val debug = false
-    class minDFA<S> : DFA<S>{
+    private class minDFA<S> : DFA<S>{
         override val startState: S
         var acceptStates = mutableSetOf<S>()
         public var tmap = mutableMapOf<S,MutableMap<Char,S>>()
