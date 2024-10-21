@@ -45,7 +45,7 @@ keyword_let := let
 keyword_mut := mut
 
 identifier_type := \u(\l)*
-identifier_nontype := (\l|_)(\i)* // captures loop labels, and function and variable names
+identifier_nontype := (\l|_)(\i)*
 identifier_entrypoint := main
 
 ```
