@@ -3,12 +3,10 @@ package org.exeval.automata
 import io.mockk.every
 import io.mockk.mockk
 import org.exeval.input.CommentCutter
+import org.exeval.input.NotFinishedCommentException
 import org.exeval.input.StringInput
 import org.exeval.input.interfaces.Input
-import org.exeval.utilities.interfaces.OperationResult
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class CommentCutterTests {
@@ -16,17 +14,11 @@ class CommentCutterTests {
     private fun testWithStringInput(input: String, expected: String) {
         val commentCutter = CommentCutter(StringInput(input))
 
-        fun getNextResult(): Char? {
-            val result = commentCutter.nextChar()
-            assertTrue(result.diagnostics.isEmpty())
-            return result.result
-        }
-
         var result = ""
-        var char = getNextResult()
+        var char = commentCutter.nextChar()
         while (char != null) {
             result += char
-            char = getNextResult()
+            char = commentCutter.nextChar()
         }
 
         assertEquals(expected, result)
@@ -36,14 +28,13 @@ class CommentCutterTests {
     @Test
     fun withEmptyInput() {
         val emptyInput = mockk<Input>()
-        every { emptyInput.nextChar() } returns OperationResult(null, emptyList())
+        every { emptyInput.nextChar() } returns null
         every { emptyInput.location } returns mockk {}
 
         val commentCutter = CommentCutter(emptyInput)
         val result = commentCutter.nextChar()
 
-        assertNull(result.result)
-        assertTrue(result.diagnostics.isEmpty())
+        assertNull(result)
     }
 
     @Test
@@ -132,12 +123,6 @@ class CommentCutterTests {
     @Test
     fun withNotFinished() {
         val commentCutter = CommentCutter(StringInput("/*"))
-        val result = commentCutter.nextChar()
-
-        val expectedDiagnosticLength = 1
-
-        assertNull(result.result)
-        assertEquals(expectedDiagnosticLength,  result.diagnostics.size)
-        assertEquals(result.diagnostics.first().message, CommentCutter.NOT_FINISHED_COMMENT_ERROR_MESSAGE)
+        assertThrows(NotFinishedCommentException::class.java) { commentCutter.nextChar() }
     }
 }

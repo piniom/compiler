@@ -2,7 +2,6 @@ package org.exeval.input
 
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
-import org.exeval.utilities.interfaces.OperationResult
 
 class StringInput(inputStr: String) : Input {
     private var idx = -1
@@ -20,8 +19,8 @@ class StringInput(inputStr: String) : Input {
             line = value.line
         }
 
-    override fun nextChar(): OperationResult<Char?> {
-        if (isAfterLastLine()) return getEndResult()
+    override fun nextChar(): Char? {
+        if (isAfterLastLine()) return null
         var currentLine = lines[line]
 
         ++idx
@@ -29,22 +28,14 @@ class StringInput(inputStr: String) : Input {
             idx = 0
             ++line
 
-            if (isAfterLastLine()) return getEndResult()
+            if (isAfterLastLine()) return null
             currentLine = lines[idx]
         }
 
-        return getCharResult(currentLine[idx])
+        return currentLine[idx]
     }
 
     private fun isAfterLastLine(): Boolean {
         return line >= lines.size
-    }
-
-    private fun getEndResult(): OperationResult<Char?> {
-        return OperationResult(null, emptyList())
-    }
-
-    private fun getCharResult(char: Char): OperationResult<Char?> {
-        return OperationResult(char, emptyList())
     }
 }
