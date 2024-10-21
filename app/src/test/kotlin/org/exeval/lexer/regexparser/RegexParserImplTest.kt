@@ -72,10 +72,7 @@ class RegexParserImplTest {
             )
         )
 
-        val regexTokenizer = RegexTokenizer()
-        val tokensChecker = TokenChecker()
-        val tokensToRegex = TokensToRegex()
-        val regexParserImpl = RegexParserImpl(regexTokenizer, tokensChecker, tokensToRegex)
+        val regexParserImpl = RegexParserImpl()
 
         val actual = inputs.map { regexParserImpl.parse(it) }
 

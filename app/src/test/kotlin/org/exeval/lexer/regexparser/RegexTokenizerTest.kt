@@ -43,7 +43,7 @@ class RegexTokenizerTest {
         val regexTokenizer = RegexTokenizer()
         val actual = regexTokenizer.tokenize(input)
 
-        assertEquals((input.length - 1)/2 + 1, actual.size)
+        assertEquals((input.length - 1) / 2 + 1, actual.size)
         for (token in actual) {
             assert(token is Group)
         }
