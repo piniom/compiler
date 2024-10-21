@@ -35,10 +35,6 @@ class StringInput(inputStr: String) : Input {
         return currentLine[idx]
     }
 
-    override fun hasNextChar(): Boolean {
-        return !isAfterLastLine()
-    }
-
     private fun isAfterLastLine(): Boolean {
         return line >= lines.size
     }
