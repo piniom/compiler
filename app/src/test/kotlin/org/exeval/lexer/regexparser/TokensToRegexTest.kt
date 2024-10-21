@@ -15,7 +15,7 @@ private val IDENTIFIERS = LETTERS union DIGITS union setOf('_')
 class TokensToRegexTest {
     @Test
     fun `Atoms work`() {
-        val atoms = "abcde".map { RegexToken.RegexChar(it) }
+        val atoms = "abcde".map { RegexToken.Atom(it) }
         val expected = atoms.map { Regex.Atom(it.char) }
 
         val tokensToRegex = TokensToRegex()
@@ -26,7 +26,7 @@ class TokensToRegexTest {
 
     @Test
     fun `Simple concat work`() {
-        val tokens = listOf(RegexToken.RegexChar('a'), RegexToken.RegexChar('b'))
+        val tokens = listOf(RegexToken.Atom('a'), RegexToken.Atom('b'))
         val expected = Regex.Concat(listOf(Regex.Atom('a'), Regex.Atom('b')))
 
         val tokensToRegex = TokensToRegex()
@@ -37,7 +37,7 @@ class TokensToRegexTest {
 
     @Test
     fun `Simple union work`() {
-        val tokens = listOf(RegexToken.RegexChar('a'), RegexToken.Union, RegexToken.RegexChar('b'))
+        val tokens = listOf(RegexToken.Atom('a'), RegexToken.Union, RegexToken.Atom('b'))
         val expected = Regex.Union(setOf(Regex.Atom('a'), Regex.Atom('b')))
 
         val tokensToRegex = TokensToRegex()
@@ -48,7 +48,7 @@ class TokensToRegexTest {
 
     @Test
     fun `Simple star work`() {
-        val tokens = listOf(RegexToken.RegexChar('a'), RegexToken.Star)
+        val tokens = listOf(RegexToken.Atom('a'), RegexToken.Star)
         val expected = Regex.Star(Regex.Atom('a'))
 
         val tokensToRegex = TokensToRegex()
@@ -61,12 +61,12 @@ class TokensToRegexTest {
     fun `(ab)*|c regex work`() {
         val tokens = listOf(
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('b'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('b'),
             RegexToken.ClosingBracket,
             RegexToken.Star,
             RegexToken.Union,
-            RegexToken.RegexChar('c')
+            RegexToken.Atom('c')
         )
         val expected =
             Regex.Union(setOf(Regex.Star(Regex.Concat(listOf(Regex.Atom('a'), Regex.Atom('b')))), Regex.Atom('c')))
@@ -81,9 +81,9 @@ class TokensToRegexTest {
     fun `(abc) regex work`() {
         val tokens = listOf(
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('b'),
-            RegexToken.RegexChar('c'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('b'),
+            RegexToken.Atom('c'),
             RegexToken.ClosingBracket
         )
         val expected = Regex.Concat(listOf(Regex.Atom('a'), Regex.Atom('b'), Regex.Atom('c')))
@@ -98,11 +98,11 @@ class TokensToRegexTest {
     fun `(a|b|c) regex work`() {
         val tokens = listOf(
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('a'),
+            RegexToken.Atom('a'),
             RegexToken.Union,
-            RegexToken.RegexChar('b'),
+            RegexToken.Atom('b'),
             RegexToken.Union,
-            RegexToken.RegexChar('c'),
+            RegexToken.Atom('c'),
             RegexToken.ClosingBracket
         )
         val expected = Regex.Union(setOf(Regex.Atom('a'), Regex.Atom('b'), Regex.Atom('c')))
@@ -120,7 +120,7 @@ class TokensToRegexTest {
             RegexToken.OpeningBracket,
             RegexToken.Group(LOWERCASE),
             RegexToken.Union,
-            RegexToken.RegexChar('_'),
+            RegexToken.Atom('_'),
             RegexToken.ClosingBracket,
             RegexToken.OpeningBracket,
             RegexToken.Group(IDENTIFIERS),
@@ -146,46 +146,46 @@ class TokensToRegexTest {
         val tokens = listOf(
             RegexToken.OpeningBracket,
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('t'),
-            RegexToken.RegexChar('r'),
-            RegexToken.RegexChar('u'),
-            RegexToken.RegexChar('e'),
+            RegexToken.Atom('t'),
+            RegexToken.Atom('r'),
+            RegexToken.Atom('u'),
+            RegexToken.Atom('e'),
             RegexToken.Union,
-            RegexToken.RegexChar('f'),
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('l'),
-            RegexToken.RegexChar('s'),
-            RegexToken.RegexChar('e'),
+            RegexToken.Atom('f'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('l'),
+            RegexToken.Atom('s'),
+            RegexToken.Atom('e'),
             RegexToken.Union,
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('n'),
-            RegexToken.RegexChar('u'),
-            RegexToken.RegexChar('l'),
-            RegexToken.RegexChar('l'),
+            RegexToken.Atom('n'),
+            RegexToken.Atom('u'),
+            RegexToken.Atom('l'),
+            RegexToken.Atom('l'),
             RegexToken.ClosingBracket,
             RegexToken.ClosingBracket,
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('_'),
+            RegexToken.Atom('_'),
             RegexToken.Union,
-            RegexToken.RegexChar('-'),
+            RegexToken.Atom('-'),
             RegexToken.ClosingBracket,
             RegexToken.ClosingBracket,
             RegexToken.Star,
             RegexToken.OpeningBracket,
-            RegexToken.RegexChar('m'),
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('t'),
-            RegexToken.RegexChar('r'),
-            RegexToken.RegexChar('i'),
-            RegexToken.RegexChar('x'),
+            RegexToken.Atom('m'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('t'),
+            RegexToken.Atom('r'),
+            RegexToken.Atom('i'),
+            RegexToken.Atom('x'),
             RegexToken.Union,
-            RegexToken.RegexChar('v'),
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('r'),
+            RegexToken.Atom('v'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('r'),
             RegexToken.Union,
-            RegexToken.RegexChar('v'),
-            RegexToken.RegexChar('a'),
-            RegexToken.RegexChar('l'),
+            RegexToken.Atom('v'),
+            RegexToken.Atom('a'),
+            RegexToken.Atom('l'),
             RegexToken.ClosingBracket,
         )
 

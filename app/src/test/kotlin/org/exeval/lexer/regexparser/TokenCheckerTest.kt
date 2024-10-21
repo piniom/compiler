@@ -13,7 +13,7 @@ class TokenCheckerTest {
                 when (c) {
                     '(' -> RegexToken.OpeningBracket
                     ')' -> RegexToken.ClosingBracket
-                    else -> RegexToken.RegexChar(' ')
+                    else -> RegexToken.Atom(' ')
                 }
             }
         }
@@ -33,7 +33,7 @@ class TokenCheckerTest {
                 when (c) {
                     '(' -> RegexToken.OpeningBracket
                     ')' -> RegexToken.ClosingBracket
-                    else -> RegexToken.RegexChar(' ')
+                    else -> RegexToken.Atom(' ')
                 }
             }
         }
@@ -50,18 +50,18 @@ class TokenCheckerTest {
     fun `Good operators`() {
         val tests = listOf(
             listOf(
-                RegexToken.RegexChar('a'),
+                RegexToken.Atom('a'),
                 RegexToken.Union,
-                RegexToken.RegexChar('b')
+                RegexToken.Atom('b')
             ),
             listOf(
                 RegexToken.OpeningBracket,
-                RegexToken.RegexChar('a'),
-                RegexToken.RegexChar('b'),
+                RegexToken.Atom('a'),
+                RegexToken.Atom('b'),
                 RegexToken.ClosingBracket,
                 RegexToken.Star,
                 RegexToken.Union,
-                RegexToken.RegexChar('c')
+                RegexToken.Atom('c')
             )
         )
 

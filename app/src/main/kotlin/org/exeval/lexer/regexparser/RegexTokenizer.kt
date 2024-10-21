@@ -21,11 +21,11 @@ class RegexTokenizer {
                     val groupOfNext = groupMap[next]
 
                     if (groupOfNext != null) return@run groupOfNext
-                    if (next in escapableCharacters) return@run RegexToken.RegexChar(next)
+                    if (next in escapableCharacters) return@run RegexToken.Atom(next)
                     throw BadRegexFormatException(NON_ESCAPABLE_CHAR_ERROR.format(next, i))
                 }
 
-                in ASCII -> RegexToken.RegexChar(cur)
+                in ASCII -> RegexToken.Atom(cur)
                 else -> throw BadRegexFormatException(NON_ASCII_CHAR_ERROR.format(cur, i))
             })
             i++

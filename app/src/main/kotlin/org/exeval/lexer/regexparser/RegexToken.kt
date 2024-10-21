@@ -6,5 +6,5 @@ sealed interface RegexToken {
     data object OpeningBracket : RegexToken
     data object ClosingBracket : RegexToken
     data class Group(val group: Set<Char>) : RegexToken
-    data class RegexChar(val char: Char) : RegexToken
+    data class Atom(val char: Char) : RegexToken
 }

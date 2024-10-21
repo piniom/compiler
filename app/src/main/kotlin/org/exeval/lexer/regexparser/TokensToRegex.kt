@@ -28,7 +28,7 @@ class TokensToRegex {
         if (first > last) return Regex.Union(setOf())
         if (first == last) {
             when (val cur = tokens[first]) {
-                is RegexToken.RegexChar -> return Regex.Atom(cur.char)
+                is RegexToken.Atom -> return Regex.Atom(cur.char)
                 is RegexToken.Group -> {
                     val charList = cur.group.map { c: Char -> Regex.Atom(c) }
                     return Regex.Union(charList.toSet())
@@ -55,7 +55,7 @@ class TokensToRegex {
                     continue
                 }
 
-                RegexToken.ClosingBracket, is RegexToken.Group, is RegexToken.RegexChar -> {
+                RegexToken.ClosingBracket, is RegexToken.Group, is RegexToken.Atom -> {
                     if (checkForConcat(i)) lastOperators.lastConcatAfter = i
                 }
 
@@ -118,7 +118,7 @@ class TokensToRegex {
 
     private fun checkForConcat(index: Int): Boolean {
         val next = tokens[index + 1]
-        return next is RegexToken.OpeningBracket || next is RegexToken.RegexChar || next is RegexToken.Group
+        return next is RegexToken.OpeningBracket || next is RegexToken.Atom || next is RegexToken.Group
     }
 
     private fun flattenTreeForConcats(regex: Regex): Regex {

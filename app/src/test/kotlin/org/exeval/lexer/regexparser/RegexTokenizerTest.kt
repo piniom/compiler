@@ -12,7 +12,7 @@ class RegexTokenizerTest {
         val strings = listOf(
             "abcde", "AbcDe", "Something about 123", "What about other sym-bols/characters"
         )
-        val expected = strings.map { s: String -> s.map { c: Char -> RegexChar(c) } }
+        val expected = strings.map { s: String -> s.map { c: Char -> Atom(c) } }
 
         val regexTokenizer = RegexTokenizer()
         val actual = strings.map { s: String -> regexTokenizer.tokenize(s) }
@@ -25,8 +25,8 @@ class RegexTokenizerTest {
         val strings = listOf("|*)(", "a|b", "a*", "(())")
         val expected = listOf(
             listOf(Union, Star, ClosingBracket, OpeningBracket),
-            listOf(RegexChar('a'), Union, RegexChar('b')),
-            listOf(RegexChar('a'), Star),
+            listOf(Atom('a'), Union, Atom('b')),
+            listOf(Atom('a'), Star),
             listOf(OpeningBracket, OpeningBracket, ClosingBracket, ClosingBracket)
         )
 
@@ -63,7 +63,7 @@ class RegexTokenizerTest {
     @Test
     fun `Some characters escape fine`() {
         val input = """\|\*\.\\\(\)"""
-        val expected = "|*.\\()".map { c: Char -> RegexChar(c) }
+        val expected = "|*.\\()".map { c: Char -> Atom(c) }
 
         val regexTokenizer = RegexTokenizer()
         val actual = regexTokenizer.tokenize(input)
