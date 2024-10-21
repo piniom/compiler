@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
 
     // MockK for mocking
-    testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation(libs.io.mockk)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
@@ -37,7 +37,7 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(22)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
