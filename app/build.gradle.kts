@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
 
     // MockK for mocking
-    testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation(libs.io.mockk)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

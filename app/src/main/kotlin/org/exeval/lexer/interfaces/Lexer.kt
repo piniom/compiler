@@ -7,3 +7,4 @@ import org.exeval.utilities.interfaces.OperationResult
 interface Lexer {
     fun run(input: Input): OperationResult<List<LexerToken>>
 }
+
