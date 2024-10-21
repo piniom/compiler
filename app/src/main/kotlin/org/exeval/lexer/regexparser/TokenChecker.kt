@@ -16,7 +16,7 @@ class TokenChecker {
                 is RegexToken.OpeningBracket -> openingStack.add(i)
                 is RegexToken.ClosingBracket -> {
                     if (openingStack.isEmpty()) {
-                        throw BadRegexFormatException("Too much brackets at index $i")
+                        throw BadRegexFormatException(TOO_MUCH_BRACKETS_ERROR.format(i))
                     }
                     openingStack.pop()
                 }
@@ -25,16 +25,16 @@ class TokenChecker {
             }
         }
         if (openingStack.isNotEmpty()) {
-            throw BadRegexFormatException("Bracket at ${openingStack.peek()} was never closed")
+            throw BadRegexFormatException(NOT_CLOSED_BRACKET_ERROR.format(openingStack.peek()))
         }
     }
 
     private fun checkOperators(tokens: List<RegexToken>) {
         if (tokens.first() in setOf(RegexToken.Union, RegexToken.Star)) {
-            throw BadRegexFormatException("First symbol is Union or Star")
+            throw BadRegexFormatException(FIRST_SYMBOL_ERROR)
         }
         if (tokens.last() == RegexToken.Union) {
-            throw BadRegexFormatException("Last symbol is Union")
+            throw BadRegexFormatException(LAST_SYMBOL_ERROR)
         }
         for (i in 1..<(tokens.size - 1)) {
             val prev = tokens[i - 1]
@@ -45,14 +45,20 @@ class TokenChecker {
                         RegexToken.Union,
                         RegexToken.OpeningBracket
                     )
-                ) throw BadRegexFormatException("There is illegal combination of operators starting at ${i - 1}")
+                ) throw BadRegexFormatException(ILLEGAL_OPERATORS_ERROR.format(i - 1))
                 if (next in setOf(
                         RegexToken.Union,
                         RegexToken.Star,
                         RegexToken.ClosingBracket
                     )
-                ) throw BadRegexFormatException("There is illegal combination of operators starting at $i")
+                ) throw BadRegexFormatException(ILLEGAL_OPERATORS_ERROR.format(i))
             }
         }
     }
 }
+
+private const val TOO_MUCH_BRACKETS_ERROR = "Too much brackets at index %d"
+private const val NOT_CLOSED_BRACKET_ERROR = "Bracket at %d was never closed"
+private const val FIRST_SYMBOL_ERROR = "First symbol is Union or Star"
+private const val LAST_SYMBOL_ERROR = "Last symbol is Union"
+private const val ILLEGAL_OPERATORS_ERROR = "There is illegal combination of operators starting at %d"

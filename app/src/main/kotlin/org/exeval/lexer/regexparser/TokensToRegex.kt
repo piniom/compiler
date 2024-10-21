@@ -35,7 +35,7 @@ class TokensToRegex {
                 }
 
                 else -> {
-                    throw BadRegexFormatException("Something is wrong at $first")
+                    throw BadRegexFormatException(SOMETHING_WRONG_ERROR.format(first))
                 }
             }
         }
@@ -58,10 +58,12 @@ class TokensToRegex {
                 RegexToken.ClosingBracket, is RegexToken.Group, is RegexToken.RegexChar -> {
                     if (checkForConcat(i)) lastOperators.lastConcatAfter = i
                 }
+
                 RegexToken.Star -> {
                     lastOperators.lastStar = i
                     if (checkForConcat(i)) lastOperators.lastConcatAfter = i
                 }
+
                 RegexToken.Union -> lastOperators.lastUnion = i
             }
 
@@ -173,3 +175,5 @@ private data class LastOperators(
     var lastConcatAfter: Int? = null,
     var lastStar: Int? = null
 )
+
+private const val SOMETHING_WRONG_ERROR = "Something is wrong at %d"

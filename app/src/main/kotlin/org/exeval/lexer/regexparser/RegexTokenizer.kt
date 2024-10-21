@@ -15,18 +15,18 @@ class RegexTokenizer {
                 ')' -> RegexToken.ClosingBracket
                 '.' -> RegexToken.Group(ASCII)
                 '\\' -> run {
-                    if (i == pattern.length - 1) throw BadRegexFormatException("You cannot escape the end of the regex")
+                    if (i == pattern.length - 1) throw BadRegexFormatException(ESCAPE_END_ERROR)
 
                     val next = pattern[++i]
                     val groupOfNext = groupMap[next]
 
                     if (groupOfNext != null) return@run groupOfNext
                     if (next in escapableCharacters) return@run RegexToken.RegexChar(next)
-                    throw BadRegexFormatException("Tried to escape character $next at index $i. Cannot do this since this is neither a group nor an escapable character")
+                    throw BadRegexFormatException(NON_ESCAPABLE_CHAR_ERROR.format(next, i))
                 }
 
                 in ASCII -> RegexToken.RegexChar(cur)
-                else -> throw BadRegexFormatException("Non-ASCII character $cur at index $i")
+                else -> throw BadRegexFormatException(NON_ASCII_CHAR_ERROR.format(cur, i))
             })
             i++
         }
@@ -58,3 +58,8 @@ private val groupMap: Map<Char, RegexToken.Group> = mapOf(
 )
 
 private val escapableCharacters: Set<Char> = setOf('|', '*', '\\', '(', ')', '.')
+
+private const val ESCAPE_END_ERROR = "You cannot escape the end of the regex"
+private const val NON_ESCAPABLE_CHAR_ERROR =
+    "Tried to escape character %c index %d. Cannot do this since this is neither a group nor an escapable character"
+private const val NON_ASCII_CHAR_ERROR = "Non-ASCII character %s at index %d"
