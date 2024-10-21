@@ -4,11 +4,11 @@ import org.exeval.automata.interfaces.DFA
 import org.exeval.automata.interfaces.NFA
 import org.exeval.lexer.interfaces.DFAParser
 
-class DFAPars : DFAParser<Int> {
+class DFAParserImpl : DFAParser<Int> {
     private var nextConfigNumber: Int = 0
     private var configsNumbers: MutableMap<Set<Int>, Int> = mutableMapOf();
 
-    class ParsedDFA<Int> : DFA<Int> {
+    private class ParsedDFA<Int> : DFA<Int> {
         override val startState: Int
         var acceptStates = mutableSetOf<Int>()
         public var tmap = mutableMapOf<Int,MutableMap<Char,Int>>()
