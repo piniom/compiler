@@ -1,8 +1,7 @@
-package org.exeval.automata
+package org.exeval.lexer
 
 import org.exeval.automata.providers.SampleDFAProvider
 import org.exeval.input.SimpleLocation
-import org.exeval.input.interfaces.Location
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

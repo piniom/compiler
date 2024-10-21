@@ -1,6 +1,5 @@
 package org.exeval.lexer
 
-import org.exeval.automata.DFAWalker
 import org.exeval.automata.interfaces.DFA
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
