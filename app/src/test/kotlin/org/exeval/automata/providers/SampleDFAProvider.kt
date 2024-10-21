@@ -10,6 +10,9 @@ class SampleDFAProvider
     val emptyStringDFA: DFA<String> = initEmptyStringDFA()
     val aStarIntDFA: DFA<Int> = initAStarIntDFA()
     val aStarStringDFA: DFA<String> = initAStarStringDFA()
+
+    val aPlusIntDFA: DFA<Int> = initAPlusIntDFA()
+    val cPlusIntDFA: DFA<Int> = initCPlusIntDFA()
     val aLastAcceptingIntDFA: DFA<Int> = initALastAcceptingIntDFA()
     val bLastAcceptingStringDFA: DFA<String> = initBLastAcceptingStringDFA()
     val abStarStringDFA: DFA<String> = initABStarStringDFA()
@@ -54,6 +57,30 @@ class SampleDFAProvider
         every { dfa.isDead("ala") } returns false
         every { dfa.isAccepting("ala") } returns true
         every { dfa.transitions("ala") } returns mapOf<Char, String>('a' to "ala")
+        return dfa
+    }
+
+    private fun initAPlusIntDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
+        every { dfa.startState } returns 0
+        every { dfa.isDead(0) } returns false
+        every { dfa.isAccepting(0) } returns false
+        every { dfa.transitions(0) } returns mapOf<Char, Int>('a' to 1 )
+        every { dfa.isDead(1) } returns false
+        every { dfa.isAccepting(1) } returns true
+        every { dfa.transitions(1) } returns mapOf<Char, Int>('a' to 1 )
+        return dfa
+    }
+
+    private fun initCPlusIntDFA(): DFA<Int> {
+        var dfa = mockk<DFA<Int>>()
+        every { dfa.startState } returns 0
+        every { dfa.isDead(0) } returns false
+        every { dfa.isAccepting(0) } returns false
+        every { dfa.transitions(0) } returns mapOf<Char, Int>('c' to 1 )
+        every { dfa.isDead(1) } returns false
+        every { dfa.isAccepting(1) } returns true
+        every { dfa.transitions(1) } returns mapOf<Char, Int>('c' to 1 )
         return dfa
     }
 
