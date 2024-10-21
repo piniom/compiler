@@ -30,24 +30,25 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
 
     public fun run(): OperationResult<LexerToken?> {
         while (activeWalkers.isNotEmpty()) {
-            val char = this.input.nextChar() ?: break;
+            val char = this.input.nextChar() ?: break
+            val walkersToDeactivate = mutableListOf<DFAWalker<*>>() // Create a list to store walkers to deactivate
+
             for ((walker, category) in activeWalkers) {
-                if (!walker.transition(char, input.location) || walker.isDead()) this.deactivateWalker(walker)
+                if (!walker.transition(char, input.location) || walker.isDead()) {
+                    walkersToDeactivate.add(walker) // Add the walker to the list
+                }
             }
+            deactivateWalkers(walkersToDeactivate)
             this.text.append(char)
         }
-        for ((walker, category) in activeWalkers) {
-            this.deactivateWalker(walker)
-        }
+        deactivateWalkers(activeWalkers.keys.toList())
         val (walker, _) = accepted.entries.firstOrNull() ?: return OperationResult(
             null,
             listOf(SimpleDiagnostics("String \"$text\" didn't match any tokens!", this.start, this.input.location))
         )
         val acceptedLoc = walker.maxAccepting!!
-        if (acceptedLoc != this.input.location) {
-            this.input.location = acceptedLoc
-            this.input.nextChar()
-        }
+        this.input.location = acceptedLoc
+
         return OperationResult(
             SimpleLexerToken(
                 accepted.values.toSet(),
@@ -59,12 +60,18 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
         )
     }
 
+    private fun deactivateWalkers(walkers: List<DFAWalker<*>>) {
+        for (walker in walkers) {
+            this.deactivateWalker(walker)
+        }
+    }
+
     private fun deactivateWalker(walker: DFAWalker<*>) {
         val category = this.activeWalkers.remove(walker) ?: throw Exception("Walker not present!")
         if (walker.maxAccepting == null) return
         val any = accepted.entries.firstOrNull()
         if (any == null || walker.compareTo(any.key) == 0) {
-            accepted.put(walker, category)
+            accepted[walker] = category
             return
         }
         if (walker.compareTo(any.key) < 0) return
