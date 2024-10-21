@@ -12,11 +12,11 @@ class DFAWalker<S>(start: Location, private val dfa: DFA<S>) : Comparable<DFAWal
 
     val maxAcceptingCount: Int
         get() = _maxAcceptingCount
-    private var count: Int
+    private var count: Int = 0
     init {
         this.currentState = dfa.startState
         this._maxAccepting = if (dfa.isAccepting(currentState)) start else null;
-        this.count = if (dfa.isAccepting(currentState)) 0 else -1;
+        this._maxAcceptingCount = if (dfa.isAccepting(currentState)) 0 else -1;
     }
 
     public fun isDead(): Boolean {
