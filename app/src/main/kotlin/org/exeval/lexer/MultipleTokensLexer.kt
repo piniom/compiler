@@ -12,7 +12,7 @@ class MultipleTokensLexer(private val dfas: Map<DFA<*>, TokenCategory>) : Lexer 
     override fun run(input: Input): OperationResult<List<LexerToken>> {
         val tokens = mutableListOf<LexerToken>()
         val diagnostics = mutableListOf<Diagnostics>()
-        while (input.hasNextChar()) {
+        while (!inputIsFinished(input)) {
             val res = SingleTokenLexer(this.dfas, input).run()
             if (res.result != null) tokens.addLast(res.result)
             diagnostics.addAll(res.diagnostics)
@@ -21,5 +21,11 @@ class MultipleTokensLexer(private val dfas: Map<DFA<*>, TokenCategory>) : Lexer 
             result = tokens,
             diagnostics = diagnostics
         )
+    }
+    private fun inputIsFinished(input: Input): Boolean {
+        val loc = input.location
+        val result = input.nextChar() == null
+        input.location = loc
+        return result
     }
 }
