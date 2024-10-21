@@ -4,8 +4,8 @@ import org.exeval.automata.DFAWalker
 import org.exeval.automata.interfaces.DFA
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
-import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.SimpleLexerToken
+import org.exeval.utilities.diagnostics.TextDidNotMatchAnyTokensDiagnostics
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
 import org.exeval.utilities.interfaces.TokenCategory
@@ -44,7 +44,7 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
         deactivateWalkers(activeWalkers.keys.toList())
         val (walker, _) = accepted.entries.firstOrNull() ?: return OperationResult(
             null,
-            listOf(SimpleDiagnostics("String \"$text\" didn't match any tokens!", this.start, this.input.location))
+            listOf(TextDidNotMatchAnyTokensDiagnostics.create(text.toString(), this.start, this.input.location))
         )
         val acceptedLoc = walker.maxAccepting!!
         this.input.location = acceptedLoc

@@ -4,8 +4,8 @@ import org.exeval.automata.interfaces.DFA
 import org.exeval.automata.providers.SampleDFAProvider
 import org.exeval.input.SimpleLocation
 import org.exeval.input.StringInput
-import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.StringTokenCategory
+import org.exeval.utilities.diagnostics.TextDidNotMatchAnyTokensDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.TokenCategory
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -157,8 +157,7 @@ class SingleTokenLexerTest {
         assertNull(token)
         assertEquals(
             listOf(
-                SimpleDiagnostics(
-                    "String \"bbb\" didn't match any tokens!",
+                TextDidNotMatchAnyTokensDiagnostics.create("bbb",
                     // This is what i get from the StringInput class, it's probably wront
                     SimpleLocation(0, -1),
                     SimpleLocation(1, 0)
