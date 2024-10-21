@@ -10,8 +10,8 @@ import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.TokenCategory
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import kotlin.test.Test
-import kotlin.test.assertNull
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertNull
 
 class SingleTokenLexerTest {
 

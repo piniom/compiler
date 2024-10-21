@@ -6,7 +6,7 @@ import org.exeval.input.StringInput
 import org.exeval.utilities.StringTokenCategory
 import org.exeval.utilities.interfaces.TokenCategory
 import org.junit.jupiter.api.Assertions.*
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 
 class MultipleTokensLexerTest {
 

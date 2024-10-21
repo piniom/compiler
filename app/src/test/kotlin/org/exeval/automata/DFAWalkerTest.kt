@@ -4,9 +4,9 @@ import org.exeval.automata.providers.SampleDFAProvider
 import org.exeval.input.SimpleLocation
 import org.exeval.input.interfaces.Location
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 
 class DFAWalkerTest {
 
