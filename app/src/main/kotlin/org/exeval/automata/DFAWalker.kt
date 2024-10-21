@@ -2,7 +2,7 @@ package org.exeval.automata
 
 import org.exeval.automata.interfaces.DFA
 import org.exeval.input.interfaces.Location
-class DFAWalker<S>(private val start: Location, private val dfa: DFA<S>) : Comparable<DFAWalker<*>> {
+class DFAWalker<S>(start: Location, private val dfa: DFA<S>) : Comparable<DFAWalker<*>> {
     private var currentState: S
     private var _maxAccepting: Location?
 
@@ -12,11 +12,11 @@ class DFAWalker<S>(private val start: Location, private val dfa: DFA<S>) : Compa
 
     val maxAcceptingCount: Int
         get() = _maxAcceptingCount
-    private var count: Int = 0
-
+    private var count: Int
     init {
         this.currentState = dfa.startState
-        this._maxAccepting = null
+        this._maxAccepting = if (dfa.isAccepting(currentState)) start else null;
+        this.count = if (dfa.isAccepting(currentState)) 0 else -1;
     }
 
     public fun isDead(): Boolean {
