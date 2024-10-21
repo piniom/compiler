@@ -36,6 +36,9 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
             }
             this.text.append(char)
         }
+        for ((walker, category) in activeWalkers) {
+            this.deactivateWalker(walker)
+        }
         val (walker, _) = accepted.entries.firstOrNull() ?: return OperationResult(
             null,
             listOf(SimpleDiagnostics("String \"$text\" didn't match any tokens!", this.start, this.input.location))
