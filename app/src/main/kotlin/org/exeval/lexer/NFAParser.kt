@@ -5,11 +5,11 @@ import kotlin.jvm.internal.iterator
 import kotlin.collections.mutableMapOf
 
 
-class NFAParserImpl<S>: NFAParser<S>{
+class NFAParserImpl<Any>: NFAParser{
 
-    val stateFabric: (Int) -> S
+    val stateFabric: (Int) -> Any 
 
-    constructor(fabric: (Int) -> S){
+    constructor(fabric: (Int) -> Any){
         stateFabric = fabric
     }
     inner class NFAImpl<S>: NFA<S>{
@@ -70,7 +70,7 @@ class NFAParserImpl<S>: NFAParser<S>{
         }
     }
 
-    fun parseInner(regex: Regex, cnt: Int): NFAImpl<S> {
+    fun parseInner(regex: Regex, cnt: Int): NFAImpl<Any> {
         var mutCnt: Int = cnt
         val startState = stateFabric(mutCnt++)
         val acceptingState = stateFabric(mutCnt++)
@@ -98,7 +98,7 @@ class NFAParserImpl<S>: NFAParser<S>{
         }
     }
 
-    override fun parse(regex: Regex): NFA<S>{
+    override fun parse(regex: Regex): NFA<Any>{
         return parseInner(regex, 0)
     }
 
