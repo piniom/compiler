@@ -2,7 +2,6 @@ package org.exeval.input
 
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
-import org.exeval.input.interfaces.SimpleLocation
 import java.io.File
 import java.io.InputStream
 

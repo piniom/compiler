@@ -3,6 +3,7 @@ package org.exeval.input
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
 
+
 class StringInput(inputStr: String) : Input {
     private var idx = 0
     private var line = 0
