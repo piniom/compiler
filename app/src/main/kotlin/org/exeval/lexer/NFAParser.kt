@@ -1,3 +1,5 @@
+package org.exeval.lexer
+
 import org.exeval.lexer.interfaces.NFAParser
 import org.exeval.automata.interfaces.NFA
 import org.exeval.automata.interfaces.Regex
@@ -5,36 +7,36 @@ import kotlin.jvm.internal.iterator
 import kotlin.collections.mutableMapOf
 
 
-class NFAParserImpl<Any>: NFAParser{
+public class NFAParserImpl: NFAParser{
 
     val stateFabric: (Int) -> Any 
 
     constructor(fabric: (Int) -> Any){
         stateFabric = fabric
     }
-    inner class NFAImpl<S>: NFA<S>{
+    inner class NFAImpl<Any>: NFA<Any>{
 
-        var trans = mutableMapOf<S, MutableMap<Char, S>>()
-        var eTrans = mutableMapOf<S, MutableSet<S>>()
-        override val startState: S 
-        override val acceptingState: S 
+        var trans = mutableMapOf<Any, MutableMap<Char, Any>>()
+        var eTrans = mutableMapOf<Any, MutableSet<Any>>()
+        override val startState: Any 
+        override val acceptingState: Any 
 
-        constructor(start:S, acs:S, c: Char) {
+        constructor(start:Any, acs:Any, c: Char) {
             startState = start
             acceptingState = acs
-            eTrans.put(startState, mutableSetOf<S>())
-            eTrans.put(acceptingState, mutableSetOf<S>())
-            trans.put(startState, mutableMapOf<Char, S>())
-            trans.put(acceptingState, mutableMapOf<Char, S>())
+            eTrans.put(startState, mutableSetOf<Any>())
+            eTrans.put(acceptingState, mutableSetOf<Any>())
+            trans.put(startState, mutableMapOf<Char, Any>())
+            trans.put(acceptingState, mutableMapOf<Char, Any>())
             trans[start]!!.put(c, acceptingState)
         }
-        constructor(start: S, acs: S, nfa1: NFAImpl<S>, nfa2: NFAImpl<S>, regex: Regex){
+        constructor(start: Any, acs: Any, nfa1: NFAImpl<Any>, nfa2: NFAImpl<Any>, regex: Regex){
             startState = start
             acceptingState = acs
-            eTrans.put(startState, mutableSetOf<S>())
-            eTrans.put(acceptingState, mutableSetOf<S>())
-            trans.put(startState, mutableMapOf<Char, S>())
-            trans.put(acceptingState, mutableMapOf<Char, S>())
+            eTrans.put(startState, mutableSetOf<Any>())
+            eTrans.put(acceptingState, mutableSetOf<Any>())
+            trans.put(startState, mutableMapOf<Char, Any>())
+            trans.put(acceptingState, mutableMapOf<Char, Any>())
             when(regex){
                 is Regex.Union ->{
                     eTrans[startState]!!.add(nfa1.startState)
@@ -47,25 +49,27 @@ class NFAParserImpl<Any>: NFAParser{
                     eTrans[nfa1.acceptingState]!!.add(nfa2.startState)
                     eTrans[nfa2.acceptingState]!!.add(acceptingState)
                 }
-                else
+                else -> {
+
+                }
             }
         }
-        constructor(start: S, acs: S, nfa: NFAImpl<S>){
+        constructor(start: Any, acs: Any, nfa: NFAImpl<Any>){
             startState = start
             acceptingState = acs 
-            eTrans.put(startState, mutableSetOf<S>())
-            eTrans.put(acceptingState, mutableSetOf<S>())
-            trans.put(startState, mutableMapOf<Char, S>())
-            trans.put(acceptingState, mutableMapOf<Char, S>())
+            eTrans.put(startState, mutableSetOf<Any>())
+            eTrans.put(acceptingState, mutableSetOf<Any>())
+            trans.put(startState, mutableMapOf<Char, Any>())
+            trans.put(acceptingState, mutableMapOf<Char, Any>())
             eTrans[startState]!!.add(nfa.startState)
             eTrans[nfa.acceptingState]!!.add(startState)
         }
 
-        override fun transitions(state: S): Map<Char, S>{
+        override fun transitions(state: Any): Map<Char, Any>{
             return trans[state]!!.toMap()
         }
         
-        override fun eTransitions(state: S): Set<S>{
+        override fun eTransitions(state: Any): Set<Any>{
             return eTrans[state]!!.toSet()
         }
     }
