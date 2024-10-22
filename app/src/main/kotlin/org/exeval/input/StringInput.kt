@@ -4,11 +4,11 @@ import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
 
 class StringInput(inputStr: String) : Input {
-    private var idx = -1
+    private var idx = 0
     private var line = 0
 
     private val splitReg = Regex("(?<=,)|(?=,)")
-    private val lines = inputStr.split(splitReg)
+    private val lines = inputStr.split(splitReg).filter { it != ","}
 
     override var location: Location
         get() {
@@ -19,20 +19,19 @@ class StringInput(inputStr: String) : Input {
             line = value.line
         }
 
+
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
-        var currentLine = lines[line]
+        var currentLine = lines[line].trim()
+        var c = currentLine[idx]
 
         ++idx
         while (idx >= currentLine.length) {
             idx = 0
             ++line
-
-            if (isAfterLastLine()) return null
-            currentLine = lines[idx]
         }
 
-        return currentLine[idx]
+        return c
     }
 
     private fun isAfterLastLine(): Boolean {

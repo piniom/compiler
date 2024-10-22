@@ -58,7 +58,7 @@ class DFAminTest{
         var base = minDFA<String>(start, accepting, transitions)
         var min = minobj.minimize(base)
 
-        assert(minobj.getStates(min).size == 3)
+        assert(minobj.getStates(min).size == 2)
     }
 
     @Test
@@ -67,17 +67,18 @@ class DFAminTest{
         var accepting = mutableSetOf("X")
         var transitions = mutableMapOf(
             "A" to mutableMapOf('0' to "B", '1' to "C"),
-            "B" to mutableMapOf('0' to "D", '1' to "E"),
-            "C" to mutableMapOf('0' to "F", '1' to "E"),
+            "B" to mutableMapOf('0' to "D", '1' to "A"),
+            "C" to mutableMapOf('0' to "F", '1' to "A"),
             "D" to mutableMapOf('0' to "X"),
-            "F" to mutableMapOf('0' to "X")
+            "F" to mutableMapOf('0' to "X"),
+            "X" to mutableMapOf('0' to "A")
         )
 
         var minobj = DFAmin<String>()
         var base = minDFA<String>(start, accepting, transitions)
         var min = minobj.minimize(base)
 
-        assert(minobj.getStates(min).size == 5)
+        assert(minobj.getStates(min).size == 4)
     }
 
     @Test
@@ -88,7 +89,7 @@ class DFAminTest{
             "A" to mutableMapOf('0' to "B"),
             "B" to mutableMapOf('0' to "C"),
             "C" to mutableMapOf('0' to "D"),
-            "D" to mutableMapOf('0' to "E"),
+            "D" to mutableMapOf('0' to "A"),
         )
 
         var minobj = DFAmin<String>()
@@ -103,9 +104,10 @@ class DFAminTest{
         var start = "A"
         var accepting = mutableSetOf("D")
         var transitions = mutableMapOf(
-            "A" to MutableMapOf('0' to "B", '1' to "C", '2' to "D"),
-            "B" to MutableMapOf('0' to "C", '1' to "D"),
-            "C" to MutableMapOf('0' to "D")
+            "A" to mutableMapOf('0' to "B", '1' to "C", '2' to "D"),
+            "B" to mutableMapOf('0' to "C", '1' to "D"),
+            "C" to mutableMapOf('0' to "D"),
+            "D" to mutableMapOf('0' to "A"),
         )
 
         var minobj = DFAmin<String>()

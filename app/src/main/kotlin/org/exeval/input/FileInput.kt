@@ -8,7 +8,7 @@ import java.io.InputStream
 
 class FileInput(filename: String) : Input {
     private val file = filename
-    private var idx = -1
+    private var idx = 0
     private var line = 0
 
     private val splitReg = Regex("(?<=,)|(?=,)")
@@ -26,7 +26,7 @@ class FileInput(filename: String) : Input {
         val inputStream: InputStream = File(file).inputStream()
         val lineList = mutableListOf<String>()
         inputStream.bufferedReader().forEachLine {
-            val lines = it.split(splitReg)
+            val lines = it.split(splitReg).filter { it != ","}
             for (line in lines) {
                 lineList.add(line)
             }
@@ -39,18 +39,16 @@ class FileInput(filename: String) : Input {
 
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
-        var currentLine = lines[line]
+        var currentLine = lines[line].trim()
+        var c = currentLine[idx]
 
         ++idx
         while (idx >= currentLine.length) {
             idx = 0
             ++line
-
-            if (isAfterLastLine()) return null
-            currentLine = lines[idx]
         }
 
-        return currentLine[idx]
+        return c
     }
 
 
