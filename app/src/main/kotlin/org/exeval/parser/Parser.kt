@@ -1,4 +1,13 @@
 package org.exeval.parser
 
-class Parser {
+import org.exeval.parser.interfaces.ParseTree
+
+class Parser<S> {
+    constructor(grammar: AnalyzedGrammar<S>) {
+        //...
+    }
+
+    fun run(leaves: List<ParseTree.Leaf<S>>) {
+        //...
+    }
 }
