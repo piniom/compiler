@@ -7,7 +7,7 @@ class Parser<S> {
         //...
     }
 
-    fun run(leaves: List<ParseTree.Leaf<S>>): ParseTree<S> {
+    fun run(leaves: List<ParseTree.Leaf<S>>) {
         //...
     }
 }
