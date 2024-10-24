@@ -3,7 +3,7 @@ package org.exeval.grammar
 import org.exeval.parser.Grammar
 import org.exeval.parser.AnalyzedGrammar
 
-class nullable{
+class anaslysis{
     /*
     note to testers:
     empty sybol can be set, or can be denoted as empty transition ('A'->list())
@@ -32,7 +32,7 @@ class nullable{
             }
             return nullable
         }
-        fun <C>analyse(g: Grammar<C>,empty:C?=null):AnalyzedGrammar<C>{
+        fun <C>analyseGrammar(g: Grammar<C>,empty:C?=null):AnalyzedGrammar<C>{
             var transitions: Map<C,MutableSet<List<C>>> = mapOf()
             g.productions.forEach{
                 transitions.getOrDefault(it.left, mutableSetOf()).add(it.right)
