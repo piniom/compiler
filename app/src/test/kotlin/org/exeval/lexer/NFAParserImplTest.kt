@@ -36,7 +36,7 @@ class NFAParserImplTest {
     fun testUnionRegexParsing() {
         val atom1 = Regex.Atom('a')
         val atom2 = Regex.Atom('b')
-        val unionRegex = Regex.Union(listOf(atom1, atom2))
+        val unionRegex = Regex.Union(setOf(atom1, atom2))
 
         val nfa = parser.parse(unionRegex) as NFAParserImpl.NFAImpl<Any>
 
@@ -65,7 +65,7 @@ class NFAParserImplTest {
         val atom2 = Regex.Atom('b')
         val atom3 = Regex.Atom('c')
         val unionConcatRegex = Regex.Union(
-            listOf(
+            setOf(
                 Regex.Concat(listOf(atom1, atom2)),
                 atom3
             )
