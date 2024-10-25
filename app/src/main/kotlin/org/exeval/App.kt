@@ -3,6 +3,8 @@
  */
 package org.exeval
 
+import org.exeval.lexer.regexparser.RegexParserImpl
+
 class App {
     val greeting: String
         get() {
@@ -11,5 +13,7 @@ class App {
 }
 
 fun main() {
+    val regexParser = RegexParserImpl()
+
     println(App().greeting)
 }
