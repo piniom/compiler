@@ -4,11 +4,11 @@ import org.exeval.automata.interfaces.DFA
 import org.exeval.automata.interfaces.NFA
 import org.exeval.lexer.interfaces.DFAParser
 
-class DFAParserImpl : DFAParser<Int> {
+class DFAParserImpl<S> : DFAParser<S> {
     private var nextConfigNumber: Int = 0
-    private var configsNumbers: MutableMap<Set<Int>, Int> = mutableMapOf();
+    private var configsNumbers: MutableMap<Set<S>, Int> = mutableMapOf();
 
-    private class ParsedDFA<Int> : DFA<Int> {
+    private class ParsedDFA : DFA<Int> {
         override val startState: Int
         var acceptStates = mutableSetOf<Int>()
         public var tmap = mutableMapOf<Int,MutableMap<Char,Int>>()
@@ -28,11 +28,11 @@ class DFAParserImpl : DFAParser<Int> {
         }
     }
 
-    override fun parse(nfa: NFA<Int>): DFA<Int> {
+    override fun parse(nfa: NFA<S>): DFA<*> {
         var processedConfigs = mutableSetOf<Int>()
         var configsTransitions = mutableMapOf<Int, MutableMap<Char, Int>>()
         var startConfig = nfa.eTransitions(nfa.startState) + nfa.startState
-        var workList = ArrayDeque<Pair<Int, Set<Int>>>()
+        var workList = ArrayDeque<Pair<Int, Set<S>>>()
         var startConfigNumber = getConfigNumber(startConfig)
         var acceptingConfigsNumbers = mutableSetOf<Int>()
         if (containsAcceptingState(nfa, startConfig)) {
@@ -56,16 +56,16 @@ class DFAParserImpl : DFAParser<Int> {
             }
         }
 
-        return ParsedDFA<Int>(
+        return ParsedDFA(
             startConfigNumber, acceptingConfigsNumbers, configsTransitions
         )
     }
 
-    private fun containsAcceptingState(nfa: NFA<Int>, states: Set<Int>): Boolean {
+    private fun containsAcceptingState(nfa: NFA<S>, states: Set<S>): Boolean {
         return states.any { s ->  nfa.acceptingState == s }
     }
 
-    private fun getConfigNumber(config: Set<Int>): Int {
+    private fun getConfigNumber(config: Set<S>): Int {
         return (configsNumbers[config] ?: run {
             nextConfigNumber++
             configsNumbers[config] = nextConfigNumber
@@ -73,8 +73,8 @@ class DFAParserImpl : DFAParser<Int> {
         })
     }
 
-    fun delta(nfa: NFA<Int>, states: Set<Int>, c: Char): Set<Int> {
-        return states.fold(mutableSetOf<Int>()) {
+    fun delta(nfa: NFA<S>, states: Set<S>, c: Char): Set<S> {
+        return states.fold(mutableSetOf<S>()) {
             acc, state ->
                 var nextState = nfa.transitions(state)[c];
                 nextState?.let {
@@ -85,11 +85,11 @@ class DFAParserImpl : DFAParser<Int> {
         }.toSet()
     }
 
-    private fun getAllETransitions(nfa: NFA<Int>, state: Int): Set<Int> {
-        var resultSet = mutableSetOf<Int>()
-        var workList = ArrayDeque<Int>()
+    private fun getAllETransitions(nfa: NFA<S>, state: S): Set<S> {
+        var resultSet = mutableSetOf<S>()
+        var workList = ArrayDeque<S>()
         workList.add(state)
-        var checkedStates = mutableSetOf<Int>()
+        var checkedStates = mutableSetOf<S>()
         while (workList.isNotEmpty()) {
             var s = workList.removeFirst()
             var eTStates = nfa.eTransitions(s)

@@ -52,7 +52,7 @@ class DFAParserImplTest{
         )
         // NFA for "a(b | c)*"
         var nfa = SimpleNFA(start, accepting, t, et)
-        var parsedDFA = DFAParserImpl().parse(nfa)
+        var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(!parsedDFA.isAccepting(state))
         assert(!parsedDFA.isDead(state))
@@ -83,7 +83,7 @@ class DFAParserImplTest{
             0 to setOf(1)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
-        var parsedDFA = DFAParserImpl().parse(nfa)
+        var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
         state = parsedDFA.transitions(state)['a']!!
@@ -97,7 +97,7 @@ class DFAParserImplTest{
         var t = mapOf<Int, Map<Char, Int>>()
         var et = mapOf<Int, Set<Int>>()
         var nfa = SimpleNFA(start, accepting, t, et)
-        var parsedDFA = DFAParserImpl().parse(nfa)
+        var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
         state = parsedDFA.transitions(state)['a']!!
@@ -119,7 +119,7 @@ class DFAParserImplTest{
             0 to setOf(2)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
-        var parsedDFA = DFAParserImpl().parse(nfa)
+        var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
         state = parsedDFA.transitions(state)['a']!!
@@ -147,7 +147,7 @@ class DFAParserImplTest{
             6 to setOf(7)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
-        var parsedDFA = DFAParserImpl().parse(nfa)
+        var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         // AA
         var state = parsedDFA.startState
         assert(!parsedDFA.isAccepting(state))
