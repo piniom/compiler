@@ -23,7 +23,7 @@ class StringInput(inputStr: String) : Input {
 
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
-        var currentLine = lines[line].trim()
+        var currentLine = lines[line]
         var c = currentLine[idx]
 
         ++idx
