@@ -32,10 +32,12 @@ class RawParser<Symbol, State>(
     private val actions: Map<Pair<Symbol, State>, Action<Symbol, State>>,
     private val goto: Map<Pair<Symbol, State>, State>
 ) {
-    private val stack = Stack<Pair<ParseTree<Symbol>, State>>()
+    private inner class StackEntry(val tree: ParseTree<Symbol>, val state: State)
+
+    private infix fun ParseTree<Symbol>.to(state: State): StackEntry = StackEntry(this, state)
 
     fun run(leaves: List<ParseTree.Leaf<Symbol>>): ParseTree<Symbol> {
-        stack.clear()
+        val stack = Stack<StackEntry>()
         stack.push(
             ParseTree.Leaf<Symbol>(
                 startSymbol, leaves.first().startLocation, leaves.last().endLocation
@@ -44,21 +46,22 @@ class RawParser<Symbol, State>(
         var leafI = 0
 
         while (true) {
-            val state: State = stack.peek().second
+            val state: State = stack.peek().state
             val leaf: ParseTree.Leaf<Symbol> = leaves[leafI]
 
             val curAction = actions[leaf.symbol to state]
             if (curAction is Action.Reduce) {
                 val prod = curAction.production
-                val newBranch = takeProductionFromStack(prod)
-                val newState = goto[prod.left to stack.peek().second] ?: throw ParseError("Goto is incomplete")
+                val newBranch = takeProductionFromStack(prod, stack)
+                val newState = goto[prod.left to stack.peek().state]
+                    ?: throw ParseError("Goto is incomplete, no goto for (%s to %s)")
                 stack.push(newBranch to newState)
             } else if (curAction is Action.Shift) {
                 val newState = curAction.state
                 stack.push(leaf to newState)
                 leafI += 1
             } else if (curAction is Action.Accept && leaf.symbol == endSymbol) {
-                return stack.peek().first
+                return stack.peek().tree
             } else {
                 throw ParseError("Parse error at leaf %s".format(leaf))
             }
@@ -66,9 +69,11 @@ class RawParser<Symbol, State>(
 
     }
 
-    private fun takeProductionFromStack(prod: Production<Symbol>): ParseTree.Branch<Symbol> {
+    private fun takeProductionFromStack(
+        prod: Production<Symbol>, stack: Stack<StackEntry>
+    ): ParseTree.Branch<Symbol> {
         val children = mutableListOf<ParseTree<Symbol>>()
-        for (i in 1..prod.right.size) children.add(stack.pop().first)
+        repeat(prod.right.size) { children.add(stack.pop().tree) }
         children.reverse()
         val newBranch = ParseTree.Branch(prod, children, children.first().startLocation, children.last().endLocation)
 
