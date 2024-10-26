@@ -10,7 +10,7 @@ class FileInput(filename: String) : Input {
     private var idx = 0
     private var line = 0
 
-    private val splitReg = Regex("(?<=,)|(?=,)")
+    private val splitReg = Regex("(?<=;)|(?=;)")
 
     override var location: Location
         get() {
@@ -25,7 +25,7 @@ class FileInput(filename: String) : Input {
         val inputStream: InputStream = File(file).inputStream()
         val lineList = mutableListOf<String>()
         inputStream.bufferedReader().forEachLine {
-            val lines = it.split(splitReg).filter { it != ","}
+            val lines = it.split(splitReg).filter { it != ";"}
             for (line in lines) {
                 lineList.add(line)
             }
@@ -39,13 +39,16 @@ class FileInput(filename: String) : Input {
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
         var currentLine = lines[line]
-        var c = currentLine[idx]
 
-        ++idx
         while (idx >= currentLine.length) {
             idx = 0
             ++line
+
+            if(isAfterLastLine()) return null else currentLine = lines[line]
         }
+
+        var c = currentLine[idx]
+        ++idx
 
         return c
     }

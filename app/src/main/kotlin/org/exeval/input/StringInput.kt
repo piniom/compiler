@@ -8,8 +8,8 @@ class StringInput(inputStr: String) : Input {
     private var idx = 0
     private var line = 0
 
-    private val splitReg = Regex("(?<=,)|(?=,)")
-    private val lines = inputStr.split(splitReg).filter { it != ","}
+    private val splitReg = Regex("(?<=;)|(?=;)")
+    private val lines = inputStr.split(splitReg).filter { it != ";"}
 
     override var location: Location
         get() {
@@ -24,13 +24,16 @@ class StringInput(inputStr: String) : Input {
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
         var currentLine = lines[line]
-        var c = currentLine[idx]
 
-        ++idx
         while (idx >= currentLine.length) {
             idx = 0
             ++line
+
+            if(isAfterLastLine()) return null else currentLine = lines[line]
         }
+
+        var c = currentLine[idx]
+        ++idx
 
         return c
     }
