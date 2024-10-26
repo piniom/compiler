@@ -82,14 +82,35 @@ class DFAminTest{
     }
 
     @Test
-    fun deadStateTest(){
+    fun stateAfterAcceptingTest(){
         var start = "A"
         var accepting = mutableSetOf("C")
         var transitions = mutableMapOf(
             "A" to mutableMapOf('0' to "B"),
             "B" to mutableMapOf('0' to "C"),
             "C" to mutableMapOf('0' to "D"),
-            "D" to mutableMapOf('0' to "A"),
+            "D" to mutableMapOf('0' to "E"),
+            "E" to mutableMapOf('0' to "F"),
+            "F" to mutableMapOf('0' to "D")
+        )
+
+        var minobj = DFAmin<String>()
+        var base = minDFA<String>(start, accepting, transitions)
+        var min = minobj.minimize(base)
+
+        assert(minobj.getStates(min).size == 4)
+    }
+
+    @Test
+    fun deadStateTest(){
+        var start = "A"
+        var accepting = mutableSetOf("C")
+        var transitions = mutableMapOf(
+            "A" to mutableMapOf('0' to "B"),
+            "B" to mutableMapOf('0' to "C"),
+            "C" to mutableMapOf('0' to "A"),
+            "D" to mutableMapOf('0' to "F"),
+            "F" to mutableMapOf('0' to "D")
         )
 
         var minobj = DFAmin<String>()
