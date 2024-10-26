@@ -19,47 +19,50 @@ public class NFAParserImpl: NFAParser{
         var trans = mutableMapOf<Any, MutableMap<Char, Any>>()
         var eTrans = mutableMapOf<Any, MutableSet<Any>>()
         override val startState: Any 
-        override val acceptingState: Any 
+        override val acceptingState: Any
 
         constructor(start:Any, acs:Any, c: Char) {
             startState = start
             acceptingState = acs
-            eTrans.put(startState, mutableSetOf<Any>())
-            eTrans.put(acceptingState, mutableSetOf<Any>())
-            trans.put(startState, mutableMapOf<Char, Any>())
-            trans.put(acceptingState, mutableMapOf<Char, Any>())
-            trans[start]!!.put(c, acceptingState)
+
+            trans.computeIfAbsent(startState) { mutableMapOf() }[c] = acceptingState
+
+            collapseEpsilonTransitions()
         }
 
-        constructor(start: Any, acs: Any, nfa1: NFAImpl<Any>, nfa2: NFAImpl<Any>, regex: Regex){
+        constructor(start: Any, acs: Any, nfas: List<NFAImpl<Any>>, regex: Regex){
             startState = start
             acceptingState = acs
 
-            trans.putAll(nfa1.trans)
-            trans.putAll(nfa2.trans)
-            eTrans.putAll(nfa1.eTrans)
-            eTrans.putAll(nfa2.eTrans)
+            for (nfa in nfas) {
+                trans.putAll(nfa.trans)
+                eTrans.putAll(nfa.eTrans)
+            }
 
-            eTrans[startState] = mutableSetOf()
-            eTrans[acceptingState] = mutableSetOf()
-            trans[startState] = mutableMapOf()
-            trans[acceptingState] = mutableMapOf()
             when(regex){
                 is Regex.Union ->{
-                    eTrans[startState]!!.add(nfa1.startState)
-                    eTrans[startState]!!.add(nfa2.startState)
-                    eTrans[nfa1.acceptingState]!!.add(acceptingState)
-                    eTrans[nfa2.acceptingState]!!.add(acceptingState)
+                    eTrans.computeIfAbsent(startState) { mutableSetOf() }
+                    for (nfa in nfas) {
+                        eTrans[startState]!!.add(nfa.startState)
+                        eTrans.computeIfAbsent(nfa.acceptingState) { mutableSetOf() }.add(acceptingState)
+                    }
                 }
                 is Regex.Concat -> {
-                    eTrans[startState]!!.add(nfa1.startState)
-                    eTrans[nfa1.acceptingState]!!.add(nfa2.startState)
-                    eTrans[nfa2.acceptingState]!!.add(acceptingState)
+                    for (i in 0 until nfas.size - 1) {
+                        val currentNFA = nfas[i]
+                        val nextNFA = nfas[i + 1]
+                        eTrans.computeIfAbsent(currentNFA.acceptingState) { mutableSetOf() }.add(nextNFA.startState)
+                    }
+
+                    eTrans.computeIfAbsent(startState) { mutableSetOf() }.add(nfas.first().startState)
+                    eTrans.computeIfAbsent(nfas.last().acceptingState) { mutableSetOf() }.add(acceptingState)
                 }
                 else -> {
 
                 }
             }
+
+            collapseEpsilonTransitions()
         }
 
         constructor(start: Any, acs: Any, nfa: NFAImpl<Any>, regex: Regex) {
@@ -69,10 +72,8 @@ public class NFAParserImpl: NFAParser{
             trans.putAll(nfa.trans)
             eTrans.putAll(nfa.eTrans)
 
-            eTrans[startState] = mutableSetOf()
-            eTrans[acceptingState] = mutableSetOf()
-            trans[startState] = mutableMapOf()
-            trans[acceptingState] = mutableMapOf()
+            eTrans.computeIfAbsent(startState) { mutableSetOf() }
+            eTrans.computeIfAbsent(nfa.acceptingState) { mutableSetOf() }
 
             when(regex){
                 is Regex.Star ->{
@@ -85,6 +86,8 @@ public class NFAParserImpl: NFAParser{
 
                 }
             }
+
+            collapseEpsilonTransitions()
         }
 
 
@@ -95,6 +98,46 @@ public class NFAParserImpl: NFAParser{
         override fun eTransitions(state: Any): Set<Any>{
             return eTrans[state]!!.toSet()
         }
+
+        private fun collapseEpsilonTransitions() {
+            val newETrans = mutableMapOf<Any, MutableSet<Any>>()
+            val states = mutableSetOf<Any>()
+
+            states.addAll(trans.keys)
+
+            for (valueMap in trans.values) {
+                states.addAll(valueMap.values)
+            }
+
+            states.add(startState)
+            states.add(acceptingState)
+
+            for (state in states) {
+                newETrans[state] = computeDirectEpsilonClosure(state, states)
+            }
+
+            eTrans = newETrans
+        }
+
+        private fun computeDirectEpsilonClosure(state: Any, states: Set<Any>): MutableSet<Any> {
+            val visited = mutableSetOf<Any>()
+            val stack = ArrayDeque<Any>()
+            stack.add(state)
+
+            while (stack.isNotEmpty()) {
+                val current = stack.removeLast()
+                if (visited.add(current)) {
+                    val neighbors = eTrans[current] ?: emptySet()
+                    stack.addAll(neighbors)
+                }
+            }
+
+            visited.remove(state)
+
+            visited.retainAll(states)
+
+            return visited
+        }
     }
 
     fun parseInner(regex: Regex, cnt: Int): NFAImpl<Any> {
@@ -103,28 +146,32 @@ public class NFAParserImpl: NFAParser{
         val acceptingState = stateFabric(mutCnt++)
         return when(regex){
             is Regex.Atom -> NFAImpl(startState, acceptingState, regex.char)
-            is Regex.Star-> NFAImpl(startState, acceptingState, parseInner(regex.expression, mutCnt), regex)
+            is Regex.Star-> {
+                val innerNFA = parseInner(regex.expression, mutCnt)
+                mutCnt += 2
+                NFAImpl(startState, acceptingState, innerNFA, regex)
+            }
             is Regex.Union -> {
                 val nfas = regex.expressions.map { expression ->
                     val nfa = parseInner(expression, mutCnt)
-                    mutCnt += nfa.trans.size + nfa.eTrans.size
+                    mutCnt += nfa.trans.count { it.value.isNotEmpty() } + nfa.eTrans.count { it.value.isNotEmpty() }
+                    if (nfa.trans.isNotEmpty()) mutCnt += 1
+                    if (nfa.eTrans.isNotEmpty() && nfa.eTrans.values.any { it.isNotEmpty() }) mutCnt += 1
                     nfa
                 }
 
-                nfas.reduce { combinedNFA, currentNFA ->
-                    NFAImpl(startState, acceptingState, combinedNFA, currentNFA, regex)
-                }
+                NFAImpl(startState, acceptingState, nfas, regex)
             } 
             is Regex.Concat->{
                 val nfas = regex.expressions.map { expression ->
                     val nfa = parseInner(expression, mutCnt)
-                    mutCnt += nfa.trans.size + nfa.eTrans.size
+                    mutCnt += nfa.trans.count { it.value.isNotEmpty() } + nfa.eTrans.count { it.value.isNotEmpty() }
+                    if (nfa.trans.isNotEmpty()) mutCnt += 1
+                    if (nfa.eTrans.isNotEmpty() && nfa.eTrans.values.any { it.isNotEmpty() }) mutCnt += 1
                     nfa
                 }
 
-                nfas.reduce { combinedNFA, currentNFA ->
-                    NFAImpl(startState, acceptingState, combinedNFA, currentNFA, regex)
-                }
+                NFAImpl(startState, acceptingState, nfas, regex)
             }
         }
     }

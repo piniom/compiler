@@ -77,4 +77,39 @@ class NFAParserImplTest {
         assertEquals(1, nfa.acceptingState)
         assertEquals(nfa.eTransitions(0).size, 2)
     }
+
+    @Test
+    fun testComplexUnion() {
+        val atom1 = Regex.Atom('a')
+        val atom2 = Regex.Atom('b')
+        val atom3 = Regex.Atom('c')
+        val unionRegex = Regex.Union(setOf(atom1, atom2, atom3))
+
+        val nfa = parser.parse(unionRegex) as NFAParserImpl.NFAImpl<Any>
+
+        assertEquals(0, nfa.startState)
+        assertEquals(1, nfa.acceptingState)
+        assertEquals(nfa.eTransitions(0).size, 3)
+    }
+
+    @Test
+    fun testComplexNestedUnions() {
+        val atom1 = Regex.Atom('a')
+        val atom2 = Regex.Atom('b')
+        val atom3 = Regex.Atom('c')
+        val unionRegex1 = Regex.Union(setOf(atom1, atom2))
+        val unionRegex2 = Regex.Union(setOf(unionRegex1, atom3))
+
+        val nfa = parser.parse(unionRegex2) as NFAParserImpl.NFAImpl<Any>
+
+        assertEquals(0, nfa.startState)
+        assertEquals(1, nfa.acceptingState)
+
+        val middleStates = nfa.eTransitions(nfa.startState)
+        assertEquals(middleStates.size, 3)
+
+        val firstState = middleStates.first()
+        val firstStateAfter = nfa.transitions(firstState).values.first()
+        assertEquals(nfa.eTransitions(firstStateAfter).first(), nfa.acceptingState)
+    }
 }
