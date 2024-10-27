@@ -7,7 +7,7 @@ fun <S> createFirstSet(grammar: Grammar<S>, nullable: Set<S>): Map<S, List<S>> {
         addPossibleStates(
             crateMapWithOnlyKeySymbol(grammar), grammar, nullable
         )
-    ).mapValues { it.value.toList() }
+    ).mapValues { it.value.distinct() }
 }
 
 private fun <S> crateMapWithOnlyKeySymbol(grammar: Grammar<S>): Map<S, MutableList<S>> {
@@ -20,7 +20,8 @@ private fun <S> addPossibleStates(
     first.forEach { (symbol, firstForSymbol) ->
         grammar.productions.filter { it.left == symbol && it.right.isNotEmpty() }.forEach { productions ->
             for (currentSymbol in productions.right) {
-                firstForSymbol.add(symbol)
+                if (!firstForSymbol.contains(currentSymbol) )
+                    firstForSymbol.add(currentSymbol)
                 if (!nullable.contains(currentSymbol)) break
             }
         }
