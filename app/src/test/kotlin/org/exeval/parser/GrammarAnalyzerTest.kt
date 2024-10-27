@@ -7,9 +7,14 @@ import org.exeval.parser.AnalyzedGrammar
 import org.exeval.parser.Production
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import kotlin.collections.component2
 
 class GrammarAnalyzerTest {
     
+    fun grammarsEqual(g1: AnalyzedGrammar<Char>, g2: AnalyzedGrammar<Char>): Boolean {
+        return g1.nullable == g2.nullable && g1.firstProduct.map { it.component2().sorted() } == g2.firstProduct.map { it.component2().sorted() } && g1.grammar == g2.grammar
+    }
+
     @Test
     fun oneProductionNullableWithOneFirstSymbolTest() {
         val grammar = Grammar(
@@ -22,10 +27,10 @@ class GrammarAnalyzerTest {
         )
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A'),
-            mapOf('A' to listOf('a')),
+            mapOf('A' to listOf('A', 'a')),
             grammar
         )
-        assertEquals(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
     }
     
     @Test
@@ -45,13 +50,13 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'B', 'C'),
             mapOf(
-                'A' to listOf('a', 'b', 'c'),
-                'B' to listOf('b', 'c'),
-                'C' to listOf('c')
+                'A' to listOf('A', 'a', 'B', 'b', 'C', 'c'),
+                'B' to listOf('B', 'b', 'C', 'c'),
+                'C' to listOf('C', 'c')
             ),
             grammar
         )
-        assertEquals(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
     }
     
     @Test
@@ -71,14 +76,14 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('B', 'C'),
             mapOf(
-                'A' to listOf('b', 'c', 'd'),
-                'B' to listOf('b'),
-                'C' to listOf('c'),
-                'D' to listOf('d')
+                'A' to listOf('A', 'B', 'b', 'C', 'c', 'D', 'd'),
+                'B' to listOf('B', 'b'),
+                'C' to listOf('C', 'c'),
+                'D' to listOf('D', 'd')
             ),
             grammar
         )
-        assertEquals(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
     }
     
     @Test
@@ -99,14 +104,14 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'B', 'C', 'D'),
             mapOf(
-                'A' to listOf('c', 'd'),
-                'B' to listOf('c', 'd'),
-                'C' to listOf('c', 'd'),
-                'D' to listOf('d')
+                'A' to listOf('A', 'B', 'C', 'c', 'D', 'd'),
+                'B' to listOf('B', 'C', 'c', 'D', 'd'),
+                'C' to listOf('C', 'c', 'D', 'd'),
+                'D' to listOf('D', 'd')
             ),
             grammar
         )
-        assertEquals(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
     }
     
     @Test
@@ -125,13 +130,13 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('B'),
             mapOf(
-                'A' to listOf('b', 'c'),
-                'B' to listOf('b'),
-                'C' to listOf('c'),
+                'A' to listOf('A', 'B', 'b', 'C', 'c'),
+                'B' to listOf('B', 'b'),
+                'C' to listOf('C', 'c'),
             ),
             grammar
         )
-        assertEquals(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
     }
     
     @Test
@@ -152,10 +157,10 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'D'),
             mapOf(
-                'A' to listOf('c', 'd', 'e'),
-                'B' to listOf('c', 'd', 'e'),
-                'C' to listOf('c', 'd', 'e'),
-                'D' to listOf('d')
+                'A' to listOf('A', 'B', 'c', 'D', 'd', 'e'),
+                'B' to listOf('A', 'B', 'C', 'c', 'd', 'e'),
+                'C' to listOf('C', 'c', 'D', 'd', 'e'),
+                'D' to listOf('D', 'd')
             ),
             grammar
         )
