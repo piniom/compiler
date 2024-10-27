@@ -6,11 +6,10 @@ import org.exeval.parser.Grammar
 class GrammarAnalyser {
     /*
     note to testers:
-    empty sybol can be set, or can be denoted as empty transition ('A'->list())
-
+    empty symbol can be set, or can be denoted as empty transition ('A'->list())
     */
     companion object {
-        fun <C> getNullable(grammar: Map<C, Set<List<C>>>, empty: C?): Set<C> {
+        private fun <C> getNullable(grammar: Map<C, Set<List<C>>>, empty: C?): Set<C> {
             var nullable: MutableSet<C> = if (empty != null) mutableSetOf(empty) else mutableSetOf()
             while (true) {
                 val newNullable = nullable.toMutableSet()
@@ -34,9 +33,9 @@ class GrammarAnalyser {
         }
 
         fun <C> analyseGrammar(grammar: Grammar<C>, empty: C? = null): AnalyzedGrammar<C> {
-            val transitions: Map<C, MutableSet<List<C>>> = mapOf()
+            val transitions: MutableMap<C, MutableSet<List<C>>> = mutableMapOf()
             grammar.productions.forEach {
-                transitions.getOrDefault(it.left, mutableSetOf()).add(it.right)
+                transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
             }
 
             val nullable = getNullable(transitions, empty)
