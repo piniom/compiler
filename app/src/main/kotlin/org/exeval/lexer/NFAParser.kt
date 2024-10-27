@@ -92,11 +92,11 @@ public class NFAParserImpl: NFAParser{
 
 
         override fun transitions(state: Any): Map<Char, Any>{
-            return trans[state]!!.toMap()
+            return trans[state]?.toMap() ?: emptyMap()
         }
         
         override fun eTransitions(state: Any): Set<Any>{
-            return eTrans[state]!!.toSet()
+            return eTrans[state]?.toSet() ?: emptySet()
         }
 
         private fun collapseEpsilonTransitions() {
