@@ -21,6 +21,7 @@ class InputTests {
                 assertFalse(false, "Badly matched input")
             }
         }
+        assertEquals(null, inputClass.nextChar())
 
         assertTrue(true, "Correctly matched")
     }
@@ -34,6 +35,7 @@ class InputTests {
                 assertFalse(false, "Badly matched input")
             }
         }
+        assertEquals(null, inputClass.nextChar())
 
         assertTrue(true, "Correctly matched")
     }
@@ -41,36 +43,36 @@ class InputTests {
 
     @Test
     fun instructionsTest() {
-        val input = "a,b,c"
+        val input = "a;b;c"
         val output = "abc"
         stringInputTest(input, output)
     }
 
     @Test
     fun whitespacesTest() {
-        val input = "a, b , c"
-        val output = "abc"
+        val input = "a; b ; c"
+        val output = "a b  c"
         stringInputTest(input, output)
     }
 
     @Test
     fun multicharTest() {
-        val input = "aaa, bbb, cdf"
-        val output = "aaabbbcdf"
+        val input = "aaa; bbb; cdf"
+        val output = "aaa bbb cdf"
         stringInputTest(input, output)
     }
 
     @Test
     fun commasTest() {
-        val input = ",,,"
+        val input = ";;;"
         val output = ""
         stringInputTest(input, output)
     }
 
     @Test
     fun emptyLinesTest() {
-        val input = "  , ,,"
-        val output = ""
+        val input = "  ; ;;"
+        val output = "   "
         stringInputTest(input, output)
     }
 
@@ -84,21 +86,21 @@ class InputTests {
     @Test
     fun fileInstructionTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/instructions.txt").absolute()
-        val output = ""
+        val output = "a;b;c"
         fileInputTest(filename.toString(), output)
     }
 
     @Test
     fun fileWhitespacesTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/whitespaces.txt").absolute()
-        val output = ""
+        val output = "a; b ; c"
         fileInputTest(filename.toString(), output)
     }
 
     @Test
     fun fileMulticharTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/multichar.txt").absolute()
-        val output = ""
+        val output = "aaa;bbb;cdf"
         fileInputTest(filename.toString(), output)
     }
 
