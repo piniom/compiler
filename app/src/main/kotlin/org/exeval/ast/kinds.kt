@@ -44,7 +44,7 @@ enum class BinaryOperator {
 
 data class UnaryOperation(val operator: UnaryOperator, val operand: Expr) : Expr()
 enum class UnaryOperator {
-    NOT
+    NOT, MINUS
 }
 
 data class FunctionDeclaration(
