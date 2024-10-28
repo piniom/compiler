@@ -9,6 +9,7 @@ import org.exeval.parser.Parser
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.parser.interfaces.ParseTree.Leaf
 import org.exeval.parser.interfaces.ParseTree.Branch
+import org.exeval.parser.utilities.GrammarAnalyser
 
 
 class IntegrationTests() {
@@ -47,8 +48,7 @@ class IntegrationTests() {
             makeBranch(productions[2], listOf(makeLeaf("world", 1)), 1, 1),
             makeLeaf("!", 2)),
             0, 1)
-
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -79,7 +79,8 @@ class IntegrationTests() {
             ), 1, 8),
             makeLeaf("}", 9)
         ), 0, 9)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -110,7 +111,8 @@ class IntegrationTests() {
             makeLeaf("or", 6),
             makeBranch(productions[2], listOf(makeLeaf("false", 7)), 7, 7)
         ), 1, 7)), 0, 7)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -157,7 +159,8 @@ class IntegrationTests() {
                             , 6, 6)),
                     2, 6)),
             0, 6)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -181,7 +184,8 @@ class IntegrationTests() {
             makeBranch(productions[2], listOf(makeLeaf("()", 3)), 3, 3),
             makeLeaf("else", 4),
             makeLeaf("expr", 5)), 0, 5)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -218,7 +222,8 @@ class IntegrationTests() {
                     ), 2, 5),
                 ), 1, 5),
             ),0, 5)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -247,7 +252,8 @@ class IntegrationTests() {
             ), 2, 7))
         ,1, 8),
             makeLeaf("}", 8)), 0, 8)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -286,7 +292,8 @@ class IntegrationTests() {
                 makeBranch(productions[5], listOf(makeLeaf("Nope", 12)), 12, 12)), 11, 12),
             makeBranch(productions[7], listOf(makeLeaf("expr;", 13)), 13, 13)),
             0, 13)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
@@ -335,7 +342,8 @@ class IntegrationTests() {
                     ), 8, 9,)
             ), 4, 9)
         ), 0, 9)
-        val parser = Parser<String>(AnalyzedGrammar<String>(nullable = _, firstProduct = _, grammar))
+
+        val parser = Parser<String>(GrammarAnalyser.analyseGrammar((grammar)))
         //run
         assert(parser.run(leafs) == expected)
     }
