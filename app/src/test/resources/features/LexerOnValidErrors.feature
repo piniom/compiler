@@ -1,8 +1,8 @@
-@lexer @valid
+@lexer @valid @noErrors
 Feature: Lexer without errors
 	Verify lexer does not return any errors on valid source code examples.
 
-	@blocks @notImplemented
+	@blocks
 	Scenario Outline: Valid blocks do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -13,7 +13,7 @@ Feature: Lexer without errors
 			| valid/blocks/limitscope.exe   |
 			| valid/blocks/max.exe          |
 
-	@comments @notImplemented
+	@comments
 	Scenario Outline: Valid comments do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -24,7 +24,7 @@ Feature: Lexer without errors
 			| valid/comments/multi_line_comments.exe  |
 			| valid/comments/single_line_comments.exe |
 
-	@conditionals @notImplemented
+	@conditionals
 	Scenario Outline: Valid conditionals do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -38,7 +38,7 @@ Feature: Lexer without errors
 			| valid/conditionals/ifWithElse.exe               |
 			| valid/conditionals/nestedConditionals.exe       |
 
-	@functions @notImplemented
+	@functions
 	Scenario Outline: Valid functions do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -61,7 +61,7 @@ Feature: Lexer without errors
 			| valid/identifiers/functions.exe |
 			| valid/identifiers/variables.exe |
 
-	@loops @notImplemented
+	@loops
 	Scenario Outline: Valid loops do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -74,7 +74,7 @@ Feature: Lexer without errors
 			| valid/loops/MultipleBreaksWithTheSameType.exe       |
 			| valid/loops/NestedLoopsBreaksProperlyWithLabels.exe |
 
-	@separators @notImplemented
+	@separators
 	Scenario Outline: Valid separators do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -85,7 +85,7 @@ Feature: Lexer without errors
 			| valid/separator/instructionBlock.exe    |
 			| valid/separator/valueOfFunctions.exe    |
 
-	@variables @notImplemented
+	@variables
 	Scenario Outline: Valid variables do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
@@ -98,7 +98,7 @@ Feature: Lexer without errors
 			| valid/variables/InitializingVariables.exe        |
 			| valid/variables/ReassigningVariables.exe         |
 
-	@various @notImplemented
+	@various
 	Scenario Outline: Valid programs using various features do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer

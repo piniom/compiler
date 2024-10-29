@@ -1,5 +1,6 @@
 package org.exeval.cucumber
 
+import io.cucumber.java.DataTableType
 import io.cucumber.java.en.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.Assert.*
@@ -9,6 +10,7 @@ import org.exeval.buildInput
 import org.exeval.input.interfaces.Input
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
+import org.exeval.utilities.TokenCategories
 
 private val logger = KotlinLogging.logger {}
 
@@ -43,5 +45,30 @@ class StepDefs {
             fail("Lexer output not known. Step starting lexer must be run first.")
         }
     }
+
+	@Then("returned token list matches")
+	fun verifyReturnedTokenList(expectedTokens: List<ExpectedToken>) {
+		val returnedTokens = lexerOutput.result
+		assertEquals(expectedTokens.size, returnedTokens.size)
+
+		expectedTokens.zip(returnedTokens).forEach { pair ->
+			val expected = pair.component1()
+			val returned = pair.component2()
+			assertEquals(expected.text, returned.text)
+			assertEquals(expected.categories, returned.categories)
+		}
+	}
+
+	data class ExpectedToken(val text: String, val categories: Set<TokenCategories>)
+
+	@DataTableType
+	fun expectedTokenEntry(entry: Map<String, String>): ExpectedToken {
+		return ExpectedToken(
+			entry["text"] ?: "",
+			entry["categories"]?.let {
+				it.split(", ").map{ TokenCategories.valueOf(it) }.toSet()
+			} ?: emptySet()
+		)
+	}
 
 }
