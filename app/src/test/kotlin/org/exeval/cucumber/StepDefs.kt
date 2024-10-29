@@ -4,6 +4,8 @@ import io.cucumber.java.en.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.Assert.*
 
+import org.exeval.buildLexer
+import org.exeval.buildInput
 import org.exeval.input.interfaces.Input
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
@@ -17,30 +19,28 @@ class StepDefs {
 
     @Given("ExEval source code file {string}")
     fun readSourceCodeFile(fileName: String) {
-        logger.error { "FileInput implementation needed" }
+        sourceCode = buildInput("src/test/resources/programs/${fileName}")
     }
 
     @When("source code is passed through lexer")
     fun prepareAndRunLexer() {
-        /*
-        val lexer: Lexer = //???
+        val lexer = buildLexer()
         try {
-            lexerOutput = lexer.run(input)
+            lexerOutput = lexer.run(sourceCode)
         } catch (e: UninitializedPropertyAccessException) {
-            //fail("Input not known. Step providing source code must be run first.")
-            logger.error { "FileInput implementation needed" }
+            fail("Input not known. Step providing source code must be run first.")
         }
-        */
-        logger.error { "Lexer implementation needed" }
     }
 
     @Then("no errors are returned")
     fun ensureThereAreNoErrors() {
         try {
-            assertEquals(lexerOutput.diagnostics.size, 0);
+            for (diagnostic in lexerOutput.diagnostics) {
+                logger.info{"unexpected diagnostic: ${diagnostic.message}"}
+            }
+            assertEquals(0, lexerOutput.diagnostics.size);
         } catch (e: UninitializedPropertyAccessException) {
-            //fail("Lexer output not known. Step starting lexer must be run first.")
-            logger.error { "Lexer implementation needed" }
+            fail("Lexer output not known. Step starting lexer must be run first.")
         }
     }
 

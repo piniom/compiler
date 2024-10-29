@@ -51,7 +51,7 @@ Feature: Lexer without errors
 			| valid/foonctions/nestedFunction.exe          |
 			| valid/foonctions/recursiveFunction.exe       |
 
-	@identifiers @notImplemented
+	@identifiers
 	Scenario Outline: Valid identifiers do not cause lexer errors
 		Given ExEval source code file "<sourceFile>"
 		When source code is passed through lexer
