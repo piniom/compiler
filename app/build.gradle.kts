@@ -26,7 +26,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
 
     // MockK for mocking
-    testImplementation("io.mockk:mockk:1.13.4")
+    testImplementation(libs.io.mockk)
 
     // Cucumber with JUnit engine for larger, flow tests.
     testImplementation("io.cucumber:cucumber-java:7.20.1")
