@@ -11,7 +11,9 @@ data object IntType : Type()
 data object NopeType : Type()
 data object BoolType : Type()
 
-sealed class VariableDeclarationBase : Expr() {
+sealed interface AnyVariable
+
+sealed class VariableDeclarationBase : AnyVariable, Expr() {
     abstract val name: String
     abstract val type: Type
     abstract val initializer: Expr?
@@ -54,7 +56,7 @@ data class FunctionDeclaration(
     val body: Expr
 ) : Expr()
 
-data class Parameter(val name: String, val type: Type) : ASTNode
+data class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
 data class FunctionCall(
     val functionName: String,
