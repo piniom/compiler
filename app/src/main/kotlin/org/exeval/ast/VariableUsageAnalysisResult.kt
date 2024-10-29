@@ -1,5 +1,5 @@
 package org.exeval.ast
 
-import FunctionDeclaration
+import Expr
 
-typealias VariableUsageAnalysisResult = Map<FunctionDeclaration, VariableUsage>
+typealias VariableUsageAnalysisResult = Map<Expr, VariableUsage>
