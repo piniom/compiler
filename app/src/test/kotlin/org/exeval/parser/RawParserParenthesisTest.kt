@@ -1,16 +1,10 @@
-package org.exeval.parser.parser
+package org.exeval.parser
 
 import org.exeval.input.interfaces.Location
-import org.exeval.parser.Action
-import org.exeval.parser.Grammar
-import org.exeval.parser.ParseError
-import org.exeval.parser.Production
-import org.exeval.parser.RawParser
 import org.exeval.parser.interfaces.ParseTree
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-
 
 class RawParserParenthesisTest {
     // ParenthesisSymbol - ParSym, it's symbol in the grammar that codes valid parenthesis sequences
@@ -69,7 +63,7 @@ class RawParserParenthesisTest {
         (ParSym.PAIR to 7) to 6,
         (ParSym.PAIR to 11) to 9,
     )
-    private val rawParser = RawParser<ParSym, Int>(grammar.startSymbol, grammar.endOfParse, 0, actions, goto)
+    private val parser = RawParser<ParSym, Int>(grammar.startSymbol, grammar.endOfParse, Tables(0, actions, goto))
 
     @Test
     fun `() works`() {
@@ -86,7 +80,7 @@ class RawParserParenthesisTest {
             ), 0.toLoc(), 1.toLoc()
         )
 
-        val actual = rawParser.run(leaves)
+        val actual = parser.run(leaves)
 
         assertEquals(expected, actual)
     }
@@ -124,7 +118,7 @@ class RawParserParenthesisTest {
             ), 0.toLoc(), 5.toLoc()
         )
 
-        val actual = rawParser.run(leaves)
+        val actual = parser.run(leaves)
 
         assertEquals(expected, actual)
     }
@@ -133,14 +127,14 @@ class RawParserParenthesisTest {
     fun `()) throws error`() {
         val leaves = stringToLeaves("())")
 
-        assertThrows<ParseError> { rawParser.run(leaves) }
+        assertThrows<ParseError> { parser.run(leaves) }
     }
 
     @Test
     fun `(() throws error`() {
         val leaves = stringToLeaves("(()")
 
-        assertThrows<ParseError> { rawParser.run(leaves) }
+        assertThrows<ParseError> { parser.run(leaves) }
     }
 
     private fun stringToLeaves(str: String): List<ParseTree.Leaf<ParSym>> {
@@ -159,7 +153,6 @@ class RawParserParenthesisTest {
         return body + tail
     }
 }
-
 
 private data class Loc(
     override val idx: Int
