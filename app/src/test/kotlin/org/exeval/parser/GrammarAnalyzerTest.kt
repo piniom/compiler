@@ -27,7 +27,7 @@ class GrammarAnalyzerTest {
         )
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A'),
-            mapOf('A' to listOf('A', 'a')),
+            mapOf('A' to setOf('A', 'a')),
             grammar
         )
         assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
@@ -50,9 +50,9 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'B', 'C'),
             mapOf(
-                'A' to listOf('A', 'a', 'B', 'b', 'C', 'c'),
-                'B' to listOf('B', 'b', 'C', 'c'),
-                'C' to listOf('C', 'c')
+                'A' to setOf('A', 'a', 'B', 'b', 'C', 'c'),
+                'B' to setOf('B', 'b', 'C', 'c'),
+                'C' to setOf('C', 'c')
             ),
             grammar
         )
@@ -76,10 +76,10 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('B', 'C'),
             mapOf(
-                'A' to listOf('A', 'B', 'b', 'C', 'c', 'D', 'd'),
-                'B' to listOf('B', 'b'),
-                'C' to listOf('C', 'c'),
-                'D' to listOf('D', 'd')
+                'A' to setOf('A', 'B', 'b', 'C', 'c', 'D', 'd'),
+                'B' to setOf('B', 'b'),
+                'C' to setOf('C', 'c'),
+                'D' to setOf('D', 'd')
             ),
             grammar
         )
@@ -104,10 +104,10 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'B', 'C', 'D'),
             mapOf(
-                'A' to listOf('A', 'B', 'C', 'c', 'D', 'd'),
-                'B' to listOf('B', 'C', 'c', 'D', 'd'),
-                'C' to listOf('C', 'c', 'D', 'd'),
-                'D' to listOf('D', 'd')
+                'A' to setOf('A', 'B', 'C', 'c', 'D', 'd'),
+                'B' to setOf('B', 'C', 'c', 'D', 'd'),
+                'C' to setOf('C', 'c', 'D', 'd'),
+                'D' to setOf('D', 'd')
             ),
             grammar
         )
@@ -130,9 +130,9 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('B'),
             mapOf(
-                'A' to listOf('A', 'B', 'b', 'C', 'c'),
-                'B' to listOf('B', 'b'),
-                'C' to listOf('C', 'c'),
+                'A' to setOf('A', 'B', 'b', 'C', 'c'),
+                'B' to setOf('B', 'b'),
+                'C' to setOf('C', 'c'),
             ),
             grammar
         )
@@ -157,10 +157,10 @@ class GrammarAnalyzerTest {
         val analyzedGrammar = AnalyzedGrammar(
             setOf('A', 'D'),
             mapOf(
-                'A' to listOf('A', 'B', 'C', 'c', 'D', 'd', 'e'),
-                'B' to listOf('A', 'B', 'C', 'c', 'D', 'd', 'e'),
-                'C' to listOf('C', 'c', 'D', 'd', 'e'),
-                'D' to listOf('D', 'd')
+                'A' to setOf('A', 'B', 'C', 'c', 'D', 'd', 'e'),
+                'B' to setOf('A', 'B', 'C', 'c', 'D', 'd', 'e'),
+                'C' to setOf('C', 'c', 'D', 'd', 'e'),
+                'D' to setOf('D', 'd')
             ),
             grammar
         )
