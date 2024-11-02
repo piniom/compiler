@@ -139,7 +139,7 @@ class SingleTokenLexerTest {
         assertNotNull(token)
         assertEquals("aa", token?.text)
         assertEquals(setOf(StringTokenCategory("ALast1"), StringTokenCategory("ALast2")), token?.categories)
-        assertEquals(SimpleLocation(0, 1), input.location )
+        assertEquals(SimpleLocation(0, 2), input.location )
     }
 
     @Test
@@ -159,7 +159,7 @@ class SingleTokenLexerTest {
             listOf(
                 TextDidNotMatchAnyTokensDiagnostics.create("bbb",
                     // This is what i get from the StringInput class, it's probably wront
-                    SimpleLocation(0, -1),
+                    SimpleLocation(0, 0),
                     SimpleLocation(1, 0)
                 )
             ),
