@@ -48,7 +48,11 @@ class StepDefs {
 
 	@Then("returned token list matches")
 	fun verifyReturnedTokenList(expectedTokens: List<ExpectedToken>) {
-		val returnedTokens = lexerOutput.result
+		// Ignore whitespaces for test definition clarity
+		val returnedTokens = lexerOutput.result.filter {
+			it.categories.size != 1
+			|| !it.categories.contains(TokenCategories.Whitespace)
+		}
 		assertEquals(expectedTokens.size, returnedTokens.size)
 
 		expectedTokens.zip(returnedTokens).forEach { pair ->

@@ -5,6 +5,8 @@ This is the list of tokens available in our language, alongside their descriptio
 ```
 
 punctuation_semicolon := ;
+punctuation_colon := :
+punctuation_comma := ,
 punctuation_arrow := ->
 punctuation_monkey := @
 punctuation_left_curly_bracket := {
@@ -44,9 +46,11 @@ keyword_return := return
 keyword_let := let
 keyword_mut := mut
 
-identifier_type := \u(\l)*
+identifier_type := \u(\l|\u)*
 identifier_nontype := (\l|_)(\i)*
 identifier_entrypoint := main
+
+whitespace := \s
 
 ```
 
