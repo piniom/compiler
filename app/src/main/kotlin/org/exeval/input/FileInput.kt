@@ -2,14 +2,15 @@ package org.exeval.input
 
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
+import java.io.File
+import java.io.InputStream
 
-
-class StringInput(inputStr: String) : Input {
+class FileInput(filename: String) : Input {
+    private val file = filename
     private var idx = 0
     private var line = 0
 
     private val splitReg = Regex("(?<=;)|(?=;)")
-    private val lines = inputStr.split(splitReg).filter { it != ";"}
 
     override var location: Location
         get() {
@@ -20,6 +21,20 @@ class StringInput(inputStr: String) : Input {
             line = value.line
         }
 
+    fun readFile(): List<String> {
+        val inputStream: InputStream = File(file).inputStream()
+        val lineList = mutableListOf<String>()
+        inputStream.bufferedReader().forEachLine {
+            val lines = it.split(splitReg).filter { it != ";"}
+            for (line in lines) {
+                lineList.add(line)
+            }
+        }
+
+        return lineList
+    }
+
+    val lines: List<String> = readFile()
 
     override fun nextChar(): Char? {
         if (isAfterLastLine()) return null
@@ -37,6 +52,7 @@ class StringInput(inputStr: String) : Input {
 
         return c
     }
+
 
     private fun isAfterLastLine(): Boolean {
         return line >= lines.size
