@@ -1,3 +1,5 @@
+import org.exeval.ast.Type
+
 data class Program(val functions: List<FunctionDeclaration>) : ASTNode
 
 interface ASTNode
@@ -5,11 +7,6 @@ interface ASTNode
 sealed class Expr : ASTNode
 
 data class Block(val expressions: List<Expr>) : Expr()
-
-sealed class Type : ASTNode
-data object IntType : Type()
-data object NopeType : Type()
-data object BoolType : Type()
 
 sealed interface AnyVariable
 
