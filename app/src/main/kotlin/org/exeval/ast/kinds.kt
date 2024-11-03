@@ -32,6 +32,7 @@ data class Assignment(val variable: String, val value: Expr) : Expr()
 
 sealed class Literal : Expr()
 data class IntLiteral(val value: Int) : Literal()
+data class BoolLiteral(val value: Boolean) : Literal()
 data object NopeLiteral : Literal()
 data class VariableReference(val name: String) : Expr()
 
