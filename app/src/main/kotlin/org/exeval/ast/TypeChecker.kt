@@ -18,16 +18,18 @@ import NopeLiteral
 import Parameter
 import Program
 import UnaryOperation
+import UnaryOperator
 import VariableReference
+import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
 
-class TypeChecker(private val nameResolutionResult: NameResolution) {
+class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult: NameResolution) {
     private val typeMap: MutableMap<Expr, Type> = mutableMapOf()
-    private val diagnostics: List<Diagnostics> = mutableListOf()
+    private val diagnostics: MutableList<Diagnostics> = mutableListOf()
 
-    public fun parse(astNode: ASTNode) : OperationResult<TypeMap> {
-        innerParse(astNode)
+    public fun parse() : OperationResult<TypeMap> {
+        innerParse(astInfo.root)
 
         return OperationResult(typeMap, diagnostics)
     }
@@ -54,7 +56,7 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
 
             is FunctionDeclaration -> getFunctionDeclarationType(astNode)
             is FunctionCall -> getFunctionCallType(astNode)
-            else -> return null
+            else -> addDiagnostic("Failed to find expression!", astNode)
         }
 
         return typeMap[astNode]
@@ -67,30 +69,38 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
         val elseType = conditional.elseBranch?.let { innerParse(it) }
 
         if (conditionType != BoolType) {
-            //TODO: Error - expression has to be bool
+            addDiagnostic("Condition expression must be Bool", conditional.condition)
         }
 
         if (thenType != elseType) {
-            //TODO: Error - then and else has to be the same type
+            addDiagnostic("Then and else branches must have the same type", conditional)
         }
 
         thenType?.let { typeMap[conditional] = thenType }
     }
 
     private fun getBinaryOperationType(binaryOperation: BinaryOperation) {
-        var leftType = innerParse(binaryOperation.left)
-        var rightType = innerParse(binaryOperation.right)
+        val leftType = innerParse(binaryOperation.left)
+        val rightType = innerParse(binaryOperation.right)
 
-        //TODO ASK - what comes first
         if (leftType != rightType) {
-            //TODO: Error - operations do not match
+            addDiagnostic("Operands of binary operation must have the same type", binaryOperation)
         }
 
         leftType?.let { typeMap[binaryOperation] = leftType }
     }
 
     private fun getUnaryOperationType(unaryOperation: UnaryOperation) {
-        var operandType = innerParse(unaryOperation.operand)
+        val operandType = innerParse(unaryOperation.operand)
+
+        when (unaryOperation.operator) {
+            UnaryOperator.NOT -> if (operandType != BoolType) {
+                addDiagnostic("Operand of NOT must be Bool", unaryOperation)
+            }
+            UnaryOperator.MINUS -> if (operandType != IntType) {
+                addDiagnostic("Operand of MINUS must be Int", unaryOperation)
+            }
+        }
 
         operandType?.let { typeMap[unaryOperation] = operandType }
     }
@@ -123,7 +133,7 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
         val initializerType = innerParse(constantDeclaration.initializer)
 
         if (initializerType != constantDeclaration.type) {
-            //TODO: Error - incorrect type
+            addDiagnostic("Initializer type does not match declared type", constantDeclaration.initializer)
         }
 
         typeMap[constantDeclaration] = constantDeclaration.type
@@ -133,7 +143,7 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
         if (initializerType != mutableVariableDeclaration.type) {
-            //TODO: Error - incorrect type
+            addDiagnostic("Initializer type does not match declared type", mutableVariableDeclaration.initializer ?: mutableVariableDeclaration)
         }
 
         typeMap[mutableVariableDeclaration] = mutableVariableDeclaration.type
@@ -145,7 +155,10 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
             is ConstantDeclaration -> variable.type
             is MutableVariableDeclaration -> variable.type
             is Parameter -> variable.type
-            else -> error("Unknown variable declaration type")
+            else -> {
+                addDiagnostic("Unknown variable declaration type", variableReference)
+                NopeType
+            }
         }
 
         typeMap[variableReference] = variableType
@@ -157,34 +170,51 @@ class TypeChecker(private val nameResolutionResult: NameResolution) {
             is ConstantDeclaration -> innerParse(variable)
             is MutableVariableDeclaration -> innerParse(variable)
             is Parameter -> variable.type
-            else -> error("Unknown variable declaration type")
+            else -> {
+                addDiagnostic("Unknown variable assignment type", assignment)
+                NopeType
+            }
         }
 
         val valueType = innerParse(assignment.value)
 
         if (valueType != variableType) {
-            //TODO: Error - assigmenet type is incorrect
+            addDiagnostic("Assignment type does not match variable type", assignment.value)
         }
 
         valueType?.let { typeMap[assignment] = valueType }
     }
 
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {
-        var bodyType = innerParse(functionDeclaration.body)
+        val bodyType = innerParse(functionDeclaration.body)
 
         if (bodyType != functionDeclaration.returnType) {
-            //TODO: Error - body returns different type then declared return
+            addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
         bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
     }
 
     private fun getFunctionCallType(functionCall: FunctionCall) {
-        var functionDecl = nameResolutionResult.functionToDecl[functionCall]
+        val functionDecl = nameResolutionResult.functionToDecl[functionCall]
 
-        var functionType = functionDecl?.let { innerParse(it) }
+        val functionType = functionDecl?.let { innerParse(it) }
 
         functionType?.let { typeMap[functionCall] = functionType }
     }
 
+    // Additional private methods
+
+    private fun addDiagnostic(message: String, astNode: ASTNode) {
+        val locationRange = astInfo.locations[astNode]
+
+        if (locationRange != null) {
+            diagnostics.add(
+                SimpleDiagnostics(
+                    message = message,
+                    startLocation = locationRange.start,
+                    stopLocation = locationRange.end)
+            )
+        }
+    }
 }
