@@ -9,8 +9,8 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                    |
-			| valid/blocks/blockinblock.exe |
-			| valid/blocks/limitscope.exe   |
+			| valid/blocks/blockInBlock.exe |
+			| valid/blocks/limitScope.exe   |
 			| valid/blocks/max.exe          |
 
 	@comments
@@ -20,9 +20,9 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                              |
-			| valid/comments/mixing_comments.exe      |
-			| valid/comments/multi_line_comments.exe  |
-			| valid/comments/single_line_comments.exe |
+			| valid/comments/mixingComments.exe      |
+			| valid/comments/multiLineComments.exe  |
+			| valid/comments/singleLineComments.exe |
 
 	@conditionals
 	Scenario Outline: Valid conditionals do not cause lexer errors

@@ -1,4 +1,4 @@
-import org.exeval.ast.Type
+package org.exeval.ast
 
 data class Program(val functions: List<FunctionDeclaration>) : ASTNode
 
@@ -32,7 +32,11 @@ data class Assignment(val variable: String, val value: Expr) : Expr()
 
 sealed class Literal : Expr()
 data class IntLiteral(val value: Int) : Literal()
+
+data class BoolLiteral(val value: Boolean) : Literal()
 data object NopeLiteral : Literal()
+
+
 data class VariableReference(val name: String) : Expr()
 
 data class BinaryOperation(val left: Expr, val operator: BinaryOperator, val right: Expr) : Expr()

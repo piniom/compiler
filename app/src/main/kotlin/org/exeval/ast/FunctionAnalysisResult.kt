@@ -1,8 +1,5 @@
 package org.exeval.ast
 
-import AnyVariable
-import FunctionDeclaration
-
 data class FunctionAnalysisResult(
     val callGraph: CallGraph,
     val staticParents: Map<FunctionDeclaration, FunctionDeclaration?>,
