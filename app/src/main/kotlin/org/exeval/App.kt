@@ -18,8 +18,12 @@ import org.exeval.lexer.NFAParserImpl
 import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
+import org.exeval.parser.AnalyzedGrammar
+import org.exeval.parser.Grammar
+import org.exeval.parser.Parser
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.utilities.TokenCategories
+import org.exeval.utilities.interfaces.TokenCategory
 import org.exeval.utilities.LexerUtils
 
 private val logger = KotlinLogging.logger {}
@@ -64,6 +68,14 @@ fun buildInput(fileName: String): Input {
     }
 }
 
+fun getAnalyzedGrammar(): AnalyzedGrammar<TokenCategory> {
+    return AnalyzedGrammar(
+            setOf(),
+            mapOf(),
+            Grammar(TokenCategories.PunctuationSemicolon, TokenCategories.PunctuationSemicolon, listOf())
+        )
+}
+
 fun main(args: Array<String>) {
     if (args.size == 0) {
         logger.error{"Input file not provided. Use `./gradlew run --args=\"<file name>\"'"}
@@ -76,5 +88,8 @@ fun main(args: Array<String>) {
         logger.warn{"[Lexer diagnostic] ${diagnostic.message}"}
     }
     val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
+    val grammar = getAnalyzedGrammar()
+    val parser = Parser(grammar)
+    val parseTree = parser.run(leaves)
     
 }

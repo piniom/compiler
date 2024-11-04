@@ -2,6 +2,7 @@ package org.exeval.utilities
 
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.TokenCategories
+import org.exeval.utilities.interfaces.TokenCategory
 import org.exeval.parser.interfaces.ParseTree
 
 class UnambiguesTokenCategories(token: LexerToken): Exception("Token has categories of equal priority: " + token)
@@ -13,8 +14,8 @@ class LexerUtils {
             return tokens.filter { it.categories != setOf(TokenCategories.Whitespace) }
         }
 
-        fun lexerTokensToParseTreeLeaves(tokens: List<LexerToken>): List<ParseTree.Leaf<TokenCategories>> {
-            var leaves = mutableListOf<ParseTree.Leaf<TokenCategories>>()
+        fun lexerTokensToParseTreeLeaves(tokens: List<LexerToken>): List<ParseTree.Leaf<TokenCategory>> {
+            var leaves = mutableListOf<ParseTree.Leaf<TokenCategory>>()
             for (token in removeWhitespaceTokens(tokens)) {
                 val newCategories = token.categories - TokenCategories.IdentifierNontype
                 // IdentifierNontype has always the lowest priority
