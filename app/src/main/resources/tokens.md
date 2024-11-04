@@ -1,58 +1,7 @@
 # Tokens
 
-This is the list of tokens available in our language, alongside their description in regex syntax:
+The list of tokens available in our language is in `app/src/main/kotlin/org/exeval/utilities/TokenCategories.kt` file.
 
-```
-
-punctuation_semicolon := ;
-punctuation_colon := :
-punctuation_comma := ,
-punctuation_arrow := ->
-punctuation_monkey := @
-punctuation_left_curly_bracket := {
-punctuation_right_curly_bracket := }
-punctuation_left_round_bracket := \(
-punctuation_right_round_bracket := \)
-
-literal_integer := (\d)(\d)*
-literal_boolean := (true|false)
-literal_nope := \(\)
-
-operator_plus := +
-operator_minus := -
-operator_star := \*
-operator_division := /
-
-operator_or := or
-operator_and := and
-operator_not := not
-
-operator_greater := >
-operator_lesser := <
-operator_greater_equal := >=
-operator_lesser_equal := <=
-operator_equal := ==
-operator_not_equal := !=
-
-operator_assign := =
-
-keyword_if := if
-keyword_then := then
-keyword_else := else
-keyword_loop := loop
-keyword_foo := foo
-keyword_break := break
-keyword_return := return
-keyword_let := let
-keyword_mut := mut
-
-identifier_type := \u(\l|\u)*
-identifier_nontype := (\l|_)(\i)*
-identifier_entrypoint := main
-
-whitespace := \s
-
-```
 
 ## Regex syntax
 
