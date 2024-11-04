@@ -60,22 +60,8 @@ tasks.named<Test>("test") {
     finalizedBy("cucumberTest")
 }
 
-tasks.register<Exec>("generateSources") {
-    val outputDir = "build/generated/out/kotlin/org/exeval/utilities"
-    mkdir(outputDir)
-    commandLine("./src/main/resources/token_class_generator.sh", "${outputDir}/TokenCategories.kt")
-}
-
 sourceSets["main"].java {
     srcDir("build/generated/out/kotlin")
-}
-
-tasks.named("compileKotlin") {
-    dependsOn("generateSources")
-}
-
-tasks.named("compileJava") {
-    dependsOn("generateSources")
 }
 
 configurations.register("cucumberRuntime") {
