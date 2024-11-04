@@ -19,6 +19,7 @@ import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
 import org.exeval.utilities.TokenCategories
+import org.exeval.utilities.LexerUtils
 
 private val logger = KotlinLogging.logger {}
 
@@ -73,4 +74,6 @@ fun main(args: Array<String>) {
     for (diagnostic in lexerOutput.diagnostics) {
         logger.warn{"[Lexer diagnostic] ${diagnostic.message}"}
     }
+    val clearedLexerTokens = LexerUtils.removeWhitespaceTokens(lexerOutput.result)
+
 }
