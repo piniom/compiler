@@ -18,6 +18,7 @@ import org.exeval.lexer.NFAParserImpl
 import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
+import org.exeval.parser.interfaces.ParseTree
 import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 
@@ -74,6 +75,6 @@ fun main(args: Array<String>) {
     for (diagnostic in lexerOutput.diagnostics) {
         logger.warn{"[Lexer diagnostic] ${diagnostic.message}"}
     }
-    val clearedLexerTokens = LexerUtils.removeWhitespaceTokens(lexerOutput.result)
-
+    val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
+    
 }
