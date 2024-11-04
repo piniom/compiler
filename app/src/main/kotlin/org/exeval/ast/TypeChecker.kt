@@ -83,26 +83,35 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         val leftType = innerParse(binaryOperation.left)
         val rightType = innerParse(binaryOperation.right)
 
+        val expectedType = when (binaryOperation.operator) {
+            BinaryOperator.PLUS, BinaryOperator.MINUS, BinaryOperator.MULTIPLY, BinaryOperator.DIVIDE -> IntType
+            BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE -> BoolType
+        }
+
         if (leftType != rightType) {
             addDiagnostic("Operands of binary operation must have the same type", binaryOperation)
         }
 
-        leftType?.let { typeMap[binaryOperation] = leftType }
+        if (expectedType == IntType && leftType != IntType) {
+            addDiagnostic("Operands has to be numerical", binaryOperation)
+        }
+
+        typeMap[binaryOperation] = expectedType
     }
 
     private fun getUnaryOperationType(unaryOperation: UnaryOperation) {
         val operandType = innerParse(unaryOperation.operand)
 
-        when (unaryOperation.operator) {
-            UnaryOperator.NOT -> if (operandType != BoolType) {
-                addDiagnostic("Operand of NOT must be Bool", unaryOperation)
-            }
-            UnaryOperator.MINUS -> if (operandType != IntType) {
-                addDiagnostic("Operand of MINUS must be Int", unaryOperation)
-            }
+        val expectedType = when (unaryOperation.operator) {
+            UnaryOperator.MINUS -> IntType
+            UnaryOperator.NOT -> BoolType
         }
 
-        operandType?.let { typeMap[unaryOperation] = operandType }
+        if (operandType != expectedType) {
+            addDiagnostic("Operator and operand must both be the same type", unaryOperation)
+        }
+
+        typeMap[unaryOperation] = expectedType
     }
 
     private fun getProgramType(program: Program) {
@@ -115,6 +124,9 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         block.expressions.forEach {
             innerParse(it)
         }
+
+        val lastExpressionType = typeMap[block.expressions.last()]
+        lastExpressionType?.let { typeMap[block] = lastExpressionType }
     }
 
     private fun getLoopType(loop: Loop) {
