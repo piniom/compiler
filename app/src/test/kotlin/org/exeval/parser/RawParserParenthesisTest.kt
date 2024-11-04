@@ -158,9 +158,9 @@ class RawParserParenthesisTest {
 }
 
 private data class Loc(
-    override val idx: Int
+    override var idx: Int
 ) : Location {
-    override val line = 0
+    override var line = 0
 }
 
 private fun Int.toLoc(): Loc {
