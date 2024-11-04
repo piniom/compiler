@@ -34,7 +34,7 @@ class RawParser<Symbol, State>(
                 val prod = curAction.production
                 val newBranch = takeProductionFromStack(prod, stack)
                 val newState = tables.goto[prod.left to stack.peek().state]
-                    ?: throw ParseError("Goto is incomplete, no goto for (%s to %s)")
+                    ?: throw ParseError("Goto is incomplete, no goto for (%s to %s)".format(prod.left, stack.peek().state))
                 stack.push(newBranch to newState)
             } else if (curAction is Action.Shift<Symbol, State>) {
                 val newState = curAction.state
