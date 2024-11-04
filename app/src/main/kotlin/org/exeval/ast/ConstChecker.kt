@@ -1,9 +1,9 @@
 package org.exeval.ast
 
+import ConstantDeclaration
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.ast.NameResolution
 import org.exeval.input.interfaces.Location
-import ConstantDeclaration
 
 class ConstChecker{
     fun check(nameResolution: NameResolution, astInfo: AstInfo): List<Diagnostics>{

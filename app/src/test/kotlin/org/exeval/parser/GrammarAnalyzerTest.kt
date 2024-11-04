@@ -12,7 +12,7 @@ import kotlin.collections.component2
 class GrammarAnalyzerTest {
     
     fun grammarsEqual(g1: AnalyzedGrammar<Char>, g2: AnalyzedGrammar<Char>): Boolean {
-        return g1.nullable == g2.nullable && g1.firstProduct.map { it.component2().sorted() } == g2.firstProduct.map { it.component2().sorted() } && g1.grammar == g2.grammar
+        return g1.nullable == g2.nullable && g1.firstProduct.map { it.component2() } == g2.firstProduct.map { it.component2() } && g1.grammar == g2.grammar
     }
 
     @Test
