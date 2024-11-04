@@ -5,9 +5,13 @@ import Block
 import BoolLiteral
 import Conditional
 import ConstantDeclaration
+import FunctionCall
 import FunctionDeclaration
 import IntLiteral
 import MutableVariableDeclaration
+import NamedArgument
+import Parameter
+import PositionalArgument
 import UnaryOperation
 import VariableReference
 import io.mockk.every
@@ -140,5 +144,71 @@ class TypeCheckerTest {
         assertEquals(IntType, result.result[conditionalExpr], "Expected conditional expression to have type IntType")
         assertEquals(IntType, result.result[functionDeclaration], "Expected return type of main function to be IntType")
         assertEquals(0, result.diagnostics.size, "Expected no diagnostics for correctly typed conditional comparison")
+    }
+
+    @Test
+    fun `should correctly infer type for valid function call with positional arguments`() {
+        // Code: `foo main() -> Int = { add(1, 2) }`
+        val arg1 = PositionalArgument(IntLiteral(1))
+        val arg2 = PositionalArgument(IntLiteral(2))
+        val functionCall = FunctionCall("add", listOf(arg1, arg2))
+
+        val functionDeclaration = FunctionDeclaration(
+            name = "add",
+            parameters = listOf(
+                Parameter("x", IntType),
+                Parameter("y", IntType)
+            ),
+            returnType = IntType,
+            body = IntLiteral(0)
+        )
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns functionCall
+        every { mockAstInfo.locations } returns mapOf(functionCall to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 1)))
+        every { mockNameResolution.functionToDecl[functionCall] } returns functionDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(IntType, result.result[functionCall], "Expected function call to have return type IntType")
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for correctly typed positional arguments")
+    }
+
+    @Test
+    fun `should detect error for function call with mixed argument types`() {
+        // Code: `foo main() -> Int = { add(x=1, 2) }`
+        val namedArg = NamedArgument("x", IntLiteral(1))
+        val positionalArg = PositionalArgument(IntLiteral(2))
+        val functionCall = FunctionCall("add", listOf(namedArg, positionalArg))
+
+        val functionDeclaration = FunctionDeclaration(
+            name = "add",
+            parameters = listOf(
+                Parameter("x", IntType),
+                Parameter("y", IntType)
+            ),
+            returnType = IntType,
+            body = IntLiteral(0)
+        )
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns functionCall
+        every { mockAstInfo.locations } returns mapOf(functionCall to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 1)))
+        every { mockNameResolution.functionToDecl[functionCall] } returns functionDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(IntType, result.result[functionCall], "Expected function call type to be IntType")
+        assertEquals(0, result.diagnostics.size, "Expected diagnostic for mixed argument types")
     }
 }

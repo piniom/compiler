@@ -14,8 +14,10 @@ import FunctionDeclaration
 import IntLiteral
 import Loop
 import MutableVariableDeclaration
+import NamedArgument
 import NopeLiteral
 import Parameter
+import PositionalArgument
 import Program
 import UnaryOperation
 import UnaryOperator
@@ -88,6 +90,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE -> BoolType
         }
 
+        if (leftType == NopeType || rightType == NopeType) {
+            addDiagnostic("One of operands is NopeType!", binaryOperation)
+        }
+
         if (leftType != rightType) {
             addDiagnostic("Operands of binary operation must have the same type", binaryOperation)
         }
@@ -105,6 +111,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         val expectedType = when (unaryOperation.operator) {
             UnaryOperator.MINUS -> IntType
             UnaryOperator.NOT -> BoolType
+        }
+
+        if (operandType == NopeType) {
+            addDiagnostic("Operand is NopeType!", unaryOperation)
         }
 
         if (operandType != expectedType) {
@@ -211,6 +221,31 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         val functionDecl = nameResolutionResult.functionToDecl[functionCall]
 
         val functionType = functionDecl?.let { innerParse(it) }
+
+        if (functionCall.arguments.all { it is PositionalArgument }) {
+            functionCall.arguments.forEachIndexed { index, argument ->
+                val positionalArg = argument as PositionalArgument
+                val parameterType = functionDecl?.parameters?.getOrNull(index)?.type
+                val argumentType = innerParse(positionalArg.expression)
+
+                if (parameterType != argumentType) {
+                    addDiagnostic("Argument type does not match parameter type", positionalArg.expression)
+                }
+            }
+        }
+
+        if (functionCall.arguments.all { it is NamedArgument }) {
+            val paramMap = functionDecl?.parameters?.associateBy { it.name }
+            functionCall.arguments.forEach { argument ->
+                val namedArg = argument as NamedArgument
+                val parameterType = paramMap?.get(namedArg.name)?.type
+                val argumentType = innerParse(namedArg.expression)
+
+                if (parameterType != argumentType) {
+                    addDiagnostic("Argument type does not match parameter type", namedArg.expression)
+                }
+            }
+        }
 
         functionType?.let { typeMap[functionCall] = functionType }
     }
