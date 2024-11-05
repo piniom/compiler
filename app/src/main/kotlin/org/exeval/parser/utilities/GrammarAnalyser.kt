@@ -9,8 +9,8 @@ class GrammarAnalyser {
     empty symbol can be set, or can be denoted as empty transition ('A'->list())
     */
     companion object {
-        private fun <C> getNullable(grammar: Map<C, Set<List<C>>>, empty: C?): Set<C> {
-            var nullable: MutableSet<C> = if (empty != null) mutableSetOf(empty) else mutableSetOf()
+        private fun <C> getNullable(grammar: Map<C, Set<List<C>>>): Set<C> {
+            var nullable: MutableSet<C> = mutableSetOf()
             while (true) {
                 val newNullable = nullable.toMutableSet()
                 grammar.forEach {
@@ -32,13 +32,13 @@ class GrammarAnalyser {
             return nullable
         }
 
-        fun <C> analyseGrammar(grammar: Grammar<C>, empty: C? = null): AnalyzedGrammar<C> {
+        fun <C> analyseGrammar(grammar: Grammar<C>): AnalyzedGrammar<C> {
             val transitions: MutableMap<C, MutableSet<List<C>>> = mutableMapOf()
             grammar.productions.forEach {
                 transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
             }
 
-            val nullable = getNullable(transitions, empty)
+            val nullable = getNullable(transitions)
 
             return AnalyzedGrammar(
                 nullable, createFirstSet(grammar, nullable), grammar

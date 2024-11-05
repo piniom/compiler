@@ -2,12 +2,12 @@ package org.exeval.parser.utilities
 
 import org.exeval.parser.Grammar
 
-fun <S> createFirstSet(grammar: Grammar<S>, nullable: Set<S>): Map<S, List<S>> {
+fun <S> createFirstSet(grammar: Grammar<S>, nullable: Set<S>): Map<S, Set<S>> {
     return transitiveClosure(
         addPossibleStates(
             crateMapWithOnlyKeySymbol(grammar), grammar, nullable
         )
-    ).mapValues { it.value.distinct() }
+    ).mapValues { it.value.toSet() }
 }
 
 private fun <S> crateMapWithOnlyKeySymbol(grammar: Grammar<S>): Map<S, MutableSet<S>> {
