@@ -1,6 +1,6 @@
 package org.exeval.ast
 
-import ConstantDeclaration
+import org.exeval.ast.ConstantDeclaration 
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.ast.NameResolution
 import org.exeval.input.interfaces.Location

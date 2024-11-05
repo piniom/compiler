@@ -3,6 +3,10 @@ import org.exeval.ast.ConstChecker
 import org.exeval.ast.NameResolution
 import org.exeval.ast.IntType
 import org.exeval.ast.AstInfo
+import org.exeval.ast.Assignment
+import org.exeval.ast.IntLiteral
+import org.exeval.ast.ConstantDeclaration
+import org.exeval.ast.MutableVariableDeclaration
 import org.exeval.utilities.LocationRange
 import org.exeval.input.interfaces.Location
 
