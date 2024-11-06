@@ -1,8 +1,7 @@
 package org.exeval.cfg
 
-import com.google.errorprone.annotations.ForOverride
-
 sealed interface Tree
+
 data class Constant(val value: Int) : Tree
 
 sealed interface Assignable : Tree
@@ -19,13 +18,11 @@ data object Call : Tree
 data object Return : Tree
 
 data class BinaryOperation(val left: Tree, val right: Tree, val operation: BinaryOperationType) : Tree
-
 enum class BinaryOperationType {
     ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, AND, OR, XOR, GREATER, GREATER_EQUAL, EQUAL
 }
 
 data class UnaryOp(val child: Tree, val binaryOperationType: UnaryOperationType) : Tree
-
 enum class UnaryOperationType {
     NOT, INCREMENT, DECREMENT
 }
