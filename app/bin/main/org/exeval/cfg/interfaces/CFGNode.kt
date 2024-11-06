@@ -1,6 +1,6 @@
-package org.exeval.ffm.interfaces
+package org.exeval.cfg.interfaces
 
-import org.exeval.ffm.interfaces.Tree
+import org.exeval.cfg.interfaces.Tree
 
 interface CFGNode{
     val thenNode: CFGNode

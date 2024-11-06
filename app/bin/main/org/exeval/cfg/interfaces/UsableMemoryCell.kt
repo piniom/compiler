@@ -1,4 +1,4 @@
-package org.exeval.ffm.interfaces
+package org.exeval.cfg.interfaces
 
 sealed interface UsableMemoryCell {
     data class VirtReg(val idx: Int): UsableMemoryCell
