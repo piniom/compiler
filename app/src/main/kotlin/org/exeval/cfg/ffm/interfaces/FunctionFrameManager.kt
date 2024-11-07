@@ -2,8 +2,9 @@ package org.exeval.ffm.interfaces
 
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cf.interfaces.Tree
+import org.exeval.cfg.Tree
 import org.exeval.cfg.interfaces.UsableMemoryCell
+import org.exeval.cfg.interfaces.CFGNode
 
 interface FunctionFrameManager{
     val f: FunctionDeclaration
