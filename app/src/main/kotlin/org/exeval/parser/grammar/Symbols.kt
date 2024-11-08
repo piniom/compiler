@@ -20,7 +20,6 @@ object VariableDeclaration: GrammarSymbol {
 			Token.OperatorAssign,
 			Expression,
 		),
-		/*
 		listOf(
 			Token.KeywordLet,
 			Token.KeywordMut,
@@ -36,8 +35,8 @@ object VariableDeclaration: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
 			Token.IdentifierType,
+			Token.PunctuationSemicolon,
 		),
-		*/
 	)
 }
 
@@ -197,7 +196,10 @@ object Loop: GrammarSymbol {
 
 object Break: GrammarSymbol {
 	override fun productions() = listOf(
-		listOf(Token.KeywordBreak),
+		listOf(
+			Token.KeywordBreak,
+			Token.PunctuationSemicolon,
+		),
 		listOf(
 			Token.KeywordBreak,
 			Expression,
@@ -206,6 +208,7 @@ object Break: GrammarSymbol {
 			Token.KeywordBreak,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
+			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordBreak,
@@ -220,16 +223,20 @@ object Expression: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.PunctuationLeftCurlyBracket,
-			Expression,
+			ExpressionElement,
 			Token.PunctuationRightCurlyBracket,
 		),
-		listOf(ExpressionElement),
 		listOf(
+			Token.PunctuationLeftCurlyBracket,
 			ExpressionElement,
 			Token.PunctuationSemicolon,
 			Expression,
+			Token.PunctuationRightCurlyBracket,
 		),
-		/*
+		listOf(
+			ExpressionElement,
+			Token.PunctuationSemicolon,
+		),
 		listOf(
 			ExpressionElement,
 			Operator2Arg,
@@ -239,20 +246,17 @@ object Expression: GrammarSymbol {
 			Operator1Arg,
 			Expression,
 		),
-		*/
 	)
 
 	object ExpressionElement: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(Value),
 			listOf(VariableDeclaration),
-			/*
 			listOf(FunctionDeclaration),
 			listOf(FunctionCall),
 			listOf(IfThenElse),
 			listOf(Loop),
 			listOf(Break),
-			*/
 		)
 	}
 }
