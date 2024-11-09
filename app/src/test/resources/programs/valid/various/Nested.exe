@@ -1,4 +1,0 @@
-// Stress test in nesting
-foo func(x : Int) -> Int = 0;
-
-foo main() -> Int = if { if { loop { break false; } } then { func(loop { break func(loop { break func ( loop{break if {func(1)} then 0 else 1223})}); }) } else { true } } then { if { false } then { 2 + if {1 >= 0} then 100 else {3} } else { func(if true then loop { true; 3141592 } else 0); } } else { if true then {1} else 0 }
