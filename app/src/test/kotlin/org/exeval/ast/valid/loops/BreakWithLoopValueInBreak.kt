@@ -2,7 +2,7 @@ package org.exeval.ast.valid.loops
 
 import org.exeval.ast.*
 
-val LOOPS_BREAK_WITH_LOOP_VALUE_IN_BREAK = Program(
+val LOOPS_BREAK_WITH_LOOP_VALUE_IN_BREAK_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
