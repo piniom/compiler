@@ -8,10 +8,6 @@ import org.exeval.ast.VariableUsage
 import org.exeval.ast.NameResolution
 
 typealias VariableUsageAnalysisResult = Map<Expr, VariableUsage>
-/*
-WARNING: it is assumed that variables are declared in blocks
-a mechanism is also required to associate String variable name (and it's AST node probably) with AnyVariable object
-*/
 
 typealias rwSets = Pair<MutableSet<AnyVariable>,MutableSet<AnyVariable>>
 
