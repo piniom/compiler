@@ -27,9 +27,11 @@ class usageAnalysis{
         }.toMap()
     }
     private fun translate(v:VariableReference):AnyVariable{
+        require(nameResolution.variableToDecl.containsKey(v))
         return nameResolution.variableToDecl[v]!!
     }
     private fun translate(v:Assignment):AnyVariable{
+        require(nameResolution.assignmentToDecl.containsKey(v))
         return nameResolution.assignmentToDecl[v]!!
     }
     private fun generateUsageAnalysis(node:Expr){
@@ -111,6 +113,9 @@ class usageAnalysis{
                     node.arguments.forEach{
                         //if argument's corresponding parameter is used, carry over this use
                         if(it is PositionalArgument){
+                            generateUsageAnalysis(it.expression)
+                            analysis[node]!!.first += analysis[it.expression]!!.first
+                            analysis[node]!!.second += analysis[it.expression]!!.second
                             if(it.expression is VariableReference){
                                 if(analysis[declaration]!!.first.contains(nameResolution.argumentToParam[it] as AnyVariable)){
                                     analysis[node]!!.first.add(nameResolution.variableToDecl[it.expression]!!)
@@ -121,6 +126,9 @@ class usageAnalysis{
                             }
                         }
                         if(it is NamedArgument){
+                            generateUsageAnalysis(it.expression)
+                            analysis[node]!!.first += analysis[it.expression]!!.first
+                            analysis[node]!!.second += analysis[it.expression]!!.second
                             if(it.expression is VariableReference){
                                 if(analysis[declaration]!!.first.contains(nameResolution.argumentToParam[it] as AnyVariable)){
                                     analysis[node]!!.first.add(nameResolution.variableToDecl[it.expression]!!)
@@ -276,6 +284,43 @@ class usageAnalysis{
             val a = usageAnalysis(cg, nr)
             a.run(main)
             return a.getAnalysisResult()[main]!!.read.contains(c_decl)
+        }
+        //more pedantic tests
+        fun test4():Boolean{
+            val declaration = MutableVariableDeclaration("a", IntType)
+            val ast = Block(listOf(
+                /*0*/declaration,
+                /*1*/VariableReference("a"),
+                /*2*/Assignment("a", IntLiteral(2)),
+                /*3*/Block(listOf(Assignment("a", VariableReference("a")))),
+                /*4*/MutableVariableDeclaration("b", IntType,Assignment("a", VariableReference("a"))),
+                /*5*/BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, Assignment("a", VariableReference("a"))),
+                /*6*/UnaryOperation(UnaryOperator.MINUS, Assignment("a", VariableReference("a"))),
+                /*7*/Conditional(BoolLiteral(true), Assignment("a", VariableReference("a"))),
+                /*8*/Loop("l",Block(listOf(
+                    Assignment("a", VariableReference("a")),
+                    Break("l",Assignment("a", VariableReference("a")))))),
+                /*9*/FunctionDeclaration("f", listOf(Parameter("b", IntType)), IntType, Block(listOf(
+                    Assignment("a", VariableReference("b")),
+                    Assignment("a", VariableReference("a"))
+                ))),
+                /*10*/FunctionCall("f", listOf(NamedArgument("a", Assignment("a", VariableReference("a")))))
+            ))
+
+            //REQUIRES FUNCTION ANALYSIS & NAME RESOLUTION
+            val nr = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf())
+            val cg:CallGraph = mapOf()
+
+            val a = usageAnalysis(cg, nr)
+            a.run(ast)
+            val l = a.getAnalysisResult()
+            val readReq  = (3..10).all{l[ast.expressions[it]]!!.read.contains(declaration)}
+            val writeReq = (3..10).all{l[ast.expressions[it]]!!.write.contains(declaration)}
+            val refReq = l[ast.expressions[1]]!!.read.contains(declaration)
+            val assReq = l[ast.expressions[2]]!!.write.contains(declaration)
+            val breakExpr = (ast.expressions[8] as Loop).body.expressions[1]
+            val breakReq = l[breakExpr]!!.read.contains(declaration) && l[breakExpr]!!.write.contains(declaration)
+            return readReq && writeReq && refReq && assReq && breakReq
         }
     }
 }
