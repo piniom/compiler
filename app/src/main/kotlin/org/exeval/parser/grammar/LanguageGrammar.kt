@@ -17,44 +17,31 @@ interface TerminalGroup : GrammarSymbol {
 	override fun productions(): List<List<GrammarSymbol>> = values().map{ listOf(it) }
 }
 
-fun getAllProductions(startSymbol: GrammarSymbol): List<Production<GrammarSymbol>> {
-	fun getSymbolProductions(symbol: GrammarSymbol, processedSymbols: MutableSet<GrammarSymbol>, productions: MutableList<Production<GrammarSymbol>>) {
-		if (!processedSymbols.contains(symbol)) {
-			processedSymbols.add(symbol)
-			productions += symbol.productions().map { Production(symbol, it) }
-			for (production in symbol.productions()) {
-				for (nextSymbol in production) {
-					getSymbolProductions(nextSymbol, processedSymbols, productions)
+object LanguageGrammar {
+	val grammar = Grammar<GrammarSymbol>(Program, ErrorSymbol, getAllProductions(Program))
+
+	fun getAllProductions(startSymbol: GrammarSymbol): List<Production<GrammarSymbol>> {
+		fun getSymbolProductions(
+			symbol: GrammarSymbol,
+			processedSymbols: MutableSet<GrammarSymbol>,
+			productions: MutableList<Production<GrammarSymbol>>
+		) {
+			if (!processedSymbols.contains(symbol)) {
+				processedSymbols.add(symbol)
+				productions += symbol.productions().map { Production(symbol, it) }
+				for (production in symbol.productions()) {
+					for (nextSymbol in production) {
+						getSymbolProductions(nextSymbol, processedSymbols, productions)
+					}
 				}
 			}
 		}
+
+		var processedSymbols: MutableSet<GrammarSymbol> = mutableSetOf()
+		var productions: MutableList<Production<GrammarSymbol>> = mutableListOf()
+
+		getSymbolProductions(startSymbol, processedSymbols, productions)
+
+		return productions
 	}
-
-	var processedSymbols: MutableSet<GrammarSymbol> = mutableSetOf()
-	var productions: MutableList<Production<GrammarSymbol>> = mutableListOf()
-
-	getSymbolProductions(startSymbol, processedSymbols, productions)
-
-	return productions
-}
-
-/*
-val LanguageGrammar = Grammar<GrammarSymbol>(
-	Program,
-	ErrorSymbol,
-	getAllProductions(Program)
-)
-*/
-
-val LanguageGrammar = Grammar<GrammarSymbol>(
-	Expression,
-	ErrorSymbol,
-	getAllProductions(Expression)
-)
-
-val analyzed = org.exeval.parser.utilities.GrammarAnalyser.analyseGrammar(LanguageGrammar)
-
-fun print() {
-	println(analyzed)
-	val parser = Parser(analyzed)
 }
