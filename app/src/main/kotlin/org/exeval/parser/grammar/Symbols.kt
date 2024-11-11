@@ -14,13 +14,18 @@ object VariableDeclaration: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordLet,
+			Token.KeywordMut,
+			Token.IdentifierNontype,
+			Token.PunctuationColon,
+			Token.IdentifierType,
+		),
+		listOf(
+			Token.KeywordLet,
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordLet,
@@ -30,17 +35,6 @@ object VariableDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
-		),
-		listOf(
-			Token.KeywordLet,
-			Token.KeywordMut,
-			Token.IdentifierNontype,
-			Token.PunctuationColon,
-			Token.IdentifierType,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 	)
 }
@@ -51,8 +45,6 @@ object VariableAssignment: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		)
 	)
 }
@@ -69,8 +61,6 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordFoo,
@@ -81,8 +71,6 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordFoo,
@@ -93,8 +81,6 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 	)
 }
@@ -138,24 +124,40 @@ object FunctionCall: GrammarSymbol {
 
 object FunctionCallArguments: GrammarSymbol {
 	override fun productions() = listOf(
-		listOf(FunctionArg),
+		// Calling with named arguments is indistinguishable
+		// from variable assignment from grammar's point
+		// of view. Assignment is also part of expression.
+		listOf(Expression),
 		listOf(
-			FunctionArg,
+			Expression,
 			Token.PunctuationComma,
 			FunctionCallArguments,
 		),
 	)
+}
 
-	object FunctionArg: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(Expression),
-			listOf(
-				Token.IdentifierNontype,
-				Token.OperatorAssign,
-				Expression,
-			),
-		)
-	}
+object IfThen: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordIf,
+			Expression,
+			Token.KeywordThen,
+			Expression,
+			ErrorSymbol,
+			Token.PunctuationSemicolon,
+		),
+	)
+}
+
+object IfThenWithoutSemicolon: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordIf,
+			Expression,
+			Token.KeywordThen,
+			Expression,
+		),
+	)
 }
 
 object IfThenElse: GrammarSymbol {
@@ -165,8 +167,8 @@ object IfThenElse: GrammarSymbol {
 			Expression,
 			Token.KeywordThen,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
+			Token.KeywordElse,
+			Expression,
 		),
 		listOf(
 			Token.KeywordIf,
@@ -175,8 +177,6 @@ object IfThenElse: GrammarSymbol {
 			Expression,
 			Token.KeywordElse,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 	)
 }
@@ -186,21 +186,17 @@ object Loop: GrammarSymbol {
 		listOf(
 			Token.KeywordLoop,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordLoop,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 	)
 }
 
-object Break: GrammarSymbol {
+object BreakKeyword: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordBreak,
@@ -209,24 +205,36 @@ object Break: GrammarSymbol {
 		),
 		listOf(
 			Token.KeywordBreak,
-			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
-		),
-		listOf(
-			Token.KeywordBreak,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
 			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
+	)
+}
+
+object BreakKeywordWithoutSemicolon: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(Token.KeywordBreak),
+		listOf(
+			Token.KeywordBreak,
+			Token.PunctuationMonkey,
+			Token.IdentifierNontype,
+		),
+	)
+}
+
+object BreakExpression: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordBreak,
+			Expression,
+		),
 		listOf(
 			Token.KeywordBreak,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
 			Expression,
-			ErrorSymbol,
-			Token.PunctuationSemicolon,
 		),
 	)
 }
@@ -289,19 +297,27 @@ object SimpleExpression: GrammarSymbol {
 		listOf(Value),
 		listOf(Token.IdentifierNontype),
 		listOf(ArithmeticExpression),
-		listOf(FunctionCall),
-	)
-}
-
-// These always end with ;
-object ComplexExpression: GrammarSymbol {
-	override fun productions() = listOf(
 		listOf(VariableDeclaration),
 		listOf(VariableAssignment),
 		listOf(FunctionDeclaration),
+		listOf(FunctionCall),
 		listOf(IfThenElse),
 		listOf(Loop),
-		listOf(Break),
+		listOf(BreakExpression),
+	)
+}
+
+object ExpressionWithSemicolon: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(IfThen),
+		listOf(BreakKeyword),
+	)
+}
+
+object LastExpressionInBlock: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(BreakKeywordWithoutSemicolon),
+		listOf(IfThenWithoutSemicolon),
 	)
 }
 
@@ -312,12 +328,24 @@ object ExpressionBlock: GrammarSymbol {
 			ExpressionChain,
 			Token.PunctuationRightCurlyBracket,
 		),
+		listOf(
+			Token.PunctuationLeftCurlyBracket,
+			LastExpressionInBlock,
+			Token.PunctuationRightCurlyBracket,
+		),
+		listOf(
+			Token.PunctuationLeftCurlyBracket,
+			ExpressionChain,
+			Token.PunctuationSemicolon,
+			LastExpressionInBlock,
+			Token.PunctuationRightCurlyBracket,
+		),
 	)
 
 	object ExpressionChain: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(SimpleExpression),
-			listOf(ComplexExpression),
+			listOf(ExpressionWithSemicolon),
 			listOf(ExpressionBlock),
 			listOf(
 				SimpleExpression,
@@ -326,7 +354,7 @@ object ExpressionBlock: GrammarSymbol {
 				ExpressionChain,
 			),
 			listOf(
-				ComplexExpression,
+				ExpressionWithSemicolon,
 				ExpressionChain,
 			),
 			listOf(
@@ -342,7 +370,7 @@ object ExpressionBlock: GrammarSymbol {
 object Expression: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(SimpleExpression),
-		listOf(ComplexExpression),
+		listOf(ExpressionWithSemicolon),
 		listOf(ExpressionBlock),
 	)
 }
