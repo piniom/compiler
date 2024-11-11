@@ -19,6 +19,7 @@ object VariableDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -29,6 +30,7 @@ object VariableDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -37,6 +39,7 @@ object VariableDeclaration: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
 			Token.IdentifierType,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -48,6 +51,7 @@ object VariableAssignment: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		)
 	)
@@ -65,6 +69,7 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -76,6 +81,7 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -87,6 +93,7 @@ object FunctionDeclaration: GrammarSymbol {
 			Token.IdentifierType,
 			Token.OperatorAssign,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -158,6 +165,7 @@ object IfThenElse: GrammarSymbol {
 			Expression,
 			Token.KeywordThen,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -167,6 +175,7 @@ object IfThenElse: GrammarSymbol {
 			Expression,
 			Token.KeywordElse,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -177,6 +186,7 @@ object Loop: GrammarSymbol {
 		listOf(
 			Token.KeywordLoop,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -184,6 +194,7 @@ object Loop: GrammarSymbol {
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -193,17 +204,20 @@ object Break: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordBreak,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordBreak,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordBreak,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
@@ -211,6 +225,7 @@ object Break: GrammarSymbol {
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
 			Expression,
+			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -306,6 +321,7 @@ object ExpressionBlock: GrammarSymbol {
 			listOf(ExpressionBlock),
 			listOf(
 				SimpleExpression,
+				ErrorSymbol,
 				Token.PunctuationSemicolon,
 				ExpressionChain,
 			),
@@ -315,6 +331,7 @@ object ExpressionBlock: GrammarSymbol {
 			),
 			listOf(
 				ExpressionBlock,
+				ErrorSymbol,
 				Token.PunctuationSemicolon,
 				ExpressionChain,
 			),
@@ -332,9 +349,14 @@ object Expression: GrammarSymbol {
 
 object ErrorSymbol: Terminal
 
+object EndOfProgramSymbol: Terminal
+
 object Program: GrammarSymbol {
 	override fun productions() = listOf(
-		listOf(FunctionsDeclarations),
+		listOf(
+			FunctionsDeclarations,
+			EndOfProgramSymbol,
+		),
 	)
 
 	object FunctionsDeclarations: GrammarSymbol {
