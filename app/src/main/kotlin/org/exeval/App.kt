@@ -63,7 +63,6 @@ fun buildInput(fileName: String): Input {
 }
 
 fun main(args: Array<String>) {
-	org.exeval.parser.grammar.print()
     if (args.size == 0) {
         logger.error{"Input file not provided. Use `./gradlew run --args=\"<file name>\"'"}
         exitProcess(1)
