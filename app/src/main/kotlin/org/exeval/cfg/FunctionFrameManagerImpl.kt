@@ -1,22 +1,20 @@
 package org.exeval.cfg
 
 import org.exeval.ast.AnyVariable
+import org.exeval.ast.FunctionAnalyser
+import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
-class FunctionFrameManagerImpl(override val f: FunctionDeclaration) : FunctionFrameManager {
+class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private val registerPool = mutableListOf<UsableMemoryCell.VirtReg>()
+    private var virtualRegIdx = 0
     private var stackOffset = 0
 
-    companion object {
-        const val DEFAULT_REGISTER_COUNT = 16
-    }
-
     init {
-        initRegisterPool(DEFAULT_REGISTER_COUNT)
+        initialiseVariableMap()
     }
 
     override fun generate_var_access(x: AnyVariable): Tree {
@@ -28,20 +26,11 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration) : FunctionFr
     }
 
     override fun variable_to_virtual_register(x: AnyVariable): UsableMemoryCell {
-        variableMap[x]?.let { return it }
-
-        val cell: UsableMemoryCell;
-        if (registerPool.isNotEmpty()) {
-            cell = registerPool.removeAt(0)
-        }
-        else {
-            val offset = stackOffset
-            stackOffset += 4
-            cell = UsableMemoryCell.MemoryPlace(offset)
+        if (variableMap[x] == null) {
+            throw IllegalArgumentException("Variable is not in scope")
         }
 
-        variableMap[x] = cell
-        return cell
+        return variableMap[x]!!
     }
 
     override fun generate_prolog(then: CFGNode): CFGNode {
@@ -52,9 +41,22 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration) : FunctionFr
         TODO("Not yet implemented")
     }
 
-    private fun initRegisterPool(registerCount: Int) {
-        for (idx in 0 until registerCount) {
-            registerPool.add(UsableMemoryCell.VirtReg(idx))
+    private fun initialiseVariableMap() {
+        analyser.variableMap.forEach { (variable, functionDeclaration) ->
+            if (functionDeclaration == f) {
+                val isNested = analyser.isUsedInNested[variable] ?: false
+                val memoryCell: UsableMemoryCell
+
+                if (isNested) {
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset * 4)
+                    stackOffset += 1
+                } else {
+                    memoryCell = UsableMemoryCell.VirtReg(virtualRegIdx)
+                    virtualRegIdx += 1
+                }
+
+                variableMap[variable] = memoryCell
+            }
         }
     }
 }
