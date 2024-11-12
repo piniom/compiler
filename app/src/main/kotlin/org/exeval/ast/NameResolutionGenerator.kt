@@ -50,6 +50,8 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is UnaryOperation -> processNode(astNode.operand)
             is Conditional -> processConditional(astNode)
 
+            is Literal -> {}
+
             else -> addUnknownNodeError(astNode)
         }
         popBlock()
@@ -144,7 +146,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         if(found == null)
             addUnknownFunctionCallError(functionCall)
         else
-            addExpectedFunctionDeclarationError(functionCall, found)
+            addExpectedFunctionDeclarationError(functionCall)
 
         return null
     }
@@ -158,7 +160,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         if(found == null)
             addUnknownVarError(node)
         else
-            addExpectedVariableError(node, found)
+            addExpectedVariableError(node)
 
         return null
     }
@@ -238,37 +240,37 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun addBreakOutsideLoopError(breakNode: Break) {
-        addDiagnostic("", breakNode)
+        addDiagnostic("Break statement must be inside a loop.", breakNode)
     }
     private fun addUnknownLoopIdentifierError(breakNode: Break) {
-        addDiagnostic("", breakNode)
+        addDiagnostic("Break use not existing loop identifier.", breakNode)
     }
     private fun addUnknownFunctionCallError(functionCall: FunctionCall) {
-        addDiagnostic("", functionCall)
+        addDiagnostic("Call of a not existing function.", functionCall)
     }
-    private fun addExpectedFunctionDeclarationError(functionCall: FunctionCall, found: ASTNode) {
-        addDiagnostic("", functionCall)
+    private fun addExpectedFunctionDeclarationError(functionCall: FunctionCall) {
+        addDiagnostic("Trying to call not callable thing.", functionCall)
     }
     private fun addUnknownVarError(node: ASTNode) {
-        addDiagnostic("", node)
+        addDiagnostic("Use of a not existing variable.", node)
     }
-    private fun addExpectedVariableError(node: ASTNode, found: ASTNode) {
-        addDiagnostic("", node)
+    private fun addExpectedVariableError(node: ASTNode) {
+        addDiagnostic("Trying to use something that is not a variable in a variable use context.", node)
     }
     private fun addUnknownNodeError(node: ASTNode) {
-        addDiagnostic("", node)
+        addDiagnostic("Found unknown ASTNode", node)
     }
     private fun addPositionalAfterNamedArgumentError(argument: ASTNode, call: FunctionCall) {
-        addDiagnostic("", argument)
+        addDiagnostic("Cannot use positional argument after named argument.", argument)
     }
     private fun addToManyArgumentsError(call: FunctionCall) {
-        addDiagnostic("", call)
+        addDiagnostic("Trying to pass to many arguments to a function.", call)
     }
-    private fun addNamedArgNotFoundError(argument: ASTNode, call: FunctionCall) {
-        addDiagnostic("", argument)
+    private fun addNamedArgNotFoundError(argument: NamedArgument, call: FunctionCall) {
+        addDiagnostic("Cannot find a provided name of argument in function declaration (${argument.name}).", argument)
     }
     private fun addAlreadyUsedArgError(argument: ASTNode, call: FunctionCall) {
-        addDiagnostic("", argument)
+        addDiagnostic("Trying to pass to an already provided parameter.", argument)
     }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {
