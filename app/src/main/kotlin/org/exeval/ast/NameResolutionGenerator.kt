@@ -95,10 +95,42 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun assignArguments(call: FunctionCall, decl: FunctionDeclaration) {
+        var hasNamed = false
+        var positionalIdx = 0;
+        val usedParameters = mutableSetOf<Int>()
+
         call.arguments.forEach{
             when(it) {
-                is PositionalArgument -> {}
-                is NamedArgument -> {}
+                is PositionalArgument -> {
+                    if (hasNamed) {
+                        addPositionalAfterNamedArgumentError(it, call)
+                        return;
+                    }
+                    if(positionalIdx > decl.parameters.size) {
+                        addToManyArgumentsError(call)
+                        return;
+                    }
+
+                    argumentToParam[it] = decl.parameters[positionalIdx]
+                    usedParameters.add(positionalIdx)
+                    positionalIdx++
+                }
+                is NamedArgument -> {
+                    hasNamed = true;
+
+                    val idx = decl.parameters.indexOfFirst { param -> param.name == it.name };
+                    if (idx < 0) {
+                        addNamedArgNotFoundError(it, call)
+                        return
+                    }
+                    if (usedParameters.contains(idx)) {
+                        addAlreadyUsedArgError(it, call)
+                        return
+                    }
+
+                    usedParameters.add(idx)
+                    argumentToParam[it] = decl.parameters[idx]
+                }
             }
         }
     }
@@ -225,6 +257,18 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
     private fun addUnknownNodeError(node: ASTNode) {
         addDiagnostic("", node)
+    }
+    private fun addPositionalAfterNamedArgumentError(argument: ASTNode, call: FunctionCall) {
+        addDiagnostic("", argument)
+    }
+    private fun addToManyArgumentsError(call: FunctionCall) {
+        addDiagnostic("", call)
+    }
+    private fun addNamedArgNotFoundError(argument: ASTNode, call: FunctionCall) {
+        addDiagnostic("", argument)
+    }
+    private fun addAlreadyUsedArgError(argument: ASTNode, call: FunctionCall) {
+        addDiagnostic("", argument)
     }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {
