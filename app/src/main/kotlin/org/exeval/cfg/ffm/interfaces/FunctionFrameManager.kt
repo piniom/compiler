@@ -15,5 +15,5 @@ interface FunctionFrameManager{
     fun generate_function_call(trees: List<Tree>, then: CFGNode): CFGNode 
     fun variable_to_virtual_register(x: AnyVariable): UsableMemoryCell 
     fun generate_prolog(then: CFGNode): CFGNode
-    fun generate_epilouge(result: Tree?): CFGNode
+    fun generate_epilouge(result: Tree?, then: CFGNode): CFGNode
 }

@@ -8,7 +8,9 @@ import org.exeval.cfg.interfaces.CFGNodeImpl
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
-class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val analyser: FunctionAnalysisResult) : FunctionFrameManager {
+class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val analyser: FunctionAnalysisResult) :
+    FunctionFrameManager {
+
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
     private val registerPool = mutableListOf<UsableMemoryCell.VirtReg>()
     private var stackOffset = 0
@@ -40,8 +42,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val
         val cell: UsableMemoryCell;
         if (registerPool.isNotEmpty()) {
             cell = registerPool.removeAt(0)
-        }
-        else {
+        } else {
             val offset = stackOffset
             stackOffset += 4
             cell = UsableMemoryCell.MemoryPlace(offset)
@@ -57,7 +58,6 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val
         trees.addAll(pushToStack(RBP))
         trees.add(Assigment(RBP, RSP))
 
-
         for (parameter in f.parameters) {
             trees.add(generate_var_access(parameter))
         }
@@ -65,7 +65,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val
         return CFGNodeImpl(then, null, trees.toList())
     }
 
-    override fun generate_epilouge(result: Tree?): CFGNode {
+    override fun generate_epilouge(result: Tree?, then: CFGNode): CFGNode {
         val trees = mutableListOf<Tree>()
 
         result?.let {
@@ -76,7 +76,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val
         trees.addAll(popFromStack(RBP))
         trees.add(Return)
 
-        return CFGNodeImpl(null, null, trees.toList())
+        return CFGNodeImpl(then, null, trees.toList())
     }
 
     private fun initRegisterPool(registerCount: Int) {
@@ -100,5 +100,4 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, override val
             BinaryOperation(RSP, Constant(size), BinaryOperationType.ADD)
         )
     }
-
 }
