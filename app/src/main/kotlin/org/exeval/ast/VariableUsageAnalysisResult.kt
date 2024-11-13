@@ -3,9 +3,9 @@ package org.exeval.ast
 import org.exeval.ast.*
 
 import org.exeval.ast.CallGraph
-
 import org.exeval.ast.VariableUsage
 import org.exeval.ast.NameResolution
+import org.exeval.ast.FunctionAnalyser
 
 typealias VariableUsageAnalysisResult = Map<Expr, VariableUsage>
 
