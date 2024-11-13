@@ -16,4 +16,4 @@ interface FunctionFrameManager{
     fun generate_epilouge(result: Tree?): CFGNode
 }
 
-data class FunctionCallResult(node : CFGNode, resultLocation : Tree?)
+data class FunctionCallResult(val node : CFGNode, val resultLocation : Tree?)
