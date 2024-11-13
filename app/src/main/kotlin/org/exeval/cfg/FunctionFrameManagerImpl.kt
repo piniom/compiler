@@ -21,7 +21,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         TODO("Not yet implemented")
     }
 
-    override fun generate_function_call(trees: List<Tree>, then: CFGNode): CFGNode {
+    override fun generate_function_call(trees: List<Tree>, then: CFGNode): FunctionCallResult {
         TODO("Not yet implemented")
     }
 
