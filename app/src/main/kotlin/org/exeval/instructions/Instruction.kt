@@ -1,3 +1,12 @@
 package org.exeval.instructions
 
-sealed interface Instruction
+import org.exeval.cfg.OperandArgumentType
+
+enum class OperationAsm {
+    MOV, ADD, SUB, MUL, DIV
+}
+
+data class Instruction(
+    val operation: OperationAsm,
+    val arguments: List<OperandArgumentType>
+)

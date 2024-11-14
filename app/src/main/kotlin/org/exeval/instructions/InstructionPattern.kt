@@ -1,17 +1,52 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.Tree
-import org.exeval.cfg.Register
+import org.exeval.cfg.*
 
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : Tree?, registers : List<Register>) -> List<Instruction>
+    val createInstruction: (operands : List<OperandArgumentType>, destRegister : Assignable) -> List<Instruction>
 )
 
-sealed class InstructionPattern {
-    abstract val kind: InstructionKind
-    abstract val rootClass: OperationType
-    abstract val cost: Int
+sealed class InstructionPattern(
+    val rootClass: OperationType,
+    val kind: InstructionKind,
+    val cost: Int
+) {
     abstract fun matches(parseTree: Tree): InstructionMatchResult?
+}
+
+class TemplatePattern(
+    rootClass: OperationType,
+    kind: InstructionKind,
+    cost: Int,
+    val lambdaIntstruction: (operands : List<OperandArgumentType>, destRegister : Assignable) -> List<Instruction>
+) : InstructionPattern(rootClass, kind, cost) {
+
+    override fun matches(parseTree: Tree): InstructionMatchResult? {
+        return when (parseTree) {
+            is Call, is Return -> {
+                if (rootClass is NullaryOperationType) {
+                    InstructionMatchResult(emptyList(), lambdaIntstruction)
+                }
+                else null
+            }
+
+            is UnaryOp -> {
+                if (parseTree.binaryOperationType == rootClass) {
+                    InstructionMatchResult(listOf(parseTree.child), lambdaIntstruction)
+                }
+                else null
+            }
+
+            is BinaryOperation -> {
+                if (parseTree.operation == rootClass) {
+                    InstructionMatchResult(listOf(parseTree.left, parseTree.right), lambdaIntstruction)
+                }
+                else null
+            }
+
+            else -> null
+        }
+    }
 }
