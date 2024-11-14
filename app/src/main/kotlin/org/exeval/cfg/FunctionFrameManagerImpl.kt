@@ -7,6 +7,7 @@ import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
+import org.exeval.ffm.interfaces.FunctionCallResult
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
@@ -21,7 +22,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         TODO("Not yet implemented")
     }
 
-    override fun generate_function_call(trees: List<Tree>, then: CFGNode): CFGNode {
+    override fun generate_function_call(trees: List<Tree>, then: CFGNode): FunctionCallResult {
         TODO("Not yet implemented")
     }
 
