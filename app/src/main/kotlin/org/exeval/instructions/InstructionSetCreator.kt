@@ -2,7 +2,7 @@ package org.exeval.instructions
 
 class InstructionSetCreator {
     
-    fun createInstructionSet() : Set<InstructionPattern> {
-        return mutableSetOf()
+    fun createInstructionSet() : Map<OperationType, InstructionPattern> {
+        return mutableMapOf()
     }
 }

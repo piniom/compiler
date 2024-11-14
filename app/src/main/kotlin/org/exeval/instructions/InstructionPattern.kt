@@ -11,7 +11,7 @@ data class InstructionMatchResult (
 
 sealed class InstructionPattern {
     abstract val kind: InstructionKind
-    abstract val rootClass: Tree
+    abstract val rootClass: OperationType
     abstract val cost: Int
-    abstract fun matches(parseTree: Tree): InstructionMatchResult
+    abstract fun matches(parseTree: Tree): InstructionMatchResult?
 }
