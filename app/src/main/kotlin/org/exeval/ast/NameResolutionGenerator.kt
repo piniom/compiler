@@ -20,7 +20,11 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
 
     fun parse(): OperationResult<NameResolution> {
-        processNode(astInfo.root)
+        processAsBlock {
+            pushLoopStack()
+            processNode(astInfo.root)
+            popLoopStack()
+        }
 
         return OperationResult(NameResolution(
             breakToLoop,
@@ -32,7 +36,6 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun processNode(astNode: ASTNode) {
-        pushBlock()
         when (astNode) {
             is Break -> processBreak(astNode)
             is Loop -> processLoop(astNode)
@@ -40,12 +43,15 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is FunctionCall -> processFnCall(astNode)
             is FunctionDeclaration -> processFnDecl(astNode)
 
-            is AnyVariable -> processVarDecl(astNode)
+            is ConstantDeclaration -> processConstDecl(astNode)
+            is MutableVariableDeclaration -> processMutDecl(astNode)
+            is Parameter -> processParameter(astNode)
+
             is Assignment -> getAssignmentType(astNode)
             is VariableReference -> getVariableReferenceType(astNode)
 
-            is Program ->  astNode.functions.forEach { processNode(it) }
-            is Block ->  astNode.expressions.forEach { processNode(it) }
+            is Program ->  processProgram(astNode)
+            is Block ->  processBlock(astNode)
             is BinaryOperation -> processBinaryOp(astNode)
             is UnaryOperation -> processNode(astNode.operand)
             is Conditional -> processConditional(astNode)
@@ -54,18 +60,33 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
             else -> addUnknownNodeError(astNode)
         }
+    }
+
+    private fun processAsBlock(block: () -> Unit)
+    {
+        pushBlock()
+        block()
         popBlock()
     }
 
+
+    private fun processProgram(program: Program) {
+        processAsBlock { program.functions.forEach { processNode(it) } }
+    }
+
+    private fun processBlock(block: Block) {
+        processAsBlock { block.expressions.forEach { processNode(it) } }
+    }
+
     private fun processBinaryOp(astNode: BinaryOperation) {
-        processNode(astNode.left)
-        processNode(astNode.right)
+        processAsBlock { processNode(astNode.left) }
+        processAsBlock { processNode(astNode.right) }
     }
 
     private fun processConditional(astNode: Conditional) {
-        processNode(astNode.condition)
-        processNode(astNode.thenBranch)
-        astNode.elseBranch?.let{ processNode(it) }
+        processAsBlock { processNode(astNode.condition) }
+        processAsBlock { processNode(astNode.thenBranch) }
+        astNode.elseBranch?.let{ processAsBlock { processNode(it) } }
     }
 
     private fun getAssignmentType(assignment: Assignment) {
@@ -73,7 +94,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             assignmentToDecl[assignment] = it
         }
 
-        processNode(assignment.value)
+        processAsBlock { processNode(assignment.value) }
     }
 
     private fun getVariableReferenceType(varRef: VariableReference) {
@@ -82,11 +103,20 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun processVarDecl(varDecl: AnyVariable) {
-        addDecl(when(varDecl) {
-            is VariableDeclarationBase -> varDecl.name
-            is Parameter -> varDecl.name
-        }, varDecl)
+    private fun processConstDecl(constDecl: ConstantDeclaration) {
+        addDecl(constDecl.name, constDecl)
+        processAsBlock { processNode(constDecl.initializer) }
+    }
+
+    private fun processMutDecl(mutDecl: MutableVariableDeclaration) {
+        addDecl(mutDecl.name, mutDecl)
+        mutDecl.initializer?.let {
+            processAsBlock { processNode(it) }
+        }
+    }
+
+    private fun processParameter(varDecl: Parameter) {
+        addDecl(varDecl.name, varDecl)
     }
 
     private fun processFnCall(functionCall: FunctionCall) {
@@ -94,23 +124,27 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             functionToDecl[functionCall] = it
             assignArguments(functionCall, it)
         }
+
+        functionCall.arguments.forEach{
+            processAsBlock { processNode(it) }
+        }
     }
 
     private fun assignArguments(call: FunctionCall, decl: FunctionDeclaration) {
         var hasNamed = false
-        var positionalIdx = 0;
+        var positionalIdx = 0
         val usedParameters = mutableSetOf<Int>()
 
         call.arguments.forEach{
             when(it) {
                 is PositionalArgument -> {
                     if (hasNamed) {
-                        addPositionalAfterNamedArgumentError(it, call)
-                        return;
+                        addPositionalAfterNamedArgumentError(it)
+                        return
                     }
                     if(positionalIdx > decl.parameters.size) {
                         addToManyArgumentsError(call)
-                        return;
+                        return
                     }
 
                     argumentToParam[it] = decl.parameters[positionalIdx]
@@ -118,15 +152,15 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                     positionalIdx++
                 }
                 is NamedArgument -> {
-                    hasNamed = true;
+                    hasNamed = true
 
-                    val idx = decl.parameters.indexOfFirst { param -> param.name == it.name };
+                    val idx = decl.parameters.indexOfFirst { param -> param.name == it.name }
                     if (idx < 0) {
-                        addNamedArgNotFoundError(it, call)
+                        addNamedArgNotFoundError(it)
                         return
                     }
                     if (usedParameters.contains(idx)) {
-                        addAlreadyUsedArgError(it, call)
+                        addAlreadyUsedArgError(it)
                         return
                     }
 
@@ -174,17 +208,20 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processFnDecl(functionDecl: FunctionDeclaration) {
         addDecl(functionDecl.name, functionDecl)
-        pushBlock()
-        pushLoopStack()
-        functionDecl.parameters.forEach{ processNode(it) }
-        processNode(functionDecl.body)
-        popLoopStack()
-        popBlock()
+
+        processAsBlock {
+            pushLoopStack()
+            functionDecl.parameters.forEach{ processNode(it) }
+            processNode(functionDecl.body)
+            popLoopStack()
+        }
     }
 
     private fun processBreak(breakNode: Break) {
         breakNode.identifier?.let { processNamedBreak(breakNode, it) }
             ?: processSimpleBreak(breakNode)
+
+        breakNode.expression?.let{ processAsBlock { processNode(it) } }
     }
 
     private fun processNamedBreak(breakNode: Break, name: String) {
@@ -202,7 +239,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         val prevLoop = getClosestLoop()
         setClosestLoop(loopNode)
         loopNode.identifier?.let { getLoopData().loopMap[it] = loopNode }
-        processNode(loopNode)
+        processAsBlock { processNode( loopNode.body ) }
         setClosestLoop(prevLoop)
         loopNode.identifier?.let { getLoopData().loopMap.remove(it) }
     }
@@ -260,16 +297,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun addUnknownNodeError(node: ASTNode) {
         addDiagnostic("Found unknown ASTNode", node)
     }
-    private fun addPositionalAfterNamedArgumentError(argument: ASTNode, call: FunctionCall) {
+    private fun addPositionalAfterNamedArgumentError(argument: ASTNode) {
         addDiagnostic("Cannot use positional argument after named argument.", argument)
     }
     private fun addToManyArgumentsError(call: FunctionCall) {
         addDiagnostic("Trying to pass to many arguments to a function.", call)
     }
-    private fun addNamedArgNotFoundError(argument: NamedArgument, call: FunctionCall) {
+    private fun addNamedArgNotFoundError(argument: NamedArgument) {
         addDiagnostic("Cannot find a provided name of argument in function declaration (${argument.name}).", argument)
     }
-    private fun addAlreadyUsedArgError(argument: ASTNode, call: FunctionCall) {
+    private fun addAlreadyUsedArgError(argument: ASTNode) {
         addDiagnostic("Trying to pass to an already provided parameter.", argument)
     }
 
@@ -284,6 +321,5 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             )
         }
     }
-
 }
 
