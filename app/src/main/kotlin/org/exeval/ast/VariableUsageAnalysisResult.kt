@@ -309,8 +309,15 @@ class usageAnalysis{
 
             //REQUIRES FUNCTION ANALYSIS & NAME RESOLUTION
             val nr = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf())
-            val cg:CallGraph = mapOf()
+            val cg:CallGraph
+            run{
+                val program = Program(listOf(FunctionDeclaration("main", listOf(), IntType, ast)))
+                val astInfo = AstInfo(program, locations = emptyMap())
+                val analyser = FunctionAnalyser()
+                cg = analyser.analyseFunctions(astInfo).callGraph
+            }
 
+            
             val a = usageAnalysis(cg, nr)
             a.run(ast)
             val l = a.getAnalysisResult()
