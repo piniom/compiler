@@ -29,7 +29,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 1) {
             outTrees.add(
                 Assigment(
-                    Registers.RCX,
+                    PhysicalRegister(Registers.RCX),
                     trees[0]
                 )
             )
@@ -37,7 +37,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 2) {
             outTrees.add(
                 Assigment(
-                    Registers.RDX,
+                    PhysicalRegister(Registers.RDX),
                     trees[1]
                 )
             )
@@ -56,7 +56,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
             outTrees.add(
                 Assigment(
                     it,
-                    Registers.RAX
+                    PhysicalRegister(Registers.RAX)
                 )
             )
         }
@@ -104,8 +104,8 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
 
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
-            BinaryOperation(Registers.RSP, Constant(Registers.registerSize), BinaryOperationType.SUBTRACT),
-            Assigment(Memory(Registers.RSP), tree)
+            BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.SUBTRACT),
+            Assigment(Memory(PhysicalRegister(Registers.RSP)), tree)
         )
     }
 }

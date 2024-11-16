@@ -213,18 +213,18 @@ class FunctionFrameManagerImplTest {
                 listOf<Tree>(
                     // arg 1
                     Assigment(
-                        Registers.RAX,
+                        PhysicalRegister(Registers.RCX),
                         Constant(2)
                     ),
                     // arg 2
                     Assigment(
-                        Registers.RDX,
+                        PhysicalRegister(Registers.RDX),
                         VirtualRegister(5)
                     ),
                     // push arg 3 on stack
-                    BinaryOperation(Registers.RSP, Constant(8), BinaryOperationType.SUBTRACT),
+                    BinaryOperation(PhysicalRegister(Registers.RSP), Constant(8), BinaryOperationType.SUBTRACT),
                     Assigment(
-                        Memory(Registers.RSP),
+                        Memory(PhysicalRegister(Registers.RSP)),
                         BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
                     ),
                     // Call function
@@ -232,7 +232,7 @@ class FunctionFrameManagerImplTest {
                     // Save result
                     Assigment(
                         returnDest,
-                        Registers.RAX
+                        PhysicalRegister(Registers.RAX)
                     )
                 )
             ),
