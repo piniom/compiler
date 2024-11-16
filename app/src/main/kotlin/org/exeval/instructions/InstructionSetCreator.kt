@@ -18,22 +18,35 @@ class InstructionSetCreator {
         return mapOf(
             BinaryOperationType.ADD to createSafeSimple2ArgPattern(BinaryOperationType.ADD, OperationAsm.ADD),
             BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(BinaryOperationType.SUBTRACT, OperationAsm.SUB),
+            // TODO multiply, divide, and modulo need at least one, up to two additional registers
             BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
             BinaryOperationType.DIVIDE to createDividePatterns(),
             BinaryOperationType.MODULO to createModuloPatterns(),
 
-            /* TODO "and", "or", and "xor" will work correctly only with values 0 and 1
+            /* TODO "and", "or", "xor", "not" will work correctly only with values 0 and 1
              *      Where in code should non-zero integers be converted to 1?
              */
             BinaryOperationType.AND to createSafeSimple2ArgPattern(BinaryOperationType.AND, OperationAsm.AND),
             BinaryOperationType.OR to createSafeSimple2ArgPattern(BinaryOperationType.OR, OperationAsm.OR),
             BinaryOperationType.XOR to createSafeSimple2ArgPattern(BinaryOperationType.XOR, OperationAsm.XOR),
 
-            /* TODO
+            /* TODO these three need to be able to create new labels
             BinaryOperationType.GREATER
             BinaryOperationType.GREATER_EQUAL
             BinaryOperationType.EQUAL
             */
+
+            UnaryOperationType.NOT to createNotPatterns(),
+            UnaryOperationType.MINUS to createNegationPatterns(),
+            UnaryOperationType.INCREMENT to createIncrementPatterns(),
+            UnaryOperationType.DECREMENT to createDecrementPatterns(),
+
+            // TODO Whose responsibility is to prepare function arguments?
+            // TODO Call is in fact a unary operation, taking as argument address or label of destination function
+            NullaryOperationType.CALL to createCallPatterns(),
+            NullaryOperationType.RETURN to createReturnPatterns(),
+
+            // TODO missing assignment (= -> MOV)
         )
     }
 
@@ -136,5 +149,77 @@ class InstructionSetCreator {
             )
             else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
         }
+    }
+
+    private fun createNotPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    /* Cannot use single instruction NOT, as it works bitwise:
+                     * wouldn't just change 0 -> 1, 1 -> 0, but 0001 -> 1110.
+                     * Typical 1 - x also cannot be used directly, as first argument
+                     * to SUB cannnot be a constant.
+                     */
+                    Instruction(OperationAsm.SUB, listOf(destRegister, Constant(1))),
+                    Instruction(OperationAsm.NEG, listOf(destRegister))
+                )
+            }
+        )
+    }
+
+    private fun createNegationPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    Instruction(OperationAsm.NEG, listOf(destRegister))
+                )
+            }
+        )
+    }
+
+    private fun createIncrementPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    Instruction(OperationAsm.INC, listOf(destRegister))
+                )
+            }
+        )
+    }
+
+    private fun createDecrementPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    Instruction(OperationAsm.DEC, listOf(destRegister))
+                )
+            }
+        )
+    }
+
+    private fun createCallPatterns(): List<InstructionPattern> {
+        return listOf(
+            // TODO call is in fact unary, and not nullary
+            TemplatePattern(NullaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    // The argument must contain the address or label where the target function is located
+                    Instruction(OperationAsm.CALL, listOf(operands[0]))
+                )
+            }
+        )
+    }
+
+    private fun createReturnPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(NullaryOperationType.RETURN, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.RET, listOf())
+                )
+            }
+        )
     }
 }
