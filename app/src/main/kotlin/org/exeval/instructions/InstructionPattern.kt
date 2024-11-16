@@ -32,8 +32,15 @@ class TemplatePattern(
                 else null
             }
 
+            is Assigment -> {
+                if (rootClass == BinaryOperationType.ASSIGNMENT) {
+                    InstructionMatchResult(listOf(parseTree.value), lambdaIntstruction)
+                }
+                else null
+            }
+
             is UnaryOp -> {
-                if (parseTree.binaryOperationType == rootClass) {
+                if (parseTree.operation == rootClass) {
                     InstructionMatchResult(listOf(parseTree.child), lambdaIntstruction)
                 }
                 else null

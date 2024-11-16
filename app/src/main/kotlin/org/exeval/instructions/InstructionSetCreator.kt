@@ -16,6 +16,8 @@ class InstructionSetCreator {
 
     private fun initInstructionSet(): Map<OperationType, List<InstructionPattern>> {
         return mapOf(
+            // TODO assignment may need one additional register
+            BinaryOperationType.ASSIGNMENT to createAssignmentPatterns(),
             BinaryOperationType.ADD to createSafeSimple2ArgPattern(BinaryOperationType.ADD, OperationAsm.ADD),
             BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(BinaryOperationType.SUBTRACT, OperationAsm.SUB),
             // TODO multiply, divide, and modulo need at least one, up to two additional registers
@@ -45,8 +47,22 @@ class InstructionSetCreator {
             // TODO Call is in fact a unary operation, taking as argument address or label of destination function
             NullaryOperationType.CALL to createCallPatterns(),
             NullaryOperationType.RETURN to createReturnPatterns(),
+        )
+    }
 
-            // TODO missing assignment (= -> MOV)
+    private fun createAssignmentPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister is Memory && operands[0] is Memory) {
+                    // TODO additional register is needed
+                    throw IllegalArgumentException("Unsupported operand types for MOV")
+                }
+                else {
+                    listOf(
+                        Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
+                    )
+                }
+            }
         )
     }
 
