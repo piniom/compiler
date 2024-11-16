@@ -4,8 +4,9 @@ import org.exeval.cfg.Tree
 import org.exeval.cfg.PhysicalRegister
 
 object Registers {
-    const val RAX = PhysicalRegister(0),
-    const val RCX = PhysicalRegister(3),
-    const val RSP = PhysicalRegister(4),
-    const val RDX = PhysicalRegister(8)
+    val registerSize = 8,
+    val RAX = PhysicalRegister(0),
+    val RCX = PhysicalRegister(3),
+    val RSP = PhysicalRegister(4),
+    val RDX = PhysicalRegister(8)
 }

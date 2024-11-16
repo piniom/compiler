@@ -103,9 +103,8 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     }
 
     private fun pushToStack(tree: Tree): List<Tree> {
-        val size = 8
         return listOf(
-            BinaryOperation(Registers.RSP, Constant(size), BinaryOperationType.SUBTRACT),
+            BinaryOperation(Registers.RSP, Constant(Registers.registerSize), BinaryOperationType.SUBTRACT),
             Assigment(Memory(Registers.RSP), tree)
         )
     }
