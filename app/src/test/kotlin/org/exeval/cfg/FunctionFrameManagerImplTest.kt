@@ -5,7 +5,9 @@ import io.mockk.mockk
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
+import org.exeval.cfg.Tree
 import org.exeval.cfg.interfaces.UsableMemoryCell
+import org.exeval.cfg.interfaces.CFGNode
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,6 +17,11 @@ class FunctionFrameManagerImplTest {
     private lateinit var analyser: FunctionAnalysisResult
     private lateinit var functionDeclaration: FunctionDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
+
+    private val RAX = PhysicalRegister(0)
+    private val RCX = PhysicalRegister(3)
+    private val RSP = PhysicalRegister(4)
+    private val RDX = PhysicalRegister(8)
 
     @BeforeEach
     fun setup() {
@@ -156,5 +163,86 @@ class FunctionFrameManagerImplTest {
 
         // Check allocation for `x`
         assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(x))
+    }
+
+    @Test
+    fun `generate function call no arguments no return`() {
+        val x = mockk<AnyVariable>()
+        every { analyser.variableMap } returns mapOf(x to functionDeclaration)
+        every { analyser.isUsedInNested } returns mapOf(x to false)
+        val then = mockk<CFGNode>()
+
+        // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+
+        // args
+        val trees = listOf<Tree>()
+
+        assertEquals(
+            frameManager.generate_function_call(
+                trees, null, then
+            ),
+            CFGNodeImpl(
+                Pair(then, null),
+                listOf(
+                    Call
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `generate function call 3 arguments with return`() {
+        val x = mockk<AnyVariable>()
+        every { analyser.variableMap } returns mapOf(x to functionDeclaration)
+        every { analyser.isUsedInNested } returns mapOf(x to false)
+        val then = mockk<CFGNode>()
+
+        // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+
+        // args
+        val trees = listOf<Tree>(
+            Constant(2),
+            VirtualRegister(5),
+            BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
+        )
+
+        // Return
+        val returnDest = Memory(VirtualRegister(7))
+
+        assertEquals(
+            frameManager.generate_function_call(
+                trees, returnDest, then
+            ),
+            CFGNodeImpl(
+                Pair(then, null),
+                listOf<Tree>(
+                    // arg 1
+                    Assigment(
+                        RCX,
+                        Constant(2)
+                    ),
+                    // arg 2
+                    Assigment(
+                        RDX,
+                        VirtualRegister(5)
+                    ),
+                    // push arg 3 on stack
+                    BinaryOperation(RSP, Constant(8), BinaryOperationType.SUBTRACT),
+                    Assigment(
+                        Memory(RSP),
+                        BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
+                    ),
+                    // Call function
+                    Call,
+                    // Save result
+                    Assigment(
+                        returnDest,
+                        RAX
+                    )
+                )
+            )
+        )
     }
 }
