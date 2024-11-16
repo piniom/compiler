@@ -16,5 +16,3 @@ interface FunctionFrameManager{
     fun generate_prolog(then: CFGNode): CFGNode
     fun generate_epilouge(result: Tree?): CFGNode
 }
-
-data class FunctionCallResult(val node : CFGNode, val resultLocation : Tree?)
