@@ -212,9 +212,6 @@ class FunctionFrameManagerImplTest {
         val returnDest = Memory(VirtualRegister(7))
 
         assertEquals(
-            frameManager.generate_function_call(
-                trees, returnDest, then
-            ),
             CFGNodeImpl(
                 Pair(then, null),
                 listOf<Tree>(
@@ -242,6 +239,9 @@ class FunctionFrameManagerImplTest {
                         RAX
                     )
                 )
+            ),
+            frameManager.generate_function_call(
+                trees, returnDest, then
             )
         )
     }

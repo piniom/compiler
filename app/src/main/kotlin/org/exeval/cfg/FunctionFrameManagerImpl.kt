@@ -50,7 +50,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         // Put the rest of the args on stack
         for( i in 2..(trees.size-1) ) {
             outTrees.addAll(
-                pushToStack(RAX)
+                pushToStack(trees[i])
             )
         }
         // Add Call instruction
@@ -58,9 +58,11 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         
         // Store result from RAX if needed
         result?.let {
-            Assigment(
-                it,
-                RAX
+            outTrees.add(
+                Assigment(
+                    it,
+                    RAX
+                )
             )
         }
 
