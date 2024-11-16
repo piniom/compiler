@@ -5,6 +5,7 @@ import org.exeval.ast.FunctionAnalyser
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.CFGNodeImpl
+import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
@@ -14,11 +15,6 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
     private var virtualRegIdx = 0
     private var stackOffset = 0
-    private val RAX = PhysicalRegister(0)
-    private val RCX = PhysicalRegister(3)
-    private val RSP = PhysicalRegister(4)
-    private val RDX = PhysicalRegister(8)
-
 
     init {
         initialiseVariableMap()
@@ -34,7 +30,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 1) {
             outTrees.add(
                 Assigment(
-                    RCX,
+                    Registers.RCX,
                     trees[0]
                 )
             )
@@ -42,7 +38,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 2) {
             outTrees.add(
                 Assigment(
-                    RDX,
+                    Registers.RDX,
                     trees[1]
                 )
             )
@@ -61,7 +57,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
             outTrees.add(
                 Assigment(
                     it,
-                    RAX
+                    Registers.RAX
                 )
             )
         }
@@ -110,8 +106,8 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     private fun pushToStack(tree: Tree): List<Tree> {
         val size = 8
         return listOf(
-            BinaryOperation(RSP, Constant(size), BinaryOperationType.SUBTRACT),
-            Assigment(Memory(RSP), tree)
+            BinaryOperation(Registers.RSP, Constant(size), BinaryOperationType.SUBTRACT),
+            Assigment(Memory(Registers.RSP), tree)
         )
     }
 }

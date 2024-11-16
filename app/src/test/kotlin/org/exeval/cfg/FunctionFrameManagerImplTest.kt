@@ -6,6 +6,7 @@ import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.Tree
+import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
 import org.junit.jupiter.api.Assertions.*
@@ -17,11 +18,6 @@ class FunctionFrameManagerImplTest {
     private lateinit var analyser: FunctionAnalysisResult
     private lateinit var functionDeclaration: FunctionDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
-
-    private val RAX = PhysicalRegister(0)
-    private val RCX = PhysicalRegister(3)
-    private val RSP = PhysicalRegister(4)
-    private val RDX = PhysicalRegister(8)
 
     @BeforeEach
     fun setup() {
@@ -217,18 +213,18 @@ class FunctionFrameManagerImplTest {
                 listOf<Tree>(
                     // arg 1
                     Assigment(
-                        RCX,
+                        Registers.RAX,
                         Constant(2)
                     ),
                     // arg 2
                     Assigment(
-                        RDX,
+                        Registers.RDX,
                         VirtualRegister(5)
                     ),
                     // push arg 3 on stack
-                    BinaryOperation(RSP, Constant(8), BinaryOperationType.SUBTRACT),
+                    BinaryOperation(Registers.RSP, Constant(8), BinaryOperationType.SUBTRACT),
                     Assigment(
-                        Memory(RSP),
+                        Memory(Registers.RSP),
                         BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
                     ),
                     // Call function
@@ -236,7 +232,7 @@ class FunctionFrameManagerImplTest {
                     // Save result
                     Assigment(
                         returnDest,
-                        RAX
+                        Registers.RAX
                     )
                 )
             ),
