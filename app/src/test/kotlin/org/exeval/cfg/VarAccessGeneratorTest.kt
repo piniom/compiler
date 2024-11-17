@@ -1,10 +1,9 @@
 package org.exeval.cfg
 
 import org.exeval.cfg.interfaces.UsableMemoryCell
+import org.exeval.cfg.constants.Registers
 import kotlin.test.Test
 import kotlin.test.assertEquals
-
-private const val RBP_INDEX = 5
 
 class VarAccessGeneratorTest {
     @Test
@@ -17,7 +16,7 @@ class VarAccessGeneratorTest {
         val regExpected = VirtualRegister(108)
         val memExpected = Memory(
             BinaryOperation(
-                PhysicalRegister(RBP_INDEX),
+                PhysicalRegister(Registers.RBP),
                 Constant(24),
                 BinaryOperationType.SUBTRACT
             )
