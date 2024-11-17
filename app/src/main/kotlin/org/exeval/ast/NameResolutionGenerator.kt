@@ -200,7 +200,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun findDecl(name: String): ASTNode? {
-        for (declInSingleBlock in declarations)
+        for (declInSingleBlock in declarations.reversed())
             declInSingleBlock[name]?.let { return it }
 
         return null
