@@ -190,4 +190,30 @@ class NameResolutionTest {
             "Expected 'outer' break to be matched to its loop"
         )
     }
+
+    @Test
+    fun `should get shadowed variable`() {
+        val outerDecl = ConstantDeclaration("var", IntType, IntLiteral(1))
+        val innerDecl = MutableVariableDeclaration("var", IntType, IntLiteral(2))
+        val innerRef = VariableReference("var")
+        val outerRef = VariableReference("var")
+
+        val innerBlock = Block(listOf(innerDecl, innerRef))
+        val outerBlock = Block(listOf(outerDecl, innerBlock, outerRef))
+
+        val astInfo = AstInfo(outerBlock, emptyMap())
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        assertEquals(
+            innerDecl,
+            nameResolution.variableToDecl[innerRef],
+            "Expected 'var' to be matched to its declaration"
+        )
+
+        assertEquals(
+            outerDecl,
+            nameResolution.variableToDecl[outerRef],
+            "Expected 'var' to be matched to its declaration"
+        )
+    }
 }
