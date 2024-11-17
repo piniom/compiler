@@ -4,10 +4,11 @@ import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalyser
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
+import org.exeval.cfg.CFGNodeImpl
+import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
-import org.exeval.ffm.interfaces.FunctionCallResult
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
@@ -22,8 +23,48 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         TODO("Not yet implemented")
     }
 
-    override fun generate_function_call(trees: List<Tree>, then: CFGNode): FunctionCallResult {
-        TODO("Not yet implemented")
+    override fun generate_function_call(trees: List<Tree>, result: Assignable?, then: CFGNode): CFGNode {
+        val outTrees = mutableListOf<Tree>()
+        // Put first 2 args to RCX, RDX registers
+        if (trees.size >= 1) {
+            outTrees.add(
+                Assigment(
+                    PhysicalRegister(Registers.RCX),
+                    trees[0]
+                )
+            )
+        }
+        if (trees.size >= 2) {
+            outTrees.add(
+                Assigment(
+                    PhysicalRegister(Registers.RDX),
+                    trees[1]
+                )
+            )
+        }
+        // Put the rest of the args on stack
+        for( i in 2..(trees.size-1) ) {
+            outTrees.addAll(
+                pushToStack(trees[i])
+            )
+        }
+        // Add Call instruction
+        outTrees.add(Call)
+        
+        // Store result from RAX if needed
+        result?.let {
+            outTrees.add(
+                Assigment(
+                    it,
+                    PhysicalRegister(Registers.RAX)
+                )
+            )
+        }
+
+        return CFGNodeImpl(
+            Pair(then, null),
+            outTrees
+        )
     }
 
     override fun variable_to_virtual_register(x: AnyVariable): UsableMemoryCell {
@@ -59,5 +100,12 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
                 variableMap[variable] = memoryCell
             }
         }
+    }
+
+    private fun pushToStack(tree: Tree): List<Tree> {
+        return listOf(
+            BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.SUBTRACT),
+            Assigment(Memory(PhysicalRegister(Registers.RSP)), tree)
+        )
     }
 }
