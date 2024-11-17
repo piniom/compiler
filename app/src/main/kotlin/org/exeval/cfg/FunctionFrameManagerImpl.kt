@@ -6,13 +6,14 @@ import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.CFGNodeImpl
 import org.exeval.cfg.constants.Registers
+import org.exeval.cfg.constants.WorkingRegisters
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var virtualRegIdx = 0
+    private var virtualRegIdx = WorkingRegisters.REGISTER_SIZE
     private var stackOffset = 0
 
     init {

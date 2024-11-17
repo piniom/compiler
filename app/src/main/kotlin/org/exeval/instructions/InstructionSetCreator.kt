@@ -55,6 +55,11 @@ class InstructionSetCreator {
             TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister is Memory && operands[0] is Memory) {
                     // TODO additional register is needed
+                    // Proposition:
+                    // listOf(
+                    //     Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
+                    //     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
+                    // )
                     throw IllegalArgumentException("Unsupported operand types for MOV")
                 }
                 else {
@@ -94,9 +99,11 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentType>, destRegister: Assignable): List<Instruction> {
         return listOf(
+            // Proposition - use eg. PhysicalRegister(Registers.RAX)
             Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(0))), //TODO: Change PhysicalRegister to enum??
             Instruction(OperationAsm.MOV, listOf(PhysicalRegister(0), operands[0])),
             // TODO rdx can also be changed by mul and div, one more register is needed to save it
+            // Proposition - use eg. VirtualRegister(WorkingRegisters.R0) etc.
             when (operands[1]) {
                 // Case: Register or Memory
                 is Assignable -> Instruction(operation, listOf(operands[1]))
