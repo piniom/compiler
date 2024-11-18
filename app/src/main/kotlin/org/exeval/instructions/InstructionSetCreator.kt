@@ -23,13 +23,9 @@ class InstructionSetCreator {
             BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
             BinaryOperationType.DIVIDE to createDividePatterns(),
             BinaryOperationType.MODULO to createModuloPatterns(),
-
-            /* TODO "and", "or", "xor", "not" will work correctly only with values 0 and 1
-             *      Where in code should non-zero integers be converted to 1?
-             */
-            BinaryOperationType.AND to createSafeSimple2ArgPattern(BinaryOperationType.AND, OperationAsm.AND),
-            BinaryOperationType.OR to createSafeSimple2ArgPattern(BinaryOperationType.OR, OperationAsm.OR),
-            BinaryOperationType.XOR to createSafeSimple2ArgPattern(BinaryOperationType.XOR, OperationAsm.XOR),
+            BinaryOperationType.AND to createSimpleBoolOperationPattern(BinaryOperationType.AND, OperationAsm.AND),
+            BinaryOperationType.OR to createSimpleBoolOperationPattern(BinaryOperationType.OR, OperationAsm.OR),
+            BinaryOperationType.XOR to createSimpleBoolOperationPattern(BinaryOperationType.XOR, OperationAsm.XOR),
 
             /* TODO these three need to be able to create new labels
             BinaryOperationType.GREATER
@@ -126,6 +122,33 @@ class InstructionSetCreator {
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
                 ) + create2ArgInstruction(asmOperation, destRegister, operands[1])
+            }
+        )
+    }
+
+    private fun convertBooleanTo0Or1(destRegister: Register, boolean: OperandArgumentType): List<Instruction> {
+        return listOf(
+            // A neat conversion without jumps found on stackoverflow
+
+            // Set destRegister to 0
+            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
+            // Carry will be set if boolean was not 0
+            Instruction(OperationAsm.SUB, listOf(destRegister, boolean)),
+            // Set destRegister to 0 once again
+            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
+            // Add carry to destRegister + 0
+            Instruction(OperationAsm.ADC, listOf(destRegister, Constant(0))),
+            // If carry was set, destRegister will be equal to 1, otherwise it'll be 0
+        )
+    }
+
+    private fun createSimpleBoolOperationPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+        return listOf(
+                TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+                convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[0]) + listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
+                ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
+                create2ArgInstruction(asmOperation, destRegister, VirtualRegister(WorkingRegisters.R1))
             }
         )
     }
