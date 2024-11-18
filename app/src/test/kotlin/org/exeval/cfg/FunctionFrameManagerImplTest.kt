@@ -5,7 +5,6 @@ import io.mockk.mockk
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cfg.Tree
 import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
@@ -212,25 +211,25 @@ class FunctionFrameManagerImplTest {
                 Pair(then, null),
                 listOf<Tree>(
                     // arg 1
-                    Assigment(
+                    Assignment(
                         PhysicalRegister(Registers.RCX),
                         Constant(2)
                     ),
                     // arg 2
-                    Assigment(
+                    Assignment(
                         PhysicalRegister(Registers.RDX),
                         VirtualRegister(5)
                     ),
                     // push arg 3 on stack
                     BinaryOperation(PhysicalRegister(Registers.RSP), Constant(8), BinaryOperationType.SUBTRACT),
-                    Assigment(
+                    Assignment(
                         Memory(PhysicalRegister(Registers.RSP)),
                         BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
                     ),
                     // Call function
                     Call,
                     // Save result
-                    Assigment(
+                    Assignment(
                         returnDest,
                         PhysicalRegister(Registers.RAX)
                     )

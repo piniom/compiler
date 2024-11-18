@@ -16,7 +16,7 @@ sealed class Register : Assignable {
 
 data class VirtualRegister(override val id: Int) : Register()
 data class PhysicalRegister(override val id: Int) : Register()
-data class Assigment(val destination: Assignable, val value: Tree) : Tree
+data class Assignment(val destination: Assignable, val value: Tree) : Tree
 
 sealed interface OperationType
 

@@ -32,7 +32,7 @@ class TemplatePattern(
                 else null
             }
 
-            is Assigment -> {
+            is Assignment -> {
                 if (rootClass == BinaryOperationType.ASSIGNMENT) {
                     InstructionMatchResult(listOf(parseTree.value), lambdaInstruction)
                 }
