@@ -11,7 +11,7 @@ import org.exeval.cfg.Memory
 import org.exeval.cfg.Call
 import org.exeval.cfg.Return
 
-class InstructionCoverer(private val instructionPatterns : Set<InstructionPattern>) {
+class InstructionCoverer(private val instructionPatterns : Map<OperationType, List<InstructionPattern>>) {
     
     
     public fun cover(tree : Tree) : List<Instruction> {
@@ -32,7 +32,7 @@ class InstructionCoverer(private val instructionPatterns : Set<InstructionPatter
                     // label
                     return matchResult.createInstruction(tree, listOf())
                 }
-                else{
+                else -> {
                     // register    
                     return matchResult.createInstruction(tree, listOf())
                 }
@@ -65,14 +65,16 @@ class InstructionCoverer(private val instructionPatterns : Set<InstructionPatter
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for(instructionPattern in instructionPatterns){
-            val result = instructionPattern.matches(tree)
-            if (result != null){
-                //check overfloats
-                val newCost = instructionPattern.cost + result.children.mapNotNull { subtreeCost[it]!!.first }.sum()
-                if( minCost > newCost){
-                    minCost = newCost 
-                    bestInstr = instructionPattern
+        for(instructionPatternsPerOperation in instructionPatterns.values){
+           for(instructionPattern in instructionPatternsPerOperation){
+                val result = instructionPattern.matches(tree)
+                if (result != null){
+                    //check overfloats
+                    val newCost = instructionPattern.cost + result.children.mapNotNull { subtreeCost[it]!!.first }.sum()
+                    if( minCost > newCost){
+                        minCost = newCost 
+                        bestInstr = instructionPattern
+                    }
                 }
             }
         }
