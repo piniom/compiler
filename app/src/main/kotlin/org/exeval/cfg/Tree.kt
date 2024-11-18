@@ -5,6 +5,8 @@ sealed interface Tree
 data class Constant(val value: Int) : Tree
 
 sealed interface Assignable : Tree
+sealed interface Label : Tree
+
 data class Memory(val address: Tree) : Assignable
 sealed class Register : Assignable {
     abstract val id: Int
@@ -26,7 +28,3 @@ data class UnaryOp(val child: Tree, val binaryOperationType: UnaryOperationType)
 enum class UnaryOperationType {
     NOT, INCREMENT, DECREMENT
 }
-
-
-
-

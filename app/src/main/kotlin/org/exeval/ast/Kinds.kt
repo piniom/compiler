@@ -8,7 +8,7 @@ sealed class Expr : ASTNode
 
 class Block(val expressions: List<Expr>) : Expr()
 
-sealed interface AnyVariable
+sealed interface AnyVariable : ASTNode
 
 sealed class VariableDeclarationBase : AnyVariable, Expr() {
     abstract val name: String
