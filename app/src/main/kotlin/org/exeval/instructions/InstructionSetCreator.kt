@@ -1,6 +1,7 @@
 package org.exeval.instructions
 
 import org.exeval.cfg.*
+import org.exeval.cfg.constants.*
 
 class InstructionSetCreator {
     private val patterns: Map<OperationType, List<InstructionPattern>>
@@ -16,11 +17,9 @@ class InstructionSetCreator {
 
     private fun initInstructionSet(): Map<OperationType, List<InstructionPattern>> {
         return mapOf(
-            // TODO assignment may need one additional register
             BinaryOperationType.ASSIGNMENT to createAssignmentPatterns(),
             BinaryOperationType.ADD to createSafeSimple2ArgPattern(BinaryOperationType.ADD, OperationAsm.ADD),
             BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(BinaryOperationType.SUBTRACT, OperationAsm.SUB),
-            // TODO multiply, divide, and modulo need at least one, up to two additional registers
             BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
             BinaryOperationType.DIVIDE to createDividePatterns(),
             BinaryOperationType.MODULO to createModuloPatterns(),
@@ -54,13 +53,10 @@ class InstructionSetCreator {
         return listOf(
             TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister is Memory && operands[0] is Memory) {
-                    // TODO additional register is needed
-                    // Proposition:
-                    // listOf(
-                    //     Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
-                    //     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
-                    // )
-                    throw IllegalArgumentException("Unsupported operand types for MOV")
+                    listOf(
+                        Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
+                        Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
+                    )
                 }
                 else {
                     listOf(
@@ -91,7 +87,7 @@ class InstructionSetCreator {
         return listOf(
             TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
                 createMulDivModInstructions(OperationAsm.DIV, operands, destRegister) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(3 /* TODO does 3 correspond to rdx? */ ))),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0))),
                 )
             }
         )
@@ -99,18 +95,28 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentType>, destRegister: Assignable): List<Instruction> {
         return listOf(
-            // Proposition - use eg. PhysicalRegister(Registers.RAX)
-            Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(0))), //TODO: Change PhysicalRegister to enum??
-            Instruction(OperationAsm.MOV, listOf(PhysicalRegister(0), operands[0])),
-            // TODO rdx can also be changed by mul and div, one more register is needed to save it
-            // Proposition - use eg. VirtualRegister(WorkingRegisters.R0) etc.
-            when (operands[1]) {
-                // Case: Register or Memory
-                is Assignable -> Instruction(operation, listOf(operands[1]))
-                // Case: Constant
-                is Constant -> /* TODO register is needed to pass the value */ throw IllegalArgumentException("Unsupported operand types for MUL/DIV pattern")
-            },
-            Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister(0))),
+            Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(Registers.RAX))),
+            Instruction(OperationAsm.MOV, listOf(PhysicalRegister(Registers.RAX), operands[0])),
+            Instruction(OperationAsm.MOV, listOf(
+                VirtualRegister(WorkingRegisters.R0),
+                PhysicalRegister(Registers.RDX)
+            ))
+        ) + when (operands[1]) {
+            // Case: Register or Memory
+            is Assignable -> listOf(
+                Instruction(operation, listOf(operands[1])),
+            )
+            // Case: Constant
+            is Constant -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R1), operands[1])),
+                Instruction(operation, listOf(VirtualRegister(WorkingRegisters.R1))),
+            )
+        } + listOf(
+            Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister(Registers.RAX))),
+            Instruction(OperationAsm.XCHG, listOf(
+                PhysicalRegister(Registers.RDX),
+                VirtualRegister(WorkingRegisters.R0)
+            )),
         )
     }
 
@@ -140,9 +146,8 @@ class InstructionSetCreator {
             )
             // Case: Memory + Memory
             operand1 is Memory && operand2 is Memory -> listOf(
-                //TODO may happen with cmp, or when destRegister is mapped to memory, and not a physical register
-
-                throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
+                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
             )
             // Case: Register + Constant
             operand1 is Register && operand2 is Constant -> listOf(
@@ -150,9 +155,8 @@ class InstructionSetCreator {
             )
             // Case: Constant + Register
             operand1 is Constant && operand2 is Register -> listOf(
-                //TODO may happen with cmp
-
-                throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
+                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
             )
             // Case: Memory + Constant
             operand1 is Memory && operand2 is Constant -> listOf(
@@ -160,15 +164,13 @@ class InstructionSetCreator {
             )
             // Case: Constant + Memory
             operand1 is Constant && operand2 is Memory -> listOf(
-                //TODO may happen with cmp
-
-                throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
+                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
             )
             // Case: Constant + Constant
             operand1 is Constant && operand2 is Constant -> listOf(
-                //TODO may happen with cmp
-
-                throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
+                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
             )
             else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
         }
