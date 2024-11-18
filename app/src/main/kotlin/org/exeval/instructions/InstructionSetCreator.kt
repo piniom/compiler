@@ -45,10 +45,8 @@ class InstructionSetCreator {
             UnaryOperationType.MINUS to createNegationPatterns(),
             UnaryOperationType.INCREMENT to createIncrementPatterns(),
             UnaryOperationType.DECREMENT to createDecrementPatterns(),
+            UnaryOperationType.CALL to createCallPatterns(),
 
-            // TODO Whose responsibility is to prepare function arguments?
-            // TODO Call is in fact a unary operation, taking as argument address or label of destination function
-            NullaryOperationType.CALL to createCallPatterns(),
             NullaryOperationType.RETURN to createReturnPatterns(),
         )
     }
@@ -277,8 +275,7 @@ class InstructionSetCreator {
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            // TODO call is in fact unary, and not nullary
-            TemplatePattern(NullaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
                 listOf(
                     // The argument must contain the address or label where the target function is located
                     Instruction(OperationAsm.CALL, listOf(operands[0]))
