@@ -6,6 +6,7 @@ import org.exeval.ast.CallGraph
 import org.exeval.ast.VariableUsage
 import org.exeval.ast.NameResolution
 import org.exeval.ast.FunctionAnalyser
+import org.exeval.ast.NameResolutionGenerator
 
 typealias VariableUsageAnalysisResult = Map<Expr, VariableUsage>
 
@@ -304,17 +305,18 @@ class usageAnalysis{
                     Assignment("a", VariableReference("b")),
                     Assignment("a", VariableReference("a"))
                 ))),
-                /*10*/FunctionCall("f", listOf(NamedArgument("a", Assignment("a", VariableReference("a")))))
+                /*10*/FunctionCall("f", listOf(NamedArgument("b", Assignment("a", VariableReference("a")))))
             ))
 
             //REQUIRES FUNCTION ANALYSIS & NAME RESOLUTION
-            val nr = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf())
+            val nr:NameResolution
             val cg:CallGraph
             run{
                 val program = Program(listOf(FunctionDeclaration("main", listOf(), IntType, ast)))
                 val astInfo = AstInfo(program, locations = emptyMap())
                 val analyser = FunctionAnalyser()
                 cg = analyser.analyseFunctions(astInfo).callGraph
+                nr = NameResolutionGenerator(astInfo).parse().result
             }
 
             
@@ -333,5 +335,5 @@ class usageAnalysis{
 }
 
 fun main(){
-    println(usageAnalysis.test3())
+    println(usageAnalysis.test4())
 }
