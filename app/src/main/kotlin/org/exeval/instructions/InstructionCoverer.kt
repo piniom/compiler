@@ -1,9 +1,10 @@
 package org.exeval.instructions
 
 import org.exeval.cfg.Tree
+import org.exeval.cfg.OperationType
 import org.exeval.cfg.BinaryOperation
 import org.exeval.cfg.UnaryOp
-import org.exeval.cfg.Assigment
+import org.exeval.cfg.Assignment
 import org.exeval.cfg.Register
 import org.exeval.cfg.Constant
 import org.exeval.cfg.Label
@@ -55,7 +56,7 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
             is UnaryOp ->{
                 computeCost(tree.child, subtreeCost)
             }
-            is Assigment ->{
+            is Assignment ->{
                 computeCost(tree.destination, subtreeCost)
                 computeCost(tree.value, subtreeCost)
             }
