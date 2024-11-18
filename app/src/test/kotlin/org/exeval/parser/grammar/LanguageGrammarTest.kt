@@ -61,6 +61,12 @@ class LanguageGrammarTest {
 
 	@Test
 	fun productionsOfTerminalGroup() {
+		/* Starting symbol: TestGroup
+		 *
+		 * Expected productions:
+		 *
+		 * TestGroup -> TestTerminals.A | TestTerminals.B | TestTerminals.C
+		 */
 		val expectedProductions = listOf(
 			listOf(TestTerminals.A),
 			listOf(TestTerminals.B),
@@ -72,6 +78,12 @@ class LanguageGrammarTest {
 
 	@Test
 	fun getProductionsTerminalGroup() {
+		/* Starting symbol: TestGroup
+		 *
+		 * Expected productions:
+		 *
+		 * TestGroup -> TestTerminals.A | TestTerminals.B | TestTerminals.C
+		 */
 		val expectedProductions = listOf(
 			Production(TestGroup, listOf(TestTerminals.A)),
 			Production(TestGroup, listOf(TestTerminals.B)),
@@ -83,6 +95,13 @@ class LanguageGrammarTest {
 
 	@Test
 	fun getProductionsSimpleSymbol() {
+		/* Starting symbol: SymbolB
+		 *
+		 * Expected productions:
+		 *
+		 * SymbolB -> TestTerminals.B | TestTerminals.C TestGroup
+		 * TestGroup -> TestTerminals.A | TestTerminals.B | TestTerminals.C
+		 */
 		val expectedProductions = listOf(
 			Production(SymbolB, listOf(TestTerminals.B)),
 			Production(SymbolB, listOf(TestTerminals.C, TestGroup)),
@@ -96,6 +115,16 @@ class LanguageGrammarTest {
 
 	@Test
 	fun getProductionsMoreComplexSymbol() {
+		/* Starting symbol: SymbolC
+		 *
+		 * Expected productions:
+		 *
+		 * SymbolC -> SymbolB SymbolA | SymbolC.InnerSymbol
+		 * SymbolB -> TestTerminals.B | TestTerminals.C TestGroup
+		 * TestGroup -> TestTerminals.A | TestTerminals.B | TestTerminals.C
+		 * SymbolA -> TestTerminals.A
+		 * SymbolC.InnerSymbol -> TestTerminals.A TestTerminals.C | TestTerminals.A SymbolC.InnerSymbol
+		 */
 		val expectedProductions = listOf(
 			Production(SymbolC, listOf(SymbolB, SymbolA)),
 			Production(SymbolC, listOf(SymbolC.InnerSymbol)),
