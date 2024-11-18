@@ -76,7 +76,7 @@ class Conditional(
 
 class Loop(
     val identifier: String?,
-    val body: Block
+    val body: Expr
 ) : Expr()
 
 class Break(

@@ -26,7 +26,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             is Branch -> node.children
         }
 
-        val astNode
+        val astNode: ASTNode
         if (symbol === ProgramSymbol) {
             val functionsList = unwrapList<FunctionDeclaration>(children[0])
             astNode = Program(functionsList)
@@ -173,7 +173,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     body = createAux(child) as Expr
                 }
             }
-            astNode = Loop(identifier, body)
+            astNode = Loop(identifier, body!!)
         } else {
             TODO()
         }
