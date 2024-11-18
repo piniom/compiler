@@ -57,8 +57,8 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for each variable
-        assertEquals(UsableMemoryCell.VirtReg(0), frameManager.variable_to_virtual_register(a))
-        assertEquals(UsableMemoryCell.VirtReg(1), frameManager.variable_to_virtual_register(b))
+        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(a))
+        assertEquals(UsableMemoryCell.VirtReg(5), frameManager.variable_to_virtual_register(b))
         assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(max))
     }
 
@@ -88,9 +88,9 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for each variable
-        assertEquals(UsableMemoryCell.VirtReg(0), frameManager.variable_to_virtual_register(y))
-        assertEquals(UsableMemoryCell.VirtReg(1), frameManager.variable_to_virtual_register(a))
-        assertEquals(UsableMemoryCell.VirtReg(2), frameManager.variable_to_virtual_register(b))
+        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(y))
+        assertEquals(UsableMemoryCell.VirtReg(5), frameManager.variable_to_virtual_register(a))
+        assertEquals(UsableMemoryCell.VirtReg(6), frameManager.variable_to_virtual_register(b))
     }
 
     @Test
@@ -114,7 +114,7 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for `n`
-        assertEquals(UsableMemoryCell.VirtReg(0), frameManager.variable_to_virtual_register(n))
+        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(n))
     }
 
     @Test
@@ -134,7 +134,7 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for `fibResult`
-        assertEquals(UsableMemoryCell.VirtReg(0), frameManager.variable_to_virtual_register(fibResult))
+        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(fibResult))
     }
 
     @Test
