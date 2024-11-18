@@ -28,3 +28,8 @@ data class UnaryOp(val child: Tree, val binaryOperationType: UnaryOperationType)
 enum class UnaryOperationType {
     NOT, INCREMENT, DECREMENT
 }
+
+
+
+
+
