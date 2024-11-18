@@ -281,6 +281,39 @@ class InstructionCovererTest {
 
     @Test
     fun `Operations inside memory work`() {
+        val input = BinaryOperation(
+            Memory(
+                BinaryOperation(
+                    BinaryOperation(
+                        VirtualRegister(0), VirtualRegister(1), BinaryOperationType.XOR
+                    ), BinaryOperation(
+                        VirtualRegister(2), VirtualRegister(3), BinaryOperationType.MULTIPLY
+                    ), BinaryOperationType.SUBTRACT
+                )
+            ), Constant(42), BinaryOperationType.ASSIGNMENT
+        )
+
+        val mulInstructions = listOf(
+            Instruction(OperationAsm.MOV, listOf(VirtualRegister(4), PhysicalRegister(0))),
+            Instruction(OperationAsm.MOV, listOf(PhysicalRegister(0), VirtualRegister(2))),
+            Instruction(OperationAsm.MUL, listOf(VirtualRegister(3))),
+            Instruction(OperationAsm.XCHG, listOf(VirtualRegister(4), PhysicalRegister(0))),
+        )
+        val xorInstructions = listOf(
+            Instruction(OperationAsm.MOV, listOf(VirtualRegister(5), VirtualRegister(0))),
+            Instruction(OperationAsm.XOR, listOf(VirtualRegister(5), VirtualRegister(1))),
+        )
+        val subInstructions = listOf(
+            Instruction(OperationAsm.MOV, listOf(VirtualRegister(6), VirtualRegister(5))),
+            Instruction(OperationAsm.SUB, listOf(VirtualRegister(6), VirtualRegister(4))),
+        )
+        val assInstructions = listOf(
+            Instruction(OperationAsm.MOV, listOf(Memory(VirtualRegister(6)), Constant(42)))
+        )
+        val expected = mulInstructions + xorInstructions + subInstructions + assInstructions
+
+        val actual = coverer.cover(input)
+        assertEquals(expected, actual)
     }
 
     @Test
