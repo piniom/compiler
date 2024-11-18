@@ -18,20 +18,28 @@ class InstructionSetCreator {
     private fun initInstructionSet(): Map<OperationType, List<InstructionPattern>> {
         return mapOf(
             BinaryOperationType.ASSIGNMENT to createAssignmentPatterns(),
-            BinaryOperationType.ADD to createSafeSimple2ArgPattern(BinaryOperationType.ADD, OperationAsm.ADD),
-            BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(BinaryOperationType.SUBTRACT, OperationAsm.SUB),
+            BinaryOperationType.ADD to createSafeSimple2ArgPattern(
+                BinaryOperationType.ADD, OperationAsm.ADD),
+            BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(
+                BinaryOperationType.SUBTRACT, OperationAsm.SUB),
+
             BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
             BinaryOperationType.DIVIDE to createDividePatterns(),
             BinaryOperationType.MODULO to createModuloPatterns(),
-            BinaryOperationType.AND to createSimpleBoolOperationPattern(BinaryOperationType.AND, OperationAsm.AND),
-            BinaryOperationType.OR to createSimpleBoolOperationPattern(BinaryOperationType.OR, OperationAsm.OR),
-            BinaryOperationType.XOR to createSimpleBoolOperationPattern(BinaryOperationType.XOR, OperationAsm.XOR),
 
-            /* TODO these three need to be able to create new labels
-            BinaryOperationType.GREATER
-            BinaryOperationType.GREATER_EQUAL
-            BinaryOperationType.EQUAL
-            */
+            BinaryOperationType.AND to createSimpleBoolOperationPattern(
+                BinaryOperationType.AND, OperationAsm.AND),
+            BinaryOperationType.OR to createSimpleBoolOperationPattern(
+                BinaryOperationType.OR, OperationAsm.OR),
+            BinaryOperationType.XOR to createSimpleBoolOperationPattern(
+                BinaryOperationType.XOR, OperationAsm.XOR),
+
+            BinaryOperationType.GREATER to createSimpleComparisonPattern(
+                BinaryOperationType.GREATER, OperationAsm.CMOVG),
+            BinaryOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
+                BinaryOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
+            BinaryOperationType.EQUAL to createSimpleComparisonPattern(
+                BinaryOperationType.EQUAL, OperationAsm.CMOVE),
 
             UnaryOperationType.NOT to createNotPatterns(),
             UnaryOperationType.MINUS to createNegationPatterns(),
@@ -149,6 +157,24 @@ class InstructionSetCreator {
                     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
                 ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
                 create2ArgInstruction(asmOperation, destRegister, VirtualRegister(WorkingRegisters.R1))
+            }
+        )
+    }
+
+    private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+                listOf(
+                    Instruction(OperationAsm.XOR, listOf(
+                        VirtualRegister(WorkingRegisters.R1),
+                        VirtualRegister(WorkingRegisters.R1))
+                    ),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, Constant(1))),
+                ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
+                    // The first operand HAS to be a register (cannot be memory)
+                    Instruction(asmCmovOperation, listOf(VirtualRegister(WorkingRegisters.R1), destRegister)),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1))),
+                )
             }
         )
     }
