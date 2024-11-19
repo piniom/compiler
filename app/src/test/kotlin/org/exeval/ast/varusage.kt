@@ -17,4 +17,8 @@ class varusage{
     fun functionPropagationTest(){
         assert(usageAnalysis.test3())
     }
+    @Test
+    fun complexTest(){
+        assert(usageAnalysis.test4())
+    }
 }
