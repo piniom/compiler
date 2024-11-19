@@ -389,7 +389,6 @@ object ProgramSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			FunctionsDeclarationsSymbol,
-			EndOfProgramSymbol,
 		),
 	)
 }
