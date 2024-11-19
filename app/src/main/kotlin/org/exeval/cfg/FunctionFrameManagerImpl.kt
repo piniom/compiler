@@ -11,7 +11,7 @@ import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var virtualRegIdx = WorkingRegisters.REGISTER_SIZE
+    private var virtualRegIdx = WorkingRegisters.REGISTER_COUNT
     private var stackOffset = 0
 
     init {

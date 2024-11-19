@@ -54,6 +54,9 @@ class InstructionSetCreator {
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for assignment cannot be null")
+                }
                 if (destRegister is Memory && operands[0] is Memory) {
                     listOf(
                         Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
@@ -72,6 +75,9 @@ class InstructionSetCreator {
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(BinaryOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for multiply cannot be null")
+                }
                 createMulDivModInstructions(OperationAsm.MUL, operands, destRegister)
             }
         )
@@ -80,6 +86,9 @@ class InstructionSetCreator {
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(BinaryOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for divide cannot be null")
+                }
                 createMulDivModInstructions(OperationAsm.DIV, operands, destRegister)
             }
         )
@@ -88,6 +97,9 @@ class InstructionSetCreator {
     private fun createModuloPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for modulo cannot be null")
+                }
                 createMulDivModInstructions(OperationAsm.DIV, operands, destRegister) + listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0))),
                 )
@@ -124,7 +136,10 @@ class InstructionSetCreator {
 
     private fun createSafeSimple2ArgPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
-                TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for 2-argument operation ${rootOperation} cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
                 ) + create2ArgInstruction(asmOperation, destRegister, operands[1])
@@ -150,7 +165,10 @@ class InstructionSetCreator {
 
     private fun createSimpleBoolOperationPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
-                TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for 2-argument boolean operation ${rootOperation} cannot be null")
+                }
                 convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[0]) + listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
                 ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
@@ -162,6 +180,9 @@ class InstructionSetCreator {
     private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for value-returning comparison cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.XOR, listOf(
                         VirtualRegister(WorkingRegisters.R1),
@@ -226,6 +247,9 @@ class InstructionSetCreator {
     private fun createNotPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for boolean negation cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     /* Cannot use single instruction NOT, as it works bitwise:
@@ -243,6 +267,9 @@ class InstructionSetCreator {
     private fun createNegationPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for negation cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     Instruction(OperationAsm.NEG, listOf(destRegister))
@@ -254,6 +281,9 @@ class InstructionSetCreator {
     private fun createIncrementPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     Instruction(OperationAsm.INC, listOf(destRegister))
@@ -265,6 +295,9 @@ class InstructionSetCreator {
     private fun createDecrementPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+                if (destRegister == null) {
+                    throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
+                }
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     Instruction(OperationAsm.DEC, listOf(destRegister))
