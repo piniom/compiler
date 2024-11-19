@@ -56,6 +56,9 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is UnaryOperation -> processNode(astNode.operand)
             is Conditional -> processConditional(astNode)
 
+            is NamedArgument -> processNamedArgument(astNode)
+            is PositionalArgument -> processPositionalArgument(astNode)
+
             is Literal -> {}
 
             else -> addUnknownNodeError(astNode)
@@ -69,6 +72,13 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         popBlock()
     }
 
+    private fun processNamedArgument(astNode: NamedArgument) {
+        processAsBlock { processNode(astNode.expression) }
+    }
+
+    private fun processPositionalArgument(astNode: PositionalArgument) {
+        processAsBlock { processNode(astNode.expression) }
+    }
 
     private fun processProgram(program: Program) {
         processAsBlock { program.functions.forEach { processNode(it) } }
