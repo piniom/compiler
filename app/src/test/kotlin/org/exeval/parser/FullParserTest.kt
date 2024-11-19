@@ -2,8 +2,6 @@ package org.exeval.parser
 
 import org.exeval.input.interfaces.Location
 import org.exeval.parser.interfaces.ParseTree
-import org.exeval.parser.utilities.GrammarAnalyser
-import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -22,7 +20,17 @@ class FullParserTest {
             Production(ParSym.PAIR, listOf(ParSym.OPEN, ParSym.CLOSE)),
         )
     )
-    private val analyzedGrammar = GrammarAnalyser.analyseGrammar(grammar)
+    private val analyzedGrammar = AnalyzedGrammar(
+        nullable = setOf(),
+        firstProduct = mapOf(
+            ParSym.START to setOf(ParSym.START, ParSym.PAIR, ParSym.LIST, ParSym.OPEN),
+            ParSym.LIST to setOf(ParSym.LIST, ParSym.PAIR, ParSym.OPEN),
+            ParSym.PAIR to setOf(ParSym.PAIR, ParSym.OPEN)
+        ),
+        grammar = grammar
+    )
+
+    //GrammarAnalyser.analyseGrammar(grammar)
     private val parser = Parser(analyzedGrammar)
 
     @Test
