@@ -1,6 +1,7 @@
 package org.exeval.ast
 
 import org.exeval.ast.interfaces.AstCreator
+import org.exeval.input.interfaces.Input
 import org.exeval.parser.grammar.*
 import org.exeval.utilities.LocationRange
 import org.exeval.parser.interfaces.ParseTree
@@ -13,11 +14,11 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
     private var locationsMap : MutableMap<ASTNode, LocationRange> = mutableMapOf()
 
-    override fun create(parseTree: ParseTree<GrammarSymbol>): AstInfo {
-        return AstInfo(createAux(parseTree), locationsMap)
+    override fun create(parseTree: ParseTree<GrammarSymbol>, input: Input): AstInfo {
+        return AstInfo(createAux(parseTree, input), locationsMap)
     }
 
-    private fun createAux(node: ParseTree<GrammarSymbol>) : ASTNode {
+    private fun createAux(node: ParseTree<GrammarSymbol>, input : Input) : ASTNode {
         val locationRange = LocationRange(node.startLocation, node.endLocation)
         val symbol = getSymbol(node)
 
@@ -40,13 +41,13 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype || childSymbol === TokenCategories.IdentifierEntrypoint) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === FunctionParamsSymbol) {
                     parameters = unwrapList<Parameter>(child)
                 } else if (childSymbol === TokenCategories.IdentifierType) {
-                    returnType = getType(child)
+                    returnType = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
-                    body = createAux(child) as Expr
+                    body = createAux(child, input) as Expr
                 }
             }
 
@@ -59,24 +60,24 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === TokenCategories.IdentifierType) {
-                    type = getType(child)
+                    type = getType(child, input)
                 }
             }
             astNode = Parameter(name!!, type!!)
         } else if (symbol === ExpressionSymbol) {
-            astNode = createAux(children[0])
+            astNode = createAux(children[0], input)
         } else if (symbol === SimpleExpressionSymbol) {
-            astNode = createAux(children[0])
+            astNode = createAux(children[0], input)
         } else if (symbol === LastExpressionInBlockSymbol) {
-            astNode = createAux(children[0])
+            astNode = createAux(children[0], input)
         } else if (symbol === ValueSymbol) {
-            astNode = createAux(children[0])
+            astNode = createAux(children[0], input)
         } else if (symbol === TokenCategories.LiteralInteger) {
-            astNode = IntLiteral(getNodeText(node).toInt())
+            astNode = IntLiteral(getNodeText(node, input).toInt())
         } else if (symbol === TokenCategories.LiteralBoolean) {
-            astNode = BoolLiteral(getNodeText(node) == "true")
+            astNode = BoolLiteral(getNodeText(node, input) == "true")
         } else if (symbol === TokenCategories.LiteralNope) {
             astNode = NopeLiteral
         } else if (symbol === VariableDeclarationSymbol) {
@@ -87,11 +88,11 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === TokenCategories.IdentifierType) {
-                    type = getType(child)
+                    type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
-                    expression = createAux(child) as Expr
+                    expression = createAux(child, input) as Expr
                 }
             }
             astNode = MutableVariableDeclaration(name!!, type!!, expression)
@@ -103,11 +104,11 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === TokenCategories.IdentifierType) {
-                    type = getType(child)
+                    type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
-                    expression = createAux(child) as Expr
+                    expression = createAux(child, input) as Expr
                 }
             }
             astNode = ConstantDeclaration(name!!, type!!, expression!!)
@@ -118,9 +119,9 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
-                    expression = createAux(child) as Expr
+                    expression = createAux(child, input) as Expr
                 }
             }
             astNode = Assignment(name!!, expression!!)
@@ -131,7 +132,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === FunctionCallArgumentsSymbol) {
                     arguments = unwrapList<Argument>(child)
                 }
@@ -144,38 +145,61 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child)
+                    name = getNodeText(child, input)
                 } else if (childSymbol === FunctionCallArgumentsSymbol) {
                     arguments = unwrapList<Argument>(child)
                 }
             }
             astNode = FunctionCall(name!!, arguments)
         } else if (symbol === FunctionCallArgumentsSymbol) {
-            astNode = PositionalArgument(createAux(children[0]) as Expr)
+            astNode = PositionalArgument(createAux(children[0], input) as Expr)
         } else if (symbol === IfThenSymbol || symbol == IfThenWithoutSemicolonSymbol) {
-            val conditionNode = createAux(children[1]) as Expr
-            val thenNode = createAux(children[3]) as Expr
+            val conditionNode = createAux(children[1], input) as Expr
+            val thenNode = createAux(children[3], input) as Expr
             astNode = Conditional(conditionNode, thenNode, null)
         } else if (symbol === IfThenElseSymbol) {
-            val conditionNode = createAux(children[1]) as Expr
-            val thenNode = createAux(children[3]) as Expr
-            val elseNode = createAux(children[5]) as Expr
+            val conditionNode = createAux(children[1], input) as Expr
+            val thenNode = createAux(children[3], input) as Expr
+            val elseNode = createAux(children[5], input) as Expr
             astNode = Conditional(conditionNode, thenNode, elseNode)
         }  else if (symbol === LoopSymbol) {
             var identifier: String? = null
-            var body : Expr? = null
+            var body : Block? = null
             for (child in children) {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    identifier = getNodeText(child)
-                } else if (childSymbol === ExpressionSymbol) {
-                    body = createAux(child) as Expr
+                    identifier = getNodeText(child, input)
+                } else if (childSymbol === ExpressionBlockSymbol) {
+                    body = createAux(child, input) as Block
                 }
             }
             astNode = Loop(identifier, body!!)
+        } else if (symbol === BreakKeywordSymbol || symbol === BreakKeywordWithoutSemicolonSymbol || symbol === BreakExpressionSymbol) {
+            var identifier: String? = null
+            var expr : Expr? = null
+            for (child in children) {
+                val childSymbol = getSymbol(child)
+
+                if (childSymbol === TokenCategories.IdentifierNontype) {
+                    identifier = getNodeText(child, input)
+                } else if (childSymbol === ExpressionSymbol) {
+                    expr = createAux(child, input) as Expr
+                }
+            }
+            astNode = Break(identifier, expr)
+        } else if (symbol === ExpressionBlockSymbol) {
+            var exprs : List<Expr> = listOf()
+            for (child in children) {
+                val childSymbol = getSymbol(child)
+
+                if (childSymbol === FunctionCallArgumentsSymbol) {
+                    exprs = unwrapList<Expr>(child)
+                }
+            }
+            astNode = Block(exprs)
         } else {
-            TODO()
+            throw IllegalStateException()
         }
         locationsMap.put(astNode, locationRange)
         return astNode
@@ -185,8 +209,19 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         TODO()
     }
 
-    private fun getNodeText(head : ParseTree<GrammarSymbol>): String {
-        TODO()
+    private fun getNodeText(node : ParseTree<GrammarSymbol>, input: Input): String {
+        val start = node.startLocation
+        val end = node.endLocation
+
+        input.location = start
+
+        val builder = StringBuilder()
+
+        while (input.location != end) {
+            builder.append(input.nextChar())
+        }
+
+        return builder.toString()
     }
 
     private fun getSymbol(node : ParseTree<GrammarSymbol>): GrammarSymbol {
@@ -196,8 +231,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
     }
 
-    private fun getType(node : ParseTree<GrammarSymbol>): Type? {
-        val name = getNodeText(node)
+    private fun getType(node : ParseTree<GrammarSymbol>, input: Input): Type? {
+        val name = getNodeText(node, input)
 
         if (name == "Int") {
             return IntType

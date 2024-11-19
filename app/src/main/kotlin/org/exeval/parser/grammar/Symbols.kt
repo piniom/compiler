@@ -190,13 +190,13 @@ object LoopSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordLoop,
-			ExpressionSymbol,
+			ExpressionBlockSymbol,
 		),
 		listOf(
 			Token.KeywordLoop,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
-			ExpressionSymbol,
+			ExpressionBlockSymbol,
 		),
 	)
 }
