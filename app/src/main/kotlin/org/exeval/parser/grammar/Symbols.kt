@@ -70,8 +70,26 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 		listOf(
 			Token.KeywordFoo,
 			Token.IdentifierEntrypoint,
+			Token.LiteralNope,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierEntrypoint,
 			Token.PunctuationLeftRoundBracket,
 			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.LiteralNope,
 			Token.PunctuationArrow,
 			Token.IdentifierType,
 			Token.OperatorAssign,
@@ -118,6 +136,10 @@ object FunctionCallSymbol: GrammarSymbol {
 			Token.PunctuationLeftRoundBracket,
 			FunctionCallArgumentsSymbol,
 			Token.PunctuationRightRoundBracket,
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.LiteralNope,
 		),
 		listOf(
 			Token.IdentifierNontype,
@@ -175,14 +197,6 @@ object IfThenElseSymbol: GrammarSymbol {
 			Token.KeywordElse,
 			ExpressionSymbol,
 		),
-		listOf(
-			Token.KeywordIf,
-			ExpressionSymbol,
-			Token.KeywordThen,
-			ExpressionSymbol,
-			Token.KeywordElse,
-			ExpressionSymbol,
-		),
 	)
 }
 
@@ -190,13 +204,13 @@ object LoopSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordLoop,
-			ExpressionBlockSymbol,
+			ExpressionSymbol,
 		),
 		listOf(
 			Token.KeywordLoop,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
-			ExpressionBlockSymbol,
+			ExpressionSymbol,
 		),
 	)
 }
