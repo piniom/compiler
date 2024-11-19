@@ -70,8 +70,26 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 		listOf(
 			Token.KeywordFoo,
 			Token.IdentifierEntrypoint,
+			Token.LiteralNope,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierEntrypoint,
 			Token.PunctuationLeftRoundBracket,
 			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.LiteralNope,
 			Token.PunctuationArrow,
 			Token.IdentifierType,
 			Token.OperatorAssign,
@@ -121,6 +139,10 @@ object FunctionCallSymbol: GrammarSymbol {
 		),
 		listOf(
 			Token.IdentifierNontype,
+			Token.LiteralNope,
+		),
+		listOf(
+			Token.IdentifierNontype,
 			Token.PunctuationLeftRoundBracket,
 			Token.PunctuationRightRoundBracket,
 		),
@@ -167,14 +189,6 @@ object IfThenWithoutSemicolonSymbol: GrammarSymbol {
 
 object IfThenElseSymbol: GrammarSymbol {
 	override fun productions() = listOf(
-		listOf(
-			Token.KeywordIf,
-			ExpressionSymbol,
-			Token.KeywordThen,
-			ExpressionSymbol,
-			Token.KeywordElse,
-			ExpressionSymbol,
-		),
 		listOf(
 			Token.KeywordIf,
 			ExpressionSymbol,

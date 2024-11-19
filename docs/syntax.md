@@ -1,4 +1,4 @@
-# Syntax of the [name-needed] language
+# Syntax of the ExEval language
 
 ## Blocks
 The blocks are defined by curly braces `{}`.
