@@ -1,18 +1,17 @@
 package org.exeval.cfg
 
 import org.exeval.ast.AnyVariable
-import org.exeval.ast.FunctionAnalyser
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cfg.CFGNodeImpl
 import org.exeval.cfg.constants.Registers
+import org.exeval.cfg.constants.WorkingRegisters
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var virtualRegIdx = 0
+    private var virtualRegIdx = WorkingRegisters.REGISTER_COUNT
     private var stackOffset = 0
 
     init {
@@ -28,7 +27,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         // Put first 2 args to RCX, RDX registers
         if (trees.size >= 1) {
             outTrees.add(
-                Assigment(
+                Assignment(
                     PhysicalRegister(Registers.RCX),
                     trees[0]
                 )
@@ -36,7 +35,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         }
         if (trees.size >= 2) {
             outTrees.add(
-                Assigment(
+                Assignment(
                     PhysicalRegister(Registers.RDX),
                     trees[1]
                 )
@@ -54,7 +53,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
-                Assigment(
+                Assignment(
                     it,
                     PhysicalRegister(Registers.RAX)
                 )
@@ -105,7 +104,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
             BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.SUBTRACT),
-            Assigment(Memory(PhysicalRegister(Registers.RSP)), tree)
+            Assignment(Memory(PhysicalRegister(Registers.RSP)), tree)
         )
     }
 }
