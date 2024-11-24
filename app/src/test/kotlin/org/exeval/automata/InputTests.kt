@@ -79,14 +79,14 @@ class InputTests {
     @Test
     fun emptyFileTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/empty.txt").absolute()
-        val output = ""
+        val output = "\n\n\n\n\n\n"
         fileInputTest(filename.toString(), output)
     }
 
     @Test
     fun fileInstructionTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/instructions.txt").absolute()
-        val output = "a;b;c"
+        val output = "a;\n\n\nb;\n\nc"
         fileInputTest(filename.toString(), output)
     }
 
@@ -100,7 +100,7 @@ class InputTests {
     @Test
     fun fileMulticharTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/multichar.txt").absolute()
-        val output = "aaa;bbb;cdf"
+        val output = "aaa;\nbbb;\ncdf"
         fileInputTest(filename.toString(), output)
     }
 
@@ -108,7 +108,7 @@ class InputTests {
     @Test
     fun fileCommasTest() {
         val filename = Path("src/test/kotlin/org/exeval/automata/fileinput/commas.txt").absolute()
-        val output = ""
+        val output = ";;;;"
         fileInputTest(filename.toString(), output)
     }
 }
