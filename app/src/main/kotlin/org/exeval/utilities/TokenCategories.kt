@@ -20,6 +20,7 @@ enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	OperatorMinus("-"),
 	OperatorStar("\\*"),
 	OperatorDivision("/"),
+	OperatorModulo("%"),
 	OperatorOr("or"),
 	OperatorAnd("and"),
 	OperatorNot("not"),
