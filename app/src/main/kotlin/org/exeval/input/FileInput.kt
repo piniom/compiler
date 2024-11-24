@@ -25,10 +25,7 @@ class FileInput(filename: String) : Input {
         val inputStream: InputStream = File(file).inputStream()
         val lineList = mutableListOf<String>()
         inputStream.bufferedReader().forEachLine {
-            val lines = it.split(splitReg).filter { it != ";"}
-            for (line in lines) {
-                lineList.add(line)
-            }
+            lineList.add(it)
         }
 
         return lineList
@@ -45,6 +42,7 @@ class FileInput(filename: String) : Input {
             ++line
 
             if(isAfterLastLine()) return null else currentLine = lines[line]
+            return '\n'
         }
 
         var c = currentLine[idx]
