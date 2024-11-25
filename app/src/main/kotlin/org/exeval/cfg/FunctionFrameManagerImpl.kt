@@ -18,7 +18,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         initialiseVariableMap()
     }
 
-    override fun generate_var_access(x: AnyVariable): Tree {
+    override fun generate_var_access(x: AnyVariable): Assignable {
         TODO("Not yet implemented")
     }
 
