@@ -18,12 +18,11 @@ import org.exeval.lexer.NFAParserImpl
 import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
-import org.exeval.parser.AnalyzedGrammar
-import org.exeval.parser.Grammar
 import org.exeval.parser.Parser
-import org.exeval.parser.interfaces.ParseTree
+import org.exeval.parser.grammar.GrammarSymbol
+import org.exeval.parser.grammar.LanguageGrammar
+import org.exeval.parser.utilities.GrammarAnalyser
 import org.exeval.utilities.TokenCategories
-import org.exeval.utilities.interfaces.TokenCategory
 import org.exeval.utilities.LexerUtils
 
 private val logger = KotlinLogging.logger {}
@@ -68,12 +67,11 @@ fun buildInput(fileName: String): Input {
     }
 }
 
-fun getAnalyzedGrammar(): AnalyzedGrammar<TokenCategory> {
-    return AnalyzedGrammar(
-            setOf(),
-            mapOf(),
-            Grammar(TokenCategories.PunctuationSemicolon, TokenCategories.PunctuationSemicolon, listOf())
-        )
+fun buildParser(): Parser<GrammarSymbol> {
+    val grammarAnalyser = GrammarAnalyser()
+    val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
+    val parser = Parser(analyzedGrammar)
+    return parser
 }
 
 fun main(args: Array<String>) {
@@ -81,14 +79,19 @@ fun main(args: Array<String>) {
         logger.error{"Input file not provided. Use `./gradlew run --args=\"<file name>\"'"}
         exitProcess(1)
     }
+
+    // Input
     val sourceCode = buildInput(args[0])
+
+    // Lexer
     val lexer = buildLexer()
     val lexerOutput = lexer.run(sourceCode)
     for (diagnostic in lexerOutput.diagnostics) {
         logger.warn{"[Lexer diagnostic] ${diagnostic.message}"}
     }
+
+    // Parser
     val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
-    val grammar = getAnalyzedGrammar()
-    val parser = Parser(grammar)
+    val parser = buildParser()
     val parseTree = parser.run(leaves)
 }
