@@ -10,7 +10,11 @@ import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 
-class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult, private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>) : FunctionFrameManager {
+class FunctionFrameManagerImpl(
+    override val f: FunctionDeclaration,
+    private val analyser: FunctionAnalysisResult,
+    private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
+) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
     private var virtualRegIdx = 0
     private var stackOffset = 0
@@ -30,9 +34,9 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     }
 
     override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): Assignable {
-        if ( variableMap[x] == null ) {
+        if (variableMap[x] == null) {
             val variableParent = analyser.variableMap[x] ?: throw IllegalArgumentException("Unknown Variable")
-            val frameManager: FunctionFrameManager = otherManagers[variableParent]!!
+            val frameManager = otherManagers[variableParent] ?: throw IllegalArgumentException("Unknown Function")
             val nestedLevel = getNestingLevel(variableParent)
             val parentOffset = getDisplayMemory(nestedLevel)
             return frameManager.generate_var_access(x, parentOffset)
@@ -61,14 +65,14 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
             )
         }
         // Put the rest of the args on stack
-        for( i in 2..(trees.size-1) ) {
+        for (i in 2..(trees.size - 1)) {
             outTrees.addAll(
                 pushToStack(trees[i])
             )
         }
         // Add Call instruction
         outTrees.add(Call)
-        
+
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
@@ -184,9 +188,9 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     }
 
     private fun getNextVirtualRegisterIdx(): Int {
-        val out = virtualRegIdx
+        val result = virtualRegIdx
         virtualRegIdx += 1
-        return out
+        return result
     }
 
     private fun updateDisplay(): List<Tree> {
@@ -213,7 +217,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     }
 
     private fun restoreDisplay(): List<Tree> {
-        return  mutableListOf<Tree>(
+        return mutableListOf<Tree>(
             Assigment(
                 getDisplayMemory(getNestingLevel()),
                 VirtualRegister(displayBackupIdx)
@@ -223,7 +227,11 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
 
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
-            BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.SUBTRACT),
+            BinaryOperation(
+                PhysicalRegister(Registers.RSP),
+                Constant(Registers.REGISTER_SIZE),
+                BinaryOperationType.SUBTRACT
+            ),
             Assigment(Memory(PhysicalRegister(Registers.RSP)), tree)
         )
     }
@@ -231,7 +239,14 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     private fun popFromStack(toAssign: Assignable): List<Tree> {
         return listOf(
             Assigment(toAssign, Memory(PhysicalRegister(Registers.RSP))),
-            Assigment(PhysicalRegister(Registers.RSP), BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.ADD))
+            Assigment(
+                PhysicalRegister(Registers.RSP),
+                BinaryOperation(
+                    PhysicalRegister(Registers.RSP),
+                    Constant(Registers.REGISTER_SIZE),
+                    BinaryOperationType.ADD
+                )
+            )
         )
     }
 
@@ -249,7 +264,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         var result = 0
 
         var decl: FunctionDeclaration? = fnDecl
-        while(analyser.staticParents[decl] != null) {
+        while (analyser.staticParents[decl] != null) {
             result += 1
             decl = analyser.staticParents[decl]
         }
