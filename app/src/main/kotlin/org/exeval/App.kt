@@ -91,5 +91,4 @@ fun main(args: Array<String>) {
     val grammar = getAnalyzedGrammar()
     val parser = Parser(grammar)
     val parseTree = parser.run(leaves)
-    
 }
