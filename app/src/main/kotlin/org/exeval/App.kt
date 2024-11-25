@@ -4,6 +4,7 @@
 package org.exeval
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.exeval.ast.AstCreatorImpl
 import kotlin.system.exitProcess
 import java.io.FileNotFoundException
 
@@ -94,4 +95,6 @@ fun main(args: Array<String>) {
     val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
     val parser = buildParser()
     val parseTree = parser.run(leaves)
+    val astCreator = AstCreatorImpl()
+    val ast = astCreator.create(parseTree, sourceCode)
 }
