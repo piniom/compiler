@@ -111,7 +111,7 @@ class CFGMaker(
         val loop = nameResolution.breakToLoop[breakk]!!
         val pair = loopToNode[loop]!!
         val node = Node(pair.first)
-        if (typeMap[loop]!!.isNope()){
+        if (typeMap[loop]!!.isNope()) {
             return WalkResult(node, null)
         }
         val result = walkExpr(breakk.expression!!, node)
@@ -166,11 +166,15 @@ class CFGMaker(
         val node = Node()
         var prev: CFGNode = node
 
+        val conflictingSet: MutableSet<VariableUsage> = mutableSetOf()
+
         for (a in arguments) {
             val expression = when (a) {
                 is NamedArgument -> a.expression
                 is PositionalArgument -> a.expression
             }
+            val curUsage = varUsage[expression]!!
+
             if (typeMap[expression]!!.isNope()) {
                 // Create an additional block so that the Nope expression is evaluated
                 // It may have side effects
@@ -178,13 +182,22 @@ class CFGMaker(
                 val temp = Node(prev)
                 val result = walkExpr(expression, temp)
                 node.trees = listOfNotNull(result.tree)
-                prev = node
+                prev = result.top
+            } else if (conflictingSet.any { it.conflicts(curUsage) }) {
+                // We need to create an additional node and save the result since later nodes may destroy it
+                val temp = Node(prev)
+                val result = walkExpr(expression, temp)
+                val reg = newVirtualRegister()
+                node.trees = listOf(CFGAssignment(reg, result.tree!!))
+                prev = result.top
+                trees.addFirst(reg)
             } else {
                 // No need to create an additional node since it will be evalueted when the value is passed
                 val result = walkExpr(expression, prev)
                 prev = result.top
                 trees.addFirst(result.tree!!)
             }
+            conflictingSet.add(curUsage)
         }
 
         val reg = if (typeMap[functionCall]!!.isNope()) null else newVirtualRegister()
@@ -194,7 +207,7 @@ class CFGMaker(
     }
 
     private fun walkLoop(loop: Loop, then: CFGNode): WalkResult {
-        val reg = if(typeMap[loop]!!.isNope()) null else newVirtualRegister()
+        val reg = if (typeMap[loop]!!.isNope()) null else newVirtualRegister()
         loopToNode[loop] = Pair(then, reg)
 
         val start = Node()
