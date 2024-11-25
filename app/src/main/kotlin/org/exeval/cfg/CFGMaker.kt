@@ -23,9 +23,9 @@ class CFGMaker(
     private val fm: FunctionFrameManager,
     private val nameResolution: NameResolution,
     private val varUsage: VariableUsageAnalysisResult,
-    private val typeMap: TypeMap
+    private val typeMap: TypeMap,
+    private val counter: VirtualRegisterCounter
 ) {
-
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, Assignable?>> = mutableMapOf()
 
     public fun makeCfg(ast: FunctionDeclaration): CFGNode {
@@ -250,11 +250,8 @@ class CFGMaker(
         val value = fm.generate_var_access(nameResolution.variableToDecl[variableReference]!!)
         return WalkResult(then, value)
     }
-
-    // Is there a better way to generate registers?
-    private var counter = 1000;
     private fun newVirtualRegister(): VirtualRegister {
-        return VirtualRegister(counter++)
+        return VirtualRegister(counter.next())
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {
