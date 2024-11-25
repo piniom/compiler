@@ -7,6 +7,8 @@ data class Constant(val value: Int) : Tree
 sealed interface Assignable : Tree
 sealed interface Label : Tree
 
+data class DataLabel(val name: String) : Label
+
 data class Memory(val address: Tree) : Assignable
 sealed class Register : Assignable {
     abstract val id: Int
