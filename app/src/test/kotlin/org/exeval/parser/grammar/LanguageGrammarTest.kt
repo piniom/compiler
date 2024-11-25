@@ -144,7 +144,7 @@ class LanguageGrammarTest {
 	@Test
 	fun languageGrammarIsUnambiguousLR1() {
 		val grammar = LanguageGrammar.grammar
-		val analyzedGrammar = GrammarAnalyser.analyseGrammar(grammar)
+		val analyzedGrammar = GrammarAnalyser().analyseGrammar(grammar)
 
 		assertDoesNotThrow({ Parser(analyzedGrammar) })
 	}

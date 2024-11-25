@@ -8,41 +8,41 @@ class GrammarAnalyser {
     note to testers:
     empty symbol can be set, or can be denoted as empty transition ('A'->list())
     */
-    companion object {
-        private fun <C> getNullable(grammar: Map<C, Set<List<C>>>): Set<C> {
-            var nullable: MutableSet<C> = mutableSetOf()
-            while (true) {
-                val newNullable = nullable.toMutableSet()
-                grammar.forEach {
-                    val c = it.key
-                    if (it.value.any {
-                            it.all {
-                                nullable.contains(it)
-                            }
-                        }) {
-                        newNullable.add(c)
-                    }
-                }
-                if (newNullable == nullable) {
-                    break
-                } else {
-                    nullable = newNullable
+    private fun <C> getNullable(grammar: Map<C, Set<List<C>>>): Set<C> {
+        var nullable: MutableSet<C> = mutableSetOf()
+        while (true) {
+            val newNullable = nullable.toMutableSet()
+            grammar.forEach {
+                val c = it.key
+                if (it.value.any {
+                        it.all {
+                            nullable.contains(it)
+                        }
+                    }) {
+                    newNullable.add(c)
                 }
             }
-            return nullable
-        }
-
-        fun <C> analyseGrammar(grammar: Grammar<C>): AnalyzedGrammar<C> {
-            val transitions: MutableMap<C, MutableSet<List<C>>> = mutableMapOf()
-            grammar.productions.forEach {
-                transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
+            if (newNullable == nullable) {
+                break
+            } else {
+                nullable = newNullable
             }
-
-            val nullable = getNullable(transitions)
-
-            return AnalyzedGrammar(
-                nullable, createFirstSet(grammar, nullable), grammar
-            )
         }
+        return nullable
+    }
+
+    fun <C> analyseGrammar(grammar: Grammar<C>): AnalyzedGrammar<C> {
+        val transitions: MutableMap<C, MutableSet<List<C>>> = mutableMapOf()
+        grammar.productions.forEach {
+            transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
+        }
+
+        val nullable = NullableGrammarCreator().getNullable(transitions)
+
+        return AnalyzedGrammar(
+            nullable, 
+            FirstSetGrammarCreator().createFirstSet(grammar, nullable),
+            grammar
+        )
     }
 }
