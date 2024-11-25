@@ -1,8 +1,9 @@
 package org.exeval.utilities
 
 import org.exeval.utilities.interfaces.TokenCategory
+import org.exeval.parser.grammar.Terminal
 
-enum class TokenCategories(val regex: String) : TokenCategory {
+enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	PunctuationSemicolon(";"),
 	PunctuationColon(":"),
 	PunctuationComma(","),
@@ -19,6 +20,7 @@ enum class TokenCategories(val regex: String) : TokenCategory {
 	OperatorMinus("-"),
 	OperatorStar("\\*"),
 	OperatorDivision("/"),
+	OperatorModulo("%"),
 	OperatorOr("or"),
 	OperatorAnd("and"),
 	OperatorNot("not"),

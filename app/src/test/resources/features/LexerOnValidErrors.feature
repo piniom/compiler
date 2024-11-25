@@ -9,8 +9,8 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                    |
-			| valid/blocks/blockinblock.exe |
-			| valid/blocks/limitscope.exe   |
+			| valid/blocks/blockInBlock.exe |
+			| valid/blocks/limitScope.exe   |
 			| valid/blocks/max.exe          |
 
 	@comments
@@ -20,9 +20,9 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                              |
-			| valid/comments/mixing_comments.exe      |
-			| valid/comments/multi_line_comments.exe  |
-			| valid/comments/single_line_comments.exe |
+			| valid/comments/mixingComments.exe      |
+			| valid/comments/multiLineComments.exe  |
+			| valid/comments/singleLineComments.exe |
 
 	@conditionals
 	Scenario Outline: Valid conditionals do not cause lexer errors
@@ -68,11 +68,11 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                                          |
-			| valid/loops/BreakWithLoopValueInBreak.exe           |
-			| valid/loops/LoopsIterateProperly.exe                |
-			| valid/loops/LoopWithValueInBracketsInBreak.exe      |
-			| valid/loops/MultipleBreaksWithTheSameType.exe       |
-			| valid/loops/NestedLoopsBreaksProperlyWithLabels.exe |
+			| valid/loops/breakWithLoopValueInBreak.exe           |
+			| valid/loops/loopsIterateProperly.exe                |
+			| valid/loops/loopWithValueInBracketsInBreak.exe      |
+			| valid/loops/multipleBreaksWithTheSameType.exe       |
+			| valid/loops/nestedLoopsBreaksProperlyWithLabels.exe |
 
 	@separators
 	Scenario Outline: Valid separators do not cause lexer errors
@@ -92,11 +92,11 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                                       |
-			| valid/variables/BasicOperationsOverVariables.exe |
-			| valid/variables/ChangingMutableVariable.exe      |
-			| valid/variables/CreatingSomeVariables.exe        |
-			| valid/variables/InitializingVariables.exe        |
-			| valid/variables/ReassigningVariables.exe         |
+			| valid/variables/basicOperationsOverVariables.exe |
+			| valid/variables/changingMutableVariable.exe      |
+			| valid/variables/creatingSomeVariables.exe        |
+			| valid/variables/initializingVariables.exe        |
+			| valid/variables/reassigningVariables.exe         |
 
 	@various
 	Scenario Outline: Valid programs using various features do not cause lexer errors
@@ -105,8 +105,8 @@ Feature: Lexer without errors
 		Then no errors are returned
 		Examples:
 			| sourceFile                        |
-			| valid/various/Arithmetic.exe      |
-			| valid/various/KnownReturnType.exe |
-			| valid/various/Nested.exe          |
-			| valid/various/Parantheses.exe     |
-			| valid/various/Whitespace.exe      |
+			| valid/various/arithmetic.exe      |
+			| valid/various/knownReturnType.exe |
+			| valid/various/nested.exe          |
+			| valid/various/parantheses.exe     |
+			| valid/various/whitespace.exe      |

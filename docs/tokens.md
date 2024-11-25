@@ -1,6 +1,6 @@
 # Tokens
 
-The list of tokens available in our language is in `app/src/main/kotlin/org/exeval/utilities/TokenCategories.kt` file.
+The list of tokens available in our language is in [`app/src/main/kotlin/org/exeval/utilities/TokenCategories.kt`](../app/src/main/kotlin/org/exeval/utilities/TokenCategories.kt) file.
 
 
 ## Regex syntax
