@@ -6,6 +6,7 @@ import org.exeval.cfg.BinaryOperation as BinaryOp
 import org.exeval.cfg.BinaryOperationType as BinaryOpType
 import org.exeval.ast.*
 import org.exeval.ast.NameResolution
+import org.exeval.cfg.BinaryOperationType
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: List<Tree>) : CFGNode {
@@ -25,6 +26,8 @@ class CFGMaker(
     private val typeMap: TypeMap
 ) {
 
+    private val loopToNode: MutableMap<Loop, Pair<CFGNode, Assignable?>> = mutableMapOf()
+
     public fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
         val body = walkExpr(ast.body, node)
@@ -38,12 +41,12 @@ class CFGMaker(
             is Assignment -> walkAssignment(expr, then)
             is BinaryOperation -> walkBinaryOperation(expr, then)
             is Block -> walkBlock(expr, then)
-            is Break -> TODO()
+            is Break -> walkBreak(expr, then)
             is Conditional -> walkConditional(expr, then)
             is FunctionCall -> walkFunctionCall(expr, then)
             is FunctionDeclaration -> WalkResult(then, null)
             is Literal -> walkLiteral(expr, then)
-            is Loop -> TODO()
+            is Loop -> walkLoop(expr, then)
             is UnaryOperation -> walkUnaryOperation(expr, then)
             is VariableDeclarationBase -> walkVariableDeclarationBase(expr, then)
             is VariableReference -> walkVariableReference(expr, then)
@@ -104,8 +107,20 @@ class CFGMaker(
         return prev
     }
 
+    private fun walkBreak(breakk: Break, then: CFGNode): WalkResult {
+        val loop = nameResolution.breakToLoop[breakk]!!
+        val pair = loopToNode[loop]!!
+        val node = Node(pair.first)
+        if (typeMap[loop]!!.isNope()){
+            return WalkResult(node, null)
+        }
+        val result = walkExpr(breakk.expression!!, node)
+        node.trees = listOf(CFGAssignment(pair.second!!, result.tree!!))
+        return WalkResult(result.top, null)
+    }
+
     private fun walkConditional(conditional: Conditional, then: CFGNode): WalkResult {
-        if (typeMap[conditional] == NopeType) {
+        if (typeMap[conditional]!!.isNope()) {
             return walkNopeConditional(conditional, then)
         }
 
@@ -148,7 +163,7 @@ class CFGMaker(
         }.sortedByDescending { it.second }.map { it.first }
 
         val trees: MutableList<Tree> = mutableListOf()
-        val node = Node(then)
+        val node = Node()
         var prev: CFGNode = node
 
         for (a in arguments) {
@@ -173,9 +188,23 @@ class CFGMaker(
         }
 
         val reg = if (typeMap[functionCall]!!.isNope()) null else newVirtualRegister()
-        val call = fm.generate_function_call(trees, reg, node)
+        val call = fm.generate_function_call(trees, reg, then)
+        node.branches = Pair(call, null)
+        return WalkResult(prev, reg)
+    }
 
-        return WalkResult(call, reg)
+    private fun walkLoop(loop: Loop, then: CFGNode): WalkResult {
+        val reg = if(typeMap[loop]!!.isNope()) null else newVirtualRegister()
+        loopToNode[loop] = Pair(then, reg)
+
+        val start = Node()
+        val inner = walkExpr(loop.body, start).top
+        start.branches = Pair(inner, null)
+
+        return WalkResult(
+            start,
+            reg
+        )
     }
 
     private fun walkLiteral(literal: Literal, then: CFGNode): WalkResult {
@@ -200,7 +229,7 @@ class CFGMaker(
         val inner = walkExpr(variableDeclaration.initializer!!, node)
         val destination = fm.generate_var_access(variableDeclaration)
         node.trees = listOf(CFGAssignment(destination, inner.tree!!))
-        return WalkResult(node, null)
+        return WalkResult(inner.top, null)
     }
 
     private fun walkVariableReference(variableReference: VariableReference, then: CFGNode): WalkResult {
@@ -216,7 +245,19 @@ class CFGMaker(
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {
-        return BinaryOpType.ADD
+        return when (operation) {
+            BinaryOperator.PLUS -> BinaryOperationType.ADD
+            BinaryOperator.MINUS -> BinaryOperationType.SUBTRACT
+            BinaryOperator.MULTIPLY -> BinaryOperationType.MULTIPLY
+            BinaryOperator.DIVIDE -> BinaryOperationType.DIVIDE
+            BinaryOperator.AND -> BinaryOperationType.AND
+            BinaryOperator.OR -> BinaryOperationType.OR
+            BinaryOperator.EQ -> BinaryOperationType.EQUAL
+            BinaryOperator.GT -> BinaryOperationType.GREATER
+            BinaryOperator.GTE -> BinaryOperationType.GREATER_EQUAL
+            BinaryOperator.LT -> BinaryOperationType.LESS
+            BinaryOperator.LTE -> BinaryOperationType.LESS_EQUAL
+        }
     }
 
     private fun convertUnOp(operation: UnaryOperator): UnaryOperationType {
