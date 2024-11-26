@@ -1,0 +1,8 @@
+// Mismatched types from nested 'if' statement
+foo main() -> Int = {
+    if true then {
+        if false then () else ()
+    } else {
+        2
+    }
+}

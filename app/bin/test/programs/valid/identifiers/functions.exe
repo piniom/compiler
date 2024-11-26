@@ -1,0 +1,14 @@
+foo main() -> Int = 0;
+
+// Function names start with lower case letter and can contain
+// upper case letters.
+foo someFunction() -> Nope = ();
+
+// The same rules apply both to function name and to its arguments.
+foo withArguments(arg1: Int, longerNamed: Bool) -> Bool = false;
+
+// Underscores in a name are allowed.
+foo snaked_function(arg_1: Int, longer_named: Bool) -> Bool = true;
+
+// Numbers also can be used in the middle of the name.
+foo numbered123Name() -> Nope = ();

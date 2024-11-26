@@ -1,0 +1,19 @@
+foo main() -> Int = {
+	// Simple, one word variable name.
+	let constant: Int = 0;
+	let mut variable: Int;
+
+	// Upper case letters can be used in the middle of the name.
+	let longConstantName: Bool = true;
+	let mut longVariableName: Bool;
+
+	// Digits and underscore are allowed.
+	let mut snaked_name: Int;
+	let mut numbered123: Int;
+
+	// Constant named with capital letters still needs to start with
+	// lowercase letter.
+	let uPPERCASE_CONSTANT: Int = 42;
+
+	0
+}

@@ -1,0 +1,4 @@
+foo main() -> Int = {
+    // Value of variable declaration is always Nope type which is in conflict with main returned type
+    let x: Int = 42
+}

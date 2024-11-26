@@ -1,0 +1,12 @@
+foo main() -> Int = {
+    // The value of that expression should be 2
+    loop@firstLoop {
+        if (true) then {
+            if (false) then {
+                break 1;
+            }
+            break 2;
+        }
+        break 3;
+    }
+}

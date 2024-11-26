@@ -1,0 +1,9 @@
+foo g -> Nope = {
+    2 + 2;
+    ()
+}
+
+foo main() -> Int = {
+    g();
+    0
+}

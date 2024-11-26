@@ -1,0 +1,4 @@
+foo main() -> Int = {
+    var x: Int = 3;
+    var mut x: Bool = false;
+}

@@ -1,0 +1,8 @@
+foo main() -> Int = {
+    // The value of that expression should be 52
+    loop {
+        break ((7 + 19) * loop {
+            break 2
+        });
+    }
+}

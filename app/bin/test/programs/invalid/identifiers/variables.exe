@@ -1,0 +1,15 @@
+foo main() -> = {
+	// Variable name cannot start with uppercase letter.
+	let Incorrect: Int = 32;
+	let mut AlsoBad: Bool;
+
+	// Capital letter constants are no exception.
+	let CONSTANT: Nope = ();
+	let BAD_SNAKE: Bool = true;
+
+	// Name must start with a letter, not digit nor underscore.
+	let mut 123name: Int;
+	let mut _underscored: Int;
+
+	0
+}

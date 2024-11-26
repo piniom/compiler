@@ -1,0 +1,4 @@
+// 'then' block missing required expression
+foo main() -> Int = {
+    if true 1 else 0;
+}

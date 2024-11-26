@@ -1,0 +1,18 @@
+//////////////////////// <- that is a still valid single line comment
+
+/* /* /* /* /*   
+We have nested comments
+*/ */ */ */ */ 
+
+
+/*
+// <- has no effect here,
+this is a still multi line comment
+*/
+
+foo main() -> Int = {
+    0
+}
+
+
+//  /*   <- That is a single line comment, /* has no effect here 
