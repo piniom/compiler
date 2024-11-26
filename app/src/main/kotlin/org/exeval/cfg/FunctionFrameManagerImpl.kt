@@ -5,6 +5,7 @@ import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.constants.DISPLAY_LABEL
 import org.exeval.cfg.constants.Registers
+import org.exeval.cfg.constants.WorkingRegisters
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
@@ -16,7 +17,7 @@ class FunctionFrameManagerImpl(
     private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
 ) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var virtualRegIdx = 0
+    private var virtualRegIdx = WorkingRegisters.REGISTER_COUNT
     private var stackOffset = 0
     private var displayBackupIdx: Int = 0
     private val calleSaveRegisters = listOf(
@@ -50,7 +51,7 @@ class FunctionFrameManagerImpl(
         // Put first 2 args to RCX, RDX registers
         if (trees.size >= 1) {
             outTrees.add(
-                Assigment(
+                Assignment(
                     PhysicalRegister(Registers.RCX),
                     trees[0]
                 )
@@ -58,7 +59,7 @@ class FunctionFrameManagerImpl(
         }
         if (trees.size >= 2) {
             outTrees.add(
-                Assigment(
+                Assignment(
                     PhysicalRegister(Registers.RDX),
                     trees[1]
                 )
@@ -76,7 +77,7 @@ class FunctionFrameManagerImpl(
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
-                Assigment(
+                Assignment(
                     it,
                     PhysicalRegister(Registers.RAX)
                 )
@@ -100,15 +101,15 @@ class FunctionFrameManagerImpl(
     override fun generate_prolog(then: CFGNode): CFGNode {
         val trees = mutableListOf<Tree>()
 
-        trees.add(Assigment(PhysicalRegister(Registers.RBP), PhysicalRegister(Registers.RSP)))
+        trees.add(Assignment(PhysicalRegister(Registers.RBP), PhysicalRegister(Registers.RSP)))
         trees.addAll(updateDisplay())
 
         if (f.parameters.isNotEmpty()) {
-            trees.add(Assigment(generate_var_access(f.parameters[0]), PhysicalRegister(Registers.RCX)))
+            trees.add(Assignment(generate_var_access(f.parameters[0]), PhysicalRegister(Registers.RCX)))
         }
 
         if (f.parameters.size >= 2) {
-            trees.add(Assigment(generate_var_access(f.parameters[1]), PhysicalRegister(Registers.RDX)))
+            trees.add(Assignment(generate_var_access(f.parameters[1]), PhysicalRegister(Registers.RDX)))
         }
 
         for (i in 2 until f.parameters.size) {
@@ -120,7 +121,7 @@ class FunctionFrameManagerImpl(
                 )
             )
 
-            trees.add(Assigment(generate_var_access(f.parameters[i]), fromStack))
+            trees.add(Assignment(generate_var_access(f.parameters[i]), fromStack))
         }
 
         trees.addAll(backupRegisters())
@@ -139,7 +140,7 @@ class FunctionFrameManagerImpl(
         trees.addAll(restoreRegisters())
 
         result?.let {
-            trees.add(Assigment(PhysicalRegister(Registers.RAX), it))
+            trees.add(Assignment(PhysicalRegister(Registers.RAX), it))
         }
 
         trees.add(Return)
@@ -151,7 +152,7 @@ class FunctionFrameManagerImpl(
         stackOffset += calleSaveRegisters.size
 
         return calleSaveRegisters.map {
-            Assigment(
+            Assignment(
                 Memory(
                     BinaryOperation(
                         PhysicalRegister(Registers.RSP),
@@ -200,14 +201,14 @@ class FunctionFrameManagerImpl(
         displayBackupIdx = getNextVirtualRegisterIdx()
 
         trees.add(
-            Assigment(
+            Assignment(
                 VirtualRegister(displayBackupIdx),
                 getDisplayMemory(nestingLevel)
             )
         )
 
         trees.add(
-            Assigment(
+            Assignment(
                 getDisplayMemory(nestingLevel),
                 PhysicalRegister(Registers.RBP)
             )
@@ -218,7 +219,7 @@ class FunctionFrameManagerImpl(
 
     private fun restoreDisplay(): List<Tree> {
         return mutableListOf<Tree>(
-            Assigment(
+            Assignment(
                 getDisplayMemory(getNestingLevel()),
                 VirtualRegister(displayBackupIdx)
             )
@@ -232,14 +233,14 @@ class FunctionFrameManagerImpl(
                 Constant(Registers.REGISTER_SIZE),
                 BinaryOperationType.SUBTRACT
             ),
-            Assigment(Memory(PhysicalRegister(Registers.RSP)), tree)
+            Assignment(Memory(PhysicalRegister(Registers.RSP)), tree)
         )
     }
 
     private fun popFromStack(toAssign: Assignable): List<Tree> {
         return listOf(
-            Assigment(toAssign, Memory(PhysicalRegister(Registers.RSP))),
-            Assigment(
+            Assignment(toAssign, Memory(PhysicalRegister(Registers.RSP))),
+            Assignment(
                 PhysicalRegister(Registers.RSP),
                 BinaryOperation(
                     PhysicalRegister(Registers.RSP),

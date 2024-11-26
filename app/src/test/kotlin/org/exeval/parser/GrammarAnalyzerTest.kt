@@ -30,7 +30,7 @@ class GrammarAnalyzerTest {
             mapOf('A' to setOf('A', 'a')),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
     
     @Test
@@ -56,7 +56,7 @@ class GrammarAnalyzerTest {
             ),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
     
     @Test
@@ -83,7 +83,7 @@ class GrammarAnalyzerTest {
             ),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
     
     @Test
@@ -111,7 +111,7 @@ class GrammarAnalyzerTest {
             ),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
     
     @Test
@@ -136,7 +136,7 @@ class GrammarAnalyzerTest {
             ),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
     
     @Test
@@ -164,6 +164,6 @@ class GrammarAnalyzerTest {
             ),
             grammar
         )
-        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser.analyseGrammar(grammar)))
+        assert(grammarsEqual(analyzedGrammar, GrammarAnalyser().analyseGrammar(grammar)))
     }
 }

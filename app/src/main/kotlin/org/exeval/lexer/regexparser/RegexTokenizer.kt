@@ -40,7 +40,7 @@ private val UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toSet()
 private val LETTERS = LOWERCASE union UPPERCASE
 private val DIGITS = "0123456789".toSet()
 private val IDENTIFIERS = LETTERS union DIGITS union setOf('_')
-private val WHITESPACES = listOf(9, 10, 11, 12, 13, 32).map { Char(it) }.toSet()
+private val WHITESPACES = listOf(0, 9, 10, 11, 12, 13, 32).map { Char(it) }.toSet()
 
 private val groupMap: Map<Char, RegexToken.Group> = mapOf(
     'a' to RegexToken.Group(LETTERS),

@@ -1,15 +1,17 @@
 package org.exeval.instructions
 
 import org.exeval.cfg.Tree
+import org.exeval.cfg.OperationType
 import org.exeval.cfg.BinaryOperation
 import org.exeval.cfg.UnaryOp
-import org.exeval.cfg.Assigment
+import org.exeval.cfg.Assignment
 import org.exeval.cfg.Register
 import org.exeval.cfg.Constant
 import org.exeval.cfg.Label
 import org.exeval.cfg.Memory
 import org.exeval.cfg.Call
 import org.exeval.cfg.Return
+import org.exeval.cfg.Assignable
 
 class InstructionCoverer(private val instructionPatterns : Map<OperationType, List<InstructionPattern>>) {
     
@@ -26,15 +28,18 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
             when(tree){
                 is Call, Return ->{
                     // no tree
-                    return matchResult.createInstruction(null, listOf())
-                } 
+                    return matchResult.createInstruction(listOf(), null)
+                }
                 is Memory -> {
                     // label
-                    return matchResult.createInstruction(tree, listOf())
+                    return matchResult.createInstruction(listOf(), tree)
+                }
+                is Register -> {
+                    // register
+                    return matchResult.createInstruction(listOf(), tree)
                 }
                 else -> {
-                    // register    
-                    return matchResult.createInstruction(tree, listOf())
+                    throw IllegalArgumentException("Cover tree got unexpected tree: " + tree.toString())
                 }
             } 
         }
@@ -42,8 +47,13 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
         var result = mutableListOf<Instruction>() 
         for(childResult in childrenResults) result.addAll(childResult)
         val registerChildren = matchResult.children.filterIsInstance(Register::class.java)
-        val resultTree = if (tree is Call || tree is Return) null else tree
-        return result + matchResult.createInstruction(resultTree, registerChildren)
+        val resultTree = when (tree) {
+            is Assignable ->
+                tree
+            else ->
+                null
+        }
+        return result + matchResult.createInstruction(registerChildren, resultTree)
     }
 
     private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>){
@@ -55,7 +65,7 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
             is UnaryOp ->{
                 computeCost(tree.child, subtreeCost)
             }
-            is Assigment ->{
+            is Assignment ->{
                 computeCost(tree.destination, subtreeCost)
                 computeCost(tree.value, subtreeCost)
             }
