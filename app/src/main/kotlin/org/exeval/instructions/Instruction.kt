@@ -7,7 +7,7 @@ enum class OperationAsm {
     AND, OR, XOR, XCHG, NEG,
     INC, DEC, CALL, RET, CMP,
     JMP, JG, JGE, JE, ADC,
-    CMOVG, CMOVGE, CMOVE
+    CMOVG, CMOVGE, CMOVE, JNE
 }
 
 data class Instruction(

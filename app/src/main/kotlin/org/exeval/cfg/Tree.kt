@@ -27,7 +27,7 @@ enum class BinaryOperationType : OperationType{
 
 data class UnaryOp(val child: Tree, val operation: UnaryOperationType) : Tree
 enum class UnaryOperationType : OperationType{
-    NOT, MINUS, INCREMENT, DECREMENT, CALL
+    NOT, MINUS, INCREMENT, DECREMENT, CALL, IF
 }
 
 data object Call : Tree

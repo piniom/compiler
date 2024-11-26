@@ -28,15 +28,15 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
             when(tree){
                 is Call, Return ->{
                     // no tree
-                    return matchResult.createInstruction(listOf(), null)
+                    return matchResult.createInstruction(listOf(), listOf())
                 }
                 is Memory -> {
                     // label
-                    return matchResult.createInstruction(listOf(), tree)
+                    return matchResult.createInstruction(listOf(), listOf(tree))
                 }
                 is Register -> {
                     // register
-                    return matchResult.createInstruction(listOf(), tree)
+                    return matchResult.createInstruction(listOf(), listOf(tree))
                 }
                 else -> {
                     throw IllegalArgumentException("Cover tree got unexpected tree: " + tree.toString())
@@ -49,9 +49,9 @@ class InstructionCoverer(private val instructionPatterns : Map<OperationType, Li
         val registerChildren = matchResult.children.filterIsInstance(Register::class.java)
         val resultTree = when (tree) {
             is Assignable ->
-                tree
+                listOf(tree)
             else ->
-                null
+                listOf()
         }
         return result + matchResult.createInstruction(registerChildren, resultTree)
     }

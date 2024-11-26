@@ -27,25 +27,24 @@ class InstructionSetCreator {
             BinaryOperationType.DIVIDE to createDividePatterns(),
             BinaryOperationType.MODULO to createModuloPatterns(),
 
-            BinaryOperationType.AND to createSimpleBoolOperationPattern(
-                BinaryOperationType.AND, OperationAsm.AND),
-            BinaryOperationType.OR to createSimpleBoolOperationPattern(
-                BinaryOperationType.OR, OperationAsm.OR),
+            BinaryOperationType.AND to createAndPatterns(),
+            BinaryOperationType.OR to createOrPatterns(),
             BinaryOperationType.XOR to createSimpleBoolOperationPattern(
                 BinaryOperationType.XOR, OperationAsm.XOR),
 
             BinaryOperationType.GREATER to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER, OperationAsm.CMOVG),
+                BinaryOperationType.GREATER, OperationAsm.CMOVG, OperationAsm.JG),
             BinaryOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
+                BinaryOperationType.GREATER_EQUAL, OperationAsm.CMOVGE, OperationAsm.JGE),
             BinaryOperationType.EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.EQUAL, OperationAsm.CMOVE),
+                BinaryOperationType.EQUAL, OperationAsm.CMOVE, OperationAsm.JE),
 
             UnaryOperationType.NOT to createNotPatterns(),
             UnaryOperationType.MINUS to createNegationPatterns(),
             UnaryOperationType.INCREMENT to createIncrementPatterns(),
             UnaryOperationType.DECREMENT to createDecrementPatterns(),
             UnaryOperationType.CALL to createCallPatterns(),
+            UnaryOperationType.IF to createIfPatterns(),
 
             NullaryOperationType.RETURN to createReturnPatterns(),
         )
@@ -53,19 +52,22 @@ class InstructionSetCreator {
 
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for assignment cannot be null")
+            TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.EXEC, 1) { operands, _ ->
+                if (!(operands[0] is Assignable)) {
+                    throw IllegalArgumentException("First operand for assignment must be an assignable")
                 }
-                if (destRegister is Memory && operands[0] is Memory) {
+                if (operands[1] is Label) {
+                    throw IllegalArgumentException("Cannot assign from label")
+                }
+                if (operands[0] is Memory && operands[1] is Memory) {
                     listOf(
-                        Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
-                        Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
+                        Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[1])),
+                        Instruction(OperationAsm.MOV, listOf(operands[0], VirtualRegister(WorkingRegisters.R0)))
                     )
                 }
                 else {
                     listOf(
-                        Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
+                        Instruction(OperationAsm.MOV, listOf(operands[0], operands[1]))
                     )
                 }
             }
@@ -74,36 +76,36 @@ class InstructionSetCreator {
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for multiply cannot be null")
-                }
-                createMulDivModInstructions(OperationAsm.MUL, operands, destRegister)
-            }
+            TemplatePattern(BinaryOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "multiply")
+                verifyNotLabels(operands, "multiply")
+                createMulDivModInstructions(OperationAsm.MUL, operands, dest[0] as Assignable)
+            },
+            createEmptyExecPattern(BinaryOperationType.MULTIPLY)
         )
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for divide cannot be null")
-                }
-                createMulDivModInstructions(OperationAsm.DIV, operands, destRegister)
-            }
+            TemplatePattern(BinaryOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "divide")
+                verifyNotLabels(operands, "divide")
+                createMulDivModInstructions(OperationAsm.DIV, operands, dest[0] as Assignable)
+            },
+            createEmptyExecPattern(BinaryOperationType.DIVIDE)
         )
     }
 
     private fun createModuloPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for modulo cannot be null")
-                }
-                createMulDivModInstructions(OperationAsm.DIV, operands, destRegister) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0))),
+            TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "modulo")
+                verifyNotLabels(operands, "modulo")
+                createMulDivModInstructions(OperationAsm.DIV, operands, dest[0] as Assignable) + listOf(
+                    Instruction(OperationAsm.MOV, listOf(dest[0], VirtualRegister(WorkingRegisters.R0))),
                 )
-            }
+            },
+            createEmptyExecPattern(BinaryOperationType.MODULO)
         )
     }
 
@@ -136,13 +138,45 @@ class InstructionSetCreator {
 
     private fun createSafeSimple2ArgPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument operation ${rootOperation} cannot be null")
-                }
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "2-argument operation ${rootOperation}")
+                verifyNotLabels(operands, "2-argument operation ${rootOperation}")
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
-                ) + create2ArgInstruction(asmOperation, destRegister, operands[1])
+                    Instruction(OperationAsm.MOV, listOf(dest[0], operands[0]))
+                ) + create2ArgInstruction(asmOperation, dest[0], operands[1])
+            },
+            createEmptyExecPattern(rootOperation)
+        )
+    }
+
+    private fun createAndPatterns(): List<InstructionPattern> {
+        return createSimpleBoolOperationPattern(BinaryOperationType.AND, OperationAsm.AND) + listOf(
+            TemplatePattern(BinaryOperationType.AND, InstructionKind.JUMP, 1) { operands, dest ->
+                verifyLabels(dest, "boolean and")
+                verifyNotLabels(operands, "boolean and")
+                listOf(
+                    Instruction(OperationAsm.CMP, listOf(operands[0], Constant(0))),
+                    Instruction(OperationAsm.JE, listOf(dest[1])),
+                    Instruction(OperationAsm.CMP, listOf(operands[1], Constant(0))),
+                    Instruction(OperationAsm.JE, listOf(dest[1])),
+                    Instruction(OperationAsm.JMP, listOf(dest[0])),
+                )
+            }
+        )
+    }
+
+    private fun createOrPatterns(): List<InstructionPattern> {
+        return createSimpleBoolOperationPattern(BinaryOperationType.OR, OperationAsm.OR) + listOf(
+            TemplatePattern(BinaryOperationType.OR, InstructionKind.JUMP, 1) { operands, dest ->
+                verifyLabels(dest, "boolean or")
+                verifyNotLabels(operands, "boolean or")
+                listOf(
+                    Instruction(OperationAsm.CMP, listOf(operands[0], Constant(0))),
+                    Instruction(OperationAsm.JNE, listOf(dest[0])),
+                    Instruction(OperationAsm.CMP, listOf(operands[1], Constant(0))),
+                    Instruction(OperationAsm.JNE, listOf(dest[0])),
+                    Instruction(OperationAsm.JMP, listOf(dest[1])),
+                )
             }
         )
     }
@@ -165,36 +199,44 @@ class InstructionSetCreator {
 
     private fun createSimpleBoolOperationPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument boolean operation ${rootOperation} cannot be null")
-                }
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "2-argument boolean operation ${rootOperation}")
+                verifyNotLabels(operands, "2-argument boolean operation ${rootOperation}")
                 convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[0]) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
+                    Instruction(OperationAsm.MOV, listOf(dest[0], VirtualRegister(WorkingRegisters.R1)))
                 ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
-                create2ArgInstruction(asmOperation, destRegister, VirtualRegister(WorkingRegisters.R1))
-            }
+                create2ArgInstruction(asmOperation, dest[0], VirtualRegister(WorkingRegisters.R1))
+            },
+            createEmptyExecPattern(rootOperation)
         )
     }
 
-    private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm, asmJccOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning comparison cannot be null")
-                }
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "comparison")
+                verifyNotLabels(operands, "comparison")
                 listOf(
                     Instruction(OperationAsm.XOR, listOf(
                         VirtualRegister(WorkingRegisters.R1),
                         VirtualRegister(WorkingRegisters.R1))
                     ),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, Constant(1))),
+                    Instruction(OperationAsm.MOV, listOf(dest[0], Constant(1))),
                 ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
-                    Instruction(asmCmovOperation, listOf(VirtualRegister(WorkingRegisters.R1), destRegister)),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1))),
+                    Instruction(asmCmovOperation, listOf(VirtualRegister(WorkingRegisters.R1), dest[0])),
+                    Instruction(OperationAsm.MOV, listOf(dest[0], VirtualRegister(WorkingRegisters.R1))),
                 )
-            }
+            },
+            TemplatePattern(rootOperation, InstructionKind.JUMP, 1) { operands, dest ->
+                verifyLabels(dest, "comparison")
+                verifyNotLabels(operands, "comparison")
+                create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
+                    Instruction(asmJccOperation, listOf(dest[0])),
+                    Instruction(OperationAsm.JMP, listOf(dest[1]))
+                )
+            },
+            createEmptyExecPattern(rootOperation)
         )
     }
 
@@ -246,47 +288,65 @@ class InstructionSetCreator {
 
     private fun createNotPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for boolean negation cannot be null")
-                }
+            TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "boolean negation")
+                verifyNotLabels(operands, "boolean negation")
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    Instruction(OperationAsm.MOV, listOf(dest[0], operands[0])),
                     /* Cannot use single instruction NOT, as it works bitwise:
                      * wouldn't just change 0 -> 1, 1 -> 0, but 0001 -> 1110.
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    Instruction(OperationAsm.SUB, listOf(destRegister, Constant(1))),
-                    Instruction(OperationAsm.NEG, listOf(destRegister))
+                    Instruction(OperationAsm.SUB, listOf(dest[0], Constant(1))),
+                    Instruction(OperationAsm.NEG, listOf(dest[0]))
                 )
-            }
+            },
+            TemplatePattern(UnaryOperationType.NOT, InstructionKind.JUMP, 1) { operands, dest ->
+                verifyLabels(dest, "boolean negation")
+                verifyNotLabels(operands, "boolean negation")
+                listOf(
+                    Instruction(OperationAsm.CMP, listOf(operands[0], Constant(0))),
+                    Instruction(OperationAsm.JE, listOf(dest[0])),
+                    Instruction(OperationAsm.JMP, listOf(dest[1])),
+                )
+            },
+            createEmptyExecPattern(UnaryOperationType.NOT)
         )
     }
 
     private fun createNegationPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for negation cannot be null")
-                }
+            TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, dest ->
+                verifyAssignable(dest, "negation")
+                verifyNotLabels(operands, "negation")
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.NEG, listOf(destRegister))
+                    Instruction(OperationAsm.MOV, listOf(dest[0], operands[0])),
+                    Instruction(OperationAsm.NEG, listOf(dest[0]))
                 )
-            }
+            },
+            createEmptyExecPattern(UnaryOperationType.MINUS)
         )
     }
 
     private fun createIncrementPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
+            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, dest ->
+                if (!(operands[0] is Assignable)) {
+                    throw IllegalArgumentException("First operand for increment must be an assignable")
+                }
+                verifyAssignable(dest, "increment")
+                listOf(
+                    Instruction(OperationAsm.INC, listOf(operands[0])),
+                    Instruction(OperationAsm.MOV, listOf(dest[0], operands[0])),
+                )
+            },
+            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.EXEC, 1) { operands, _ ->
+                if (!(operands[0] is Assignable)) {
+                    throw IllegalArgumentException("First operand for increment must be an assignable")
                 }
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.INC, listOf(destRegister))
+                    Instruction(OperationAsm.INC, listOf(operands[0])),
                 )
             }
         )
@@ -294,13 +354,22 @@ class InstructionSetCreator {
 
     private fun createDecrementPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
+            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, dest ->
+                if (!(operands[0] is Assignable)) {
+                    throw IllegalArgumentException("First operand for decrement must be an assignable")
+                }
+                verifyAssignable(dest, "decrement")
+                listOf(
+                    Instruction(OperationAsm.DEC, listOf(operands[0])),
+                    Instruction(OperationAsm.MOV, listOf(dest[0], operands[0])),
+                )
+            },
+            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.EXEC, 1) { operands, _ ->
+                if (!(operands[0] is Assignable)) {
+                    throw IllegalArgumentException("First operand for decrement must be an assignable")
                 }
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.DEC, listOf(destRegister))
+                    Instruction(OperationAsm.DEC, listOf(operands[0])),
                 )
             }
         )
@@ -308,7 +377,7 @@ class InstructionSetCreator {
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryOperationType.CALL, InstructionKind.EXEC, 1) { operands, _ ->
                 listOf(
                     // The argument must contain the address or label where the target function is located
                     Instruction(OperationAsm.CALL, listOf(operands[0]))
@@ -317,13 +386,55 @@ class InstructionSetCreator {
         )
     }
 
+    private fun createIfPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(UnaryOperationType.CALL, InstructionKind.JUMP, 1) { operands, dest ->
+                verifyLabels(dest, "if")
+                verifyNotLabels(operands, "if")
+                listOf(
+                    Instruction(OperationAsm.CMP, listOf(operands[0], Constant(0))),
+                    Instruction(OperationAsm.JNE, listOf(dest[0])),
+                    Instruction(OperationAsm.JMP, listOf(dest[1])),
+                )
+            },
+            createEmptyExecPattern(UnaryOperationType.IF)
+        )
+    }
+
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(NullaryOperationType.RETURN, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(NullaryOperationType.RETURN, InstructionKind.EXEC, 1) { _, _ ->
                 listOf(
                     Instruction(OperationAsm.RET, listOf())
                 )
             }
         )
+    }
+
+    private fun createEmptyExecPattern(rootOperation: OperationType): InstructionPattern {
+        return TemplatePattern(rootOperation, InstructionKind.EXEC, 1) { _, _ -> listOf() }
+    }
+
+    private fun verifyAssignable(dest: List<OperandArgumentType>, operation: String) {
+        if (dest.size == 0) {
+            throw IllegalArgumentException("Destination for value-returning ${operation} cannot be empty")
+        }
+        if (!(dest[0] is Assignable)) {
+            throw IllegalArgumentException("Destination for value-returning ${operation} must be an assignable")
+        }
+    }
+
+    private fun verifyLabels(dest: List<OperandArgumentType>, operation: String) {
+        if (dest.size < 2 || !(dest[0] is Label && dest[1] is Label)) {
+            throw IllegalArgumentException("Two destination labels must be provided for jumping ${operation}")
+        }
+    }
+
+    private fun verifyNotLabels(operands: List<OperandArgumentType>, operation: String) {
+        for (op in operands) {
+            if (op is Label) {
+                throw IllegalArgumentException("Operands for ${operation} cannot be labels")
+            }
+        }
     }
 }
