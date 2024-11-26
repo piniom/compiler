@@ -134,14 +134,30 @@ class CFGMaker(
         val thenBranch = walkExpr(conditional.thenBranch, saveThen)
         saveThen.trees = listOf(CFGAssignment(reg, thenBranch.tree!!))
 
-        val node = Node(Pair(thenBranch.top, elseBranch.top))
-        val condition = walkExpr(conditional.condition, node)
-        node.trees = listOf(condition.tree!!)
-
         return WalkResult(
-            condition.top,
+            walkConditionalCondition(conditional.condition, thenBranch.top, elseBranch.top),
             reg
         )
+    }
+
+    private fun walkConditionalCondition(condition: Expr, thenBranch: CFGNode, elseBranch: CFGNode): CFGNode {
+        if (condition is UnaryOperation && condition.operator == UnaryOperator.NOT) {
+            return walkConditionalCondition(condition.operand, elseBranch, thenBranch)
+        }
+        if (condition is BinaryOperation && condition.operator == BinaryOperator.AND) {
+            val right = walkConditionalCondition(condition.right, thenBranch, elseBranch)
+            val left = walkConditionalCondition(condition.left, right, elseBranch)
+            return left
+        }
+        if (condition is BinaryOperation && condition.operator == BinaryOperator.OR) {
+            val right = walkConditionalCondition(condition.right, thenBranch, elseBranch)
+            val left = walkConditionalCondition(condition.left, thenBranch, right)
+            return left
+        }
+        val node = Node(Pair(thenBranch, elseBranch))
+        val conditionExpr = walkExpr(condition, node)
+        node.trees = listOf(conditionExpr.tree!!)
+        return conditionExpr.top
     }
 
     private fun walkNopeConditional(conditional: Conditional, then: CFGNode): WalkResult {
@@ -250,6 +266,7 @@ class CFGMaker(
         val value = fm.generate_var_access(nameResolution.variableToDecl[variableReference]!!)
         return WalkResult(then, value)
     }
+
     private fun newVirtualRegister(): VirtualRegister {
         return VirtualRegister(counter.next())
     }
