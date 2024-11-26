@@ -76,7 +76,10 @@ configurations.register("cucumberRuntime") {
     extendsFrom(configurations["testImplementation"])
 }
 
-tasks.register("cucumberTest") {
+tasks.register<Test>("cucumberTest") {
+    onlyIf {
+        tasks.named("test").get().state.failure == null
+    }
     group = "verification"
     description = "Runs compiler flow tests on example programs."
     dependsOn("assemble", "testClasses")
