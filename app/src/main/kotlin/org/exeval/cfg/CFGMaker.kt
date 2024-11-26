@@ -71,6 +71,9 @@ class CFGMaker(
     }
 
     private fun walkBinaryOperation(bin: BinaryOperation, then: CFGNode): WalkResult {
+        if (bin.operator == BinaryOperator.AND || bin.operator == BinaryOperator.OR) {
+            return walkLogicalExpressionShortCircuit(bin, then)
+        }
         val leftUsage = varUsage[bin.left]!!
         val rightUsage = varUsage[bin.right]!!
         if (leftUsage.conflicts(rightUsage)) {
@@ -135,29 +138,39 @@ class CFGMaker(
         saveThen.trees = listOf(CFGAssignment(reg, thenBranch.tree!!))
 
         return WalkResult(
-            walkConditionalCondition(conditional.condition, thenBranch.top, elseBranch.top),
+            walkShortCircuit(conditional.condition, thenBranch.top, elseBranch.top),
             reg
         )
     }
 
-    private fun walkConditionalCondition(condition: Expr, thenBranch: CFGNode, elseBranch: CFGNode): CFGNode {
+    private fun walkShortCircuit(condition: Expr, thenBranch: CFGNode, elseBranch: CFGNode): CFGNode {
         if (condition is UnaryOperation && condition.operator == UnaryOperator.NOT) {
-            return walkConditionalCondition(condition.operand, elseBranch, thenBranch)
+            return walkShortCircuit(condition.operand, elseBranch, thenBranch)
         }
         if (condition is BinaryOperation && condition.operator == BinaryOperator.AND) {
-            val right = walkConditionalCondition(condition.right, thenBranch, elseBranch)
-            val left = walkConditionalCondition(condition.left, right, elseBranch)
+            val right = walkShortCircuit(condition.right, thenBranch, elseBranch)
+            val left = walkShortCircuit(condition.left, right, elseBranch)
             return left
         }
         if (condition is BinaryOperation && condition.operator == BinaryOperator.OR) {
-            val right = walkConditionalCondition(condition.right, thenBranch, elseBranch)
-            val left = walkConditionalCondition(condition.left, thenBranch, right)
+            val right = walkShortCircuit(condition.right, thenBranch, elseBranch)
+            val left = walkShortCircuit(condition.left, thenBranch, right)
             return left
         }
         val node = Node(Pair(thenBranch, elseBranch))
         val conditionExpr = walkExpr(condition, node)
         node.trees = listOf(conditionExpr.tree!!)
         return conditionExpr.top
+    }
+
+    private fun walkLogicalExpressionShortCircuit(expr: Expr, then: CFGNode): WalkResult {
+        val reg = newVirtualRegister()
+        val trueNode = Node(then, CFGAssignment(reg, Constant(1)))
+        val falseNode = Node(then, CFGAssignment(reg, Constant(0)))
+        return WalkResult(
+            walkShortCircuit(expr, trueNode, falseNode),
+            reg
+        )
     }
 
     private fun walkNopeConditional(conditional: Conditional, then: CFGNode): WalkResult {
@@ -245,6 +258,9 @@ class CFGMaker(
     }
 
     private fun walkUnaryOperation(unaryOperation: UnaryOperation, then: CFGNode): WalkResult {
+        if (unaryOperation.operator == UnaryOperator.NOT) {
+            return walkLogicalExpressionShortCircuit(unaryOperation, then)
+        }
         val inner = walkExpr(unaryOperation.operand, then)
         return WalkResult(inner.top, UnaryOp(inner.tree!!, convertUnOp(unaryOperation.operator)))
     }
