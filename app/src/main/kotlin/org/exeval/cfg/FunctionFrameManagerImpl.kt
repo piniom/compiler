@@ -135,7 +135,12 @@ class FunctionFrameManagerImpl(
     override fun generate_epilouge(result: Tree?): CFGNode {
         val trees = mutableListOf<Tree>()
 
-        trees.add(BinaryOperation(PhysicalRegister(Registers.RSP), Constant(stackOffset * 4), BinaryOperationType.ADD))
+        trees.add(
+            Assignment(
+                PhysicalRegister(Registers.RSP),
+                BinaryOperation(PhysicalRegister(Registers.RSP), Constant(stackOffset * 4), BinaryOperationType.ADD)
+            )
+        )
         trees.addAll(restoreDisplay())
         trees.addAll(restoreRegisters())
 
