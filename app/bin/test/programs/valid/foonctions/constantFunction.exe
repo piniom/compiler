@@ -1,7 +1,0 @@
-foo g() -> Int = {
-    3
-}
-
-foo main() -> Int = {
-    g()
-}

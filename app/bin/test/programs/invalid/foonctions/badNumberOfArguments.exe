@@ -1,7 +1,0 @@
-foo g(a: Int) -> Int = {
-    if a > 2 then 3 else 4
-}
-
-foo main() -> Int = {
-    g(1, 2)
-}

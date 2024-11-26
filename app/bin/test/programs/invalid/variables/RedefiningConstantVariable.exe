@@ -1,4 +1,0 @@
-foo main() -> Int = {
-    let kConst: Bool = true;
-    let kConst: Bool = true;
-}

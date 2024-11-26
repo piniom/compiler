@@ -1,9 +1,0 @@
-foo main() -> Int = {
-    loop {
-        // Inconsitient type of break for Int and Bool
-        if true then {
-            break 1;
-        }
-        break false;
-    }
-}

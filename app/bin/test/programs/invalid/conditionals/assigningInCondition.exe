@@ -1,5 +1,0 @@
-// Assigning in 'if' condition
-foo main() -> Int = {
-    let mut x: Int = 0;
-    if x = 1 then 1 else 0
-}

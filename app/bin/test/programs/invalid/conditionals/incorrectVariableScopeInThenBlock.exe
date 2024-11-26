@@ -1,7 +1,0 @@
-// Incorrect variable scope in 'then' block
-foo main() -> Int = {
-    if true then {
-        let x: Int = 5;
-    }
-    x
-}
