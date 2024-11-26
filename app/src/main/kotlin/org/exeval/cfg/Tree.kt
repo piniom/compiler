@@ -23,7 +23,7 @@ sealed interface OperationType
 
 data class BinaryOperation(val left: Tree, val right: Tree, val operation: BinaryOperationType) : Tree
 enum class BinaryOperationType : OperationType{
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, AND, OR, XOR, GREATER, GREATER_EQUAL, EQUAL, ASSIGNMENT
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, AND, OR, XOR, GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL, ASSIGNMENT
 }
 
 data class UnaryOp(val child: Tree, val operation: UnaryOperationType) : Tree
