@@ -7,7 +7,8 @@ sealed interface OperandArgumentType : Tree
 data class Constant(val value: Int) : OperandArgumentType
 
 sealed interface Assignable : OperandArgumentType
-sealed interface Label : OperandArgumentType
+
+data class DataLabel(val name: String) : OperandArgumentType
 
 data class Memory(val address: Tree) : Assignable
 sealed class Register : Assignable {
