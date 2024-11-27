@@ -43,8 +43,6 @@ class InstructionSetCreator {
 
             UnaryTreeOperationType.NOT to createNotPatterns(),
             UnaryTreeOperationType.MINUS to createNegationPatterns(),
-            UnaryTreeOperationType.INCREMENT to createIncrementPatterns(),
-            UnaryTreeOperationType.DECREMENT to createDecrementPatterns(),
             UnaryTreeOperationType.CALL to createCallPatterns(),
 
             NullaryTreeOperationType.RETURN to createReturnPatterns(),
@@ -273,34 +271,6 @@ class InstructionSetCreator {
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     Instruction(OperationAsm.NEG, listOf(destRegister))
-                )
-            }
-        )
-    }
-
-    private fun createIncrementPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryTreeOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
-                }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.INC, listOf(destRegister))
-                )
-            }
-        )
-    }
-
-    private fun createDecrementPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryTreeOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
-                }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.DEC, listOf(destRegister))
                 )
             }
         )
