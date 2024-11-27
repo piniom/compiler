@@ -24,7 +24,6 @@ class CFGMaker(
     private val nameResolution: NameResolution,
     private val varUsage: VariableUsageAnalysisResult,
     private val typeMap: TypeMap,
-    private val counter: VirtualRegisterCounter
 ) {
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
@@ -165,8 +164,8 @@ class CFGMaker(
 
     private fun walkLogicalExpressionShortCircuit(expr: Expr, then: CFGNode): WalkResult {
         val reg = newVirtualRegister()
-        val trueNode = Node(then, CFGAssignment(reg, ConstantTree(1)))
-        val falseNode = Node(then, CFGAssignment(reg, ConstantTree(0)))
+        val trueNode = Node(then, CFGAssignment(reg, NumericalConstantTree(1)))
+        val falseNode = Node(then, CFGAssignment(reg, NumericalConstantTree(0)))
         return WalkResult(
             walkShortCircuit(expr, trueNode, falseNode),
             reg
@@ -251,8 +250,8 @@ class CFGMaker(
 
     private fun walkLiteral(literal: Literal, then: CFGNode): WalkResult {
         return when (literal) {
-            is IntLiteral -> WalkResult(then, ConstantTree(literal.value))
-            is BoolLiteral -> WalkResult(then, ConstantTree(if (literal.value) 1 else 0))
+            is IntLiteral -> WalkResult(then, NumericalConstantTree(literal.value))
+            is BoolLiteral -> WalkResult(then, NumericalConstantTree(if (literal.value) 1 else 0))
             NopeLiteral -> WalkResult(then, null)
         }
     }
@@ -283,8 +282,8 @@ class CFGMaker(
         return WalkResult(then, value)
     }
 
-    private fun newVirtualRegister(): VirtualRegisterTree {
-        return VirtualRegisterTree(counter.next())
+    private fun newVirtualRegister(): AssignableTree {
+        return RegisterTree(VirtualRegister())
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {

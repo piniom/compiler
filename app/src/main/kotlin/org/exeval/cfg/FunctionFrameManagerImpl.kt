@@ -1,9 +1,9 @@
 package org.exeval.cfg
 
+import com.sun.source.tree.ConstantCaseLabelTree
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.constants.WorkingRegisters
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
@@ -11,11 +11,14 @@ import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var virtualRegIdx = WorkingRegisters.REGISTER_COUNT
-    private var stackOffset = 0
+    private var stackOffset: Long = 0
+
+    val label: Label
 
     init {
         initialiseVariableMap()
+        //TODO: Think about it :))
+        label = Label(f.name)
     }
 
     override fun generate_var_access(x: AnyVariable): AssignableTree {
@@ -28,7 +31,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 1) {
             outTrees.add(
                 AssignmentTree(
-                    PhysicalRegisterTree(Registers.RCX),
+                    RegisterTree(PhysicalRegister.RCX),
                     trees[0]
                 )
             )
@@ -36,7 +39,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         if (trees.size >= 2) {
             outTrees.add(
                 AssignmentTree(
-                    PhysicalRegisterTree(Registers.RDX),
+                    RegisterTree(PhysicalRegister.RDX),
                     trees[1]
                 )
             )
@@ -48,14 +51,14 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
             )
         }
         // Add Call instruction
-        outTrees.add(Call)
+        outTrees.add(Call(label))
         
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
                 AssignmentTree(
                     it,
-                    PhysicalRegisterTree(Registers.RAX)
+                    RegisterTree(PhysicalRegister.RAX)
                 )
             )
         }
@@ -92,8 +95,7 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
                     memoryCell = UsableMemoryCell.MemoryPlace(stackOffset * 4)
                     stackOffset += 1
                 } else {
-                    memoryCell = UsableMemoryCell.VirtReg(virtualRegIdx)
-                    virtualRegIdx += 1
+                    memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
                 }
 
                 variableMap[variable] = memoryCell
@@ -103,8 +105,8 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
 
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
-            BinaryOperationTree(PhysicalRegisterTree(Registers.RSP), ConstantTree(Registers.REGISTER_SIZE), BinaryTreeOperationType.SUBTRACT),
-            AssignmentTree(MemoryTree(PhysicalRegisterTree(Registers.RSP)), tree)
+            BinaryOperationTree(RegisterTree(PhysicalRegister.RSP), NumericalConstantTree(Register.SIZE), BinaryTreeOperationType.SUBTRACT),
+            AssignmentTree(MemoryTree(RegisterTree(PhysicalRegister.RSP)), tree)
         )
     }
 }

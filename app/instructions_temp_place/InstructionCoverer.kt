@@ -6,7 +6,7 @@ import org.exeval.cfg.BinaryOperationTree
 import org.exeval.cfg.UnaryOperationTree
 import org.exeval.cfg.AssignmentTree
 import org.exeval.cfg.RegisterTree
-import org.exeval.cfg.ConstantTree
+import org.exeval.cfg.NumericalConstantTree
 import org.exeval.cfg.Label
 import org.exeval.cfg.MemoryTree
 import org.exeval.cfg.Call
