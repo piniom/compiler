@@ -3,53 +3,40 @@ package org.exeval.instructions
 import org.exeval.cfg.*
 
 class InstructionSetCreator {
-    private val patterns: Map<Any, List<InstructionPattern>>
+    private val patterns: Map<InstructionPatternMapKey, List<InstructionPattern>>
 
     init {
         patterns = initInstructionSet()
     }
 
-    fun createInstructionSet(): Map<Any, List<InstructionPattern>> = patterns
+    fun createInstructionSet(): Map<InstructionPatternMapKey, List<InstructionPattern>> = patterns
 
 
     // Private
 
-    private fun initInstructionSet(): Map<Any, List<InstructionPattern>> {
-        return mapOf(
-            AssignmentTree::class to createAssignmentPatterns(),
-            BinaryTreeOperationType.ADD to createSafeSimple2ArgPattern(
-                BinaryTreeOperationType.ADD, OperationAsm.ADD
-            ),
-            BinaryTreeOperationType.SUBTRACT to createSafeSimple2ArgPattern(
-                BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB
-            ),
+    private fun initInstructionSet(): Map<InstructionPatternMapKey, List<InstructionPattern>> {
+        return (
+            createAssignmentPatterns()
 
-            BinaryTreeOperationType.MULTIPLY to createMultiplyPatterns(),
-            BinaryTreeOperationType.DIVIDE to createDividePatterns(),
+            + createSafeSimple2ArgPattern(BinaryTreeOperationType.ADD, OperationAsm.ADD)
+            + createSafeSimple2ArgPattern(BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB)
 
-            BinaryTreeOperationType.AND to createSimpleBoolOperationPattern(
-                BinaryTreeOperationType.AND, OperationAsm.AND
-            ),
-            BinaryTreeOperationType.OR to createSimpleBoolOperationPattern(
-                BinaryTreeOperationType.OR, OperationAsm.OR
-            ),
+            + createMultiplyPatterns()
+            + createDividePatterns()
 
-            BinaryTreeOperationType.GREATER to createSimpleComparisonPattern(
-                BinaryTreeOperationType.GREATER, OperationAsm.CMOVG
-            ),
-            BinaryTreeOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
-                BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE
-            ),
-            BinaryTreeOperationType.EQUAL to createSimpleComparisonPattern(
-                BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE
-            ),
+            + createSimpleBoolOperationPattern(BinaryTreeOperationType.AND, OperationAsm.AND)
+            + createSimpleBoolOperationPattern(BinaryTreeOperationType.OR, OperationAsm.OR)
 
-            UnaryTreeOperationType.NOT to createNotPatterns(),
-            UnaryTreeOperationType.MINUS to createNegationPatterns(),
-            Call::class to createCallPatterns(),
+            + createSimpleComparisonPattern(BinaryTreeOperationType.GREATER, OperationAsm.CMOVG)
+            + createSimpleComparisonPattern(BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE)
+            + createSimpleComparisonPattern(BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE)
 
-            Return::class to createReturnPatterns(),
-        )
+            + createNotPatterns()
+            + createNegationPatterns()
+            + createCallPatterns()
+
+            + createReturnPatterns()
+        ).groupBy{ InstructionPatternMapKey(it.rootClass, it.kind) }
     }
 
     // TODO inputRegisters is never a MemoryTree - needed a way to know if was mapped to memory or register

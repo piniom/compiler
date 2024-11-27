@@ -16,6 +16,11 @@ sealed class InstructionPattern(
     abstract fun matches(parseTree: Tree): InstructionMatchResult?
 }
 
+data class InstructionPatternMapKey(
+    val treeRootType: Any,
+    val instructionKind: InstructionKind
+)
+
 class TemplatePattern(
     rootClass: Any, //TreeOperationType,
     kind: InstructionKind,
