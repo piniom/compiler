@@ -16,7 +16,6 @@ class InstructionSetCreator {
 
     private fun initInstructionSet(): Map<Any, List<InstructionPattern>> {
         return mapOf(
-			/*
             AssignmentTree::class to createAssignmentPatterns(),
             BinaryTreeOperationType.ADD to createSafeSimple2ArgPattern(
                 BinaryTreeOperationType.ADD, OperationAsm.ADD
@@ -50,25 +49,27 @@ class InstructionSetCreator {
             Call::class to createCallPatterns(),
 
             Return::class to createReturnPatterns(),
-			*/
         )
     }
 
-	/*
+    // TODO inputRegisters is never a MemoryTree - needed a way to know if was mapped to memory or register
+    // TODO inputRegisters is never a ConstantTree - inject constants at matching time
+
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(AssignmentTree::class, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for assignment cannot be null")
+            TemplatePattern(AssignmentTree::class, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for assignment cannot be null")
                 }
-                if (destRegister is MemoryTree && operands[0] is MemoryTree) {
+                @Suppress("USELESS_IS_CHECK")
+                if (dest is MemoryTree && inputRegisters[0] is MemoryTree) {
                     listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, operands[0])),
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */))
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, inputRegisters[0])),
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */))
                     )
                 } else {
                     listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputRegisters[0]))
                     )
                 }
             }
@@ -77,53 +78,63 @@ class InstructionSetCreator {
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryTreeOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for multiply cannot be null")
+            TemplatePattern(BinaryTreeOperationType.MULTIPLY, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for multiply cannot be null")
                 }
-                createMulDivModInstructions(OperationAsm.MUL, operands, destRegister)
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for multiply must be an assignable")
+                }
+                createMulDivModInstructions(OperationAsm.MUL, dest, inputRegisters)
             }
         )
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryTreeOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for divide cannot be null")
+            TemplatePattern(BinaryTreeOperationType.DIVIDE, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for divide cannot be null")
                 }
-                createMulDivModInstructions(OperationAsm.DIV, operands, destRegister)
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for divide must be an assignable")
+                }
+                createMulDivModInstructions(OperationAsm.DIV, dest, inputRegisters)
             }
         )
     }
 
     private fun createMulDivModInstructions(
         operation: OperationAsm,
-        operands: List<OperandArgumentTypeTree>,
-        destRegister: AssignableTree
+        dest: AssignableTree,
+        inputRegisters: List<RegisterTree>
     ): List<Instruction> {
         return listOf(
-            SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister.RAX)),
-            SimpleAsmInstruction(OperationAsm.MOV, listOf(PhysicalRegister.RAX, operands[0])),
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, PhysicalRegister.RAX)),
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(PhysicalRegister.RAX, inputRegisters[0])),
             SimpleAsmInstruction(
                 OperationAsm.MOV, listOf(
                     VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */,
                     PhysicalRegister.RDX
                 )
             )
-        ) + when (operands[1]) {
+        ) +
+        @Suppress("USELESS_IS_CHECK")
+        when (inputRegisters[1]) {
             // Case: Register or Memory
+            // @Suppress("USELESS_IS_CHECK")
             is AssignableTree -> listOf(
-                SimpleAsmInstruction(operation, listOf(operands[1])),
+                SimpleAsmInstruction(operation, listOf(inputRegisters[1])),
             )
             // Case: Constant or Label
+            // @Suppress("USELESS_IS_CHECK")
             is ConstantTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, operands[1])),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[1])),
                 SimpleAsmInstruction(operation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
             )
 			else -> throw IllegalArgumentException("Unknown type of operands")
         } + listOf(
-            SimpleAsmInstruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister.RAX)),
+            SimpleAsmInstruction(OperationAsm.XCHG, listOf(dest, PhysicalRegister.RAX)),
             SimpleAsmInstruction(
                 OperationAsm.XCHG, listOf(
                     PhysicalRegister.RDX,
@@ -138,13 +149,16 @@ class InstructionSetCreator {
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument operation ${rootOperation} cannot be null")
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for 2-argument operation ${rootOperation} cannot be null")
+                }
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for 2-argument operation ${rootOperation} must be an assignable")
                 }
                 listOf(
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
-                ) + create2ArgInstruction(asmOperation, destRegister, operands[1])
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputRegisters[0]))
+                ) + create2ArgInstruction(asmOperation, dest, inputRegisters[1])
             }
         )
     }
@@ -173,14 +187,14 @@ class InstructionSetCreator {
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument boolean operation ${rootOperation} cannot be null")
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for 2-argument boolean operation ${rootOperation} cannot be null")
                 }
-                convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, operands[0]) + listOf(
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */))
-                ) + convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, operands[1]) +
-                        create2ArgInstruction(asmOperation, destRegister, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)
+                convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[0]) + listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */))
+                ) + convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[1]) +
+                        create2ArgInstruction(asmOperation, dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)
             }
         )
     }
@@ -190,9 +204,12 @@ class InstructionSetCreator {
         asmCmovOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning comparison cannot be null")
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for value-returning comparison cannot be null")
+                }
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for value-returning comparison must be an assignable")
                 }
                 listOf(
                     SimpleAsmInstruction(
@@ -201,11 +218,11 @@ class InstructionSetCreator {
                             VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */
                         )
                     ),
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, NumericalConstantTree(1))),
-                ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, NumericalConstantTree(1))),
+                ) + create2ArgInstruction(OperationAsm.CMP, inputRegisters[0], inputRegisters[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
-                    SimpleAsmInstruction(asmCmovOperation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, destRegister)),
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
+                    SimpleAsmInstruction(asmCmovOperation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, dest)),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
                 )
             }
         )
@@ -264,19 +281,22 @@ class InstructionSetCreator {
 
     private fun createNotPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryTreeOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for boolean negation cannot be null")
+            TemplatePattern(UnaryTreeOperationType.NOT, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for boolean negation cannot be null")
+                }
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for boolean negation must be an assignable")
                 }
                 listOf(
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputRegisters[0])),
                     /* Cannot use single instruction NOT, as it works bitwise:
                      * wouldn't just change 0 -> 1, 1 -> 0, but 0001 -> 1110.
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    SimpleAsmInstruction(OperationAsm.SUB, listOf(destRegister, NumericalConstantTree(1))),
-                    SimpleAsmInstruction(OperationAsm.NEG, listOf(destRegister))
+                    SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, NumericalConstantTree(1))),
+                    SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
             }
         )
@@ -284,13 +304,16 @@ class InstructionSetCreator {
 
     private fun createNegationPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryTreeOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for negation cannot be null")
+            TemplatePattern(UnaryTreeOperationType.MINUS, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for negation cannot be null")
+                }
+                if (!(dest is AssignableTree)) {
+                    throw IllegalArgumentException("Destination for negation must be an assignable")
                 }
                 listOf(
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    SimpleAsmInstruction(OperationAsm.NEG, listOf(destRegister))
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputRegisters[0])),
+                    SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
             }
         )
@@ -298,10 +321,10 @@ class InstructionSetCreator {
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(Call::class, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(Call::class, InstructionKind.VALUE, 1) { _, inputRegisters ->
                 listOf(
                     // The argument must contain the address or label where the target function is located
-                    SimpleAsmInstruction(OperationAsm.CALL, listOf(operands[0]))
+                    SimpleAsmInstruction(OperationAsm.CALL, listOf(inputRegisters[0]))
                 )
             }
         )
@@ -309,12 +332,11 @@ class InstructionSetCreator {
 
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(Return::class, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(Return::class, InstructionKind.VALUE, 1) { _, _ ->
                 listOf(
                     SimpleAsmInstruction(OperationAsm.RET, listOf())
                 )
             }
         )
     }
-	*/
 }
