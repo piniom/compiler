@@ -43,8 +43,6 @@ class InstructionSetCreator {
 
             UnaryTreeOperationType.NOT to createNotPatterns(),
             UnaryTreeOperationType.MINUS to createNegationPatterns(),
-            UnaryTreeOperationType.INCREMENT to createIncrementPatterns(),
-            UnaryTreeOperationType.DECREMENT to createDecrementPatterns(),
             UnaryTreeOperationType.CALL to createCallPatterns(),
 
             NullaryTreeOperationType.RETURN to createReturnPatterns(),
@@ -121,7 +119,7 @@ class InstructionSetCreator {
                 Instruction(operation, listOf(operands[1])),
             )
             // Case: Constant
-            is ConstantTree -> listOf(
+            is NumericalConstantTree -> listOf(
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R1), operands[1])),
                 Instruction(operation, listOf(VirtualRegisterTree(WorkingRegisters.R1))),
             )
@@ -158,7 +156,7 @@ class InstructionSetCreator {
             // Set destRegister to 0 once again
             Instruction(OperationAsm.XOR, listOf(destRegisterTree, destRegisterTree)),
             // Add carry to destRegister + 0
-            Instruction(OperationAsm.ADC, listOf(destRegisterTree, ConstantTree(0))),
+            Instruction(OperationAsm.ADC, listOf(destRegisterTree, NumericalConstantTree(0))),
             // If carry was set, destRegister will be equal to 1, otherwise it'll be 0
         )
     }
@@ -188,7 +186,7 @@ class InstructionSetCreator {
                         VirtualRegisterTree(WorkingRegisters.R1),
                         VirtualRegisterTree(WorkingRegisters.R1))
                     ),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, ConstantTree(1))),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, NumericalConstantTree(1))),
                 ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
                     Instruction(asmCmovOperation, listOf(VirtualRegisterTree(WorkingRegisters.R1), destRegister)),
@@ -218,25 +216,25 @@ class InstructionSetCreator {
                 Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Register + Constant
-            operand1 is RegisterTree && operand2 is ConstantTree -> listOf(
+            operand1 is RegisterTree && operand2 is NumericalConstantTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Constant + Register
-            operand1 is ConstantTree && operand2 is RegisterTree -> listOf(
+            operand1 is NumericalConstantTree && operand2 is RegisterTree -> listOf(
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
                 Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Memory + Constant
-            operand1 is MemoryTree && operand2 is ConstantTree -> listOf(
+            operand1 is MemoryTree && operand2 is NumericalConstantTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Constant + Memory
-            operand1 is ConstantTree && operand2 is MemoryTree -> listOf(
+            operand1 is NumericalConstantTree && operand2 is MemoryTree -> listOf(
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
                 Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Constant + Constant
-            operand1 is ConstantTree && operand2 is ConstantTree -> listOf(
+            operand1 is NumericalConstantTree && operand2 is NumericalConstantTree -> listOf(
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
                 Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
@@ -257,7 +255,7 @@ class InstructionSetCreator {
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    Instruction(OperationAsm.SUB, listOf(destRegister, ConstantTree(1))),
+                    Instruction(OperationAsm.SUB, listOf(destRegister, NumericalConstantTree(1))),
                     Instruction(OperationAsm.NEG, listOf(destRegister))
                 )
             }
@@ -273,34 +271,6 @@ class InstructionSetCreator {
                 listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
                     Instruction(OperationAsm.NEG, listOf(destRegister))
-                )
-            }
-        )
-    }
-
-    private fun createIncrementPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryTreeOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
-                }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.INC, listOf(destRegister))
-                )
-            }
-        )
-    }
-
-    private fun createDecrementPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryTreeOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
-                }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.DEC, listOf(destRegister))
                 )
             }
         )

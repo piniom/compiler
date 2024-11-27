@@ -5,7 +5,6 @@ import io.mockk.mockk
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
 import org.junit.jupiter.api.Assertions.*
@@ -25,6 +24,7 @@ class FunctionFrameManagerImplTest {
 
         every { analyser.variableMap } returns mutableMapOf()
         every { analyser.isUsedInNested } returns mutableMapOf()
+        every { functionDeclaration.name } returns "my_function_declaration_name"
 
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
     }
@@ -56,9 +56,14 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for each variable
-        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(a))
-        assertEquals(UsableMemoryCell.VirtReg(5), frameManager.variable_to_virtual_register(b))
-        assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(max))
+        assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
+        assertTrue(frameManager.variable_to_virtual_register(b) is UsableMemoryCell.VirtReg)
+        assertTrue(frameManager.variable_to_virtual_register(max) is UsableMemoryCell.MemoryPlace)
+        assertNotEquals(frameManager.variable_to_virtual_register(b), frameManager.variable_to_virtual_register(a))
+        assertNotEquals(frameManager.variable_to_virtual_register(a), frameManager.variable_to_virtual_register(b))
+        assertNotEquals(frameManager.variable_to_virtual_register(b), frameManager.variable_to_virtual_register(max))
+        assertEquals(frameManager.variable_to_virtual_register(max), frameManager.variable_to_virtual_register(max))
+        assertEquals(frameManager.variable_to_virtual_register(a), frameManager.variable_to_virtual_register(a))
     }
 
     @Test
@@ -87,9 +92,14 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for each variable
-        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(y))
-        assertEquals(UsableMemoryCell.VirtReg(5), frameManager.variable_to_virtual_register(a))
-        assertEquals(UsableMemoryCell.VirtReg(6), frameManager.variable_to_virtual_register(b))
+        assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
+        assertTrue(frameManager.variable_to_virtual_register(b) is UsableMemoryCell.VirtReg)
+        assertTrue(frameManager.variable_to_virtual_register(y) is UsableMemoryCell.VirtReg)
+        assertNotEquals(frameManager.variable_to_virtual_register(b), frameManager.variable_to_virtual_register(a))
+        assertNotEquals(frameManager.variable_to_virtual_register(a), frameManager.variable_to_virtual_register(b))
+        assertNotEquals(frameManager.variable_to_virtual_register(b), frameManager.variable_to_virtual_register(y))
+        assertEquals(frameManager.variable_to_virtual_register(y), frameManager.variable_to_virtual_register(y))
+        assertEquals(frameManager.variable_to_virtual_register(a), frameManager.variable_to_virtual_register(a))
     }
 
     @Test
@@ -113,7 +123,7 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for `n`
-        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(n))
+        assertTrue(frameManager.variable_to_virtual_register(n) is UsableMemoryCell.VirtReg)
     }
 
     @Test
@@ -133,7 +143,7 @@ class FunctionFrameManagerImplTest {
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
         // Check allocation for `fibResult`
-        assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(fibResult))
+        assertTrue(frameManager.variable_to_virtual_register(fibResult) is UsableMemoryCell.VirtReg)
     }
 
     @Test
@@ -180,7 +190,7 @@ class FunctionFrameManagerImplTest {
             CFGNodeImpl(
                 Pair(then, null),
                 listOf(
-                    Call
+                    Call(frameManager.label)
                 )
             )
         )
@@ -196,15 +206,18 @@ class FunctionFrameManagerImplTest {
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
 
+        val reg1 = VirtualRegister()
+        val reg2 = VirtualRegister()
+        val reg3 = VirtualRegister()
         // args
         val trees = listOf<Tree>(
-            ConstantTree(2),
-            VirtualRegisterTree(5),
-            BinaryOperationTree(ConstantTree(6), VirtualRegisterTree(6), BinaryTreeOperationType.MULTIPLY)
+            NumericalConstantTree(2),
+            RegisterTree(reg1),
+            BinaryOperationTree(NumericalConstantTree(6), RegisterTree(reg2), BinaryTreeOperationType.MULTIPLY)
         )
 
         // Return
-        val returnDest = MemoryTree(VirtualRegisterTree(7))
+        val returnDest = MemoryTree(RegisterTree(reg3))
 
         assertEquals(
             CFGNodeImpl(
@@ -212,26 +225,25 @@ class FunctionFrameManagerImplTest {
                 listOf<Tree>(
                     // arg 1
                     AssignmentTree(
-                        PhysicalRegisterTree(Registers.RCX),
-                        ConstantTree(2)
-                    ),
-                    // arg 2
+                        RegisterTree(PhysicalRegister.RCX),
+                        NumericalConstantTree(2)
+                    ),                    // arg 2
                     AssignmentTree(
-                        PhysicalRegisterTree(Registers.RDX),
-                        VirtualRegisterTree(5)
+                        RegisterTree(PhysicalRegister.RDX),
+                       RegisterTree(reg1)
                     ),
                     // push arg 3 on stack
-                    BinaryOperationTree(PhysicalRegisterTree(Registers.RSP), ConstantTree(8), BinaryTreeOperationType.SUBTRACT),
+                    BinaryOperationTree(RegisterTree(PhysicalRegister.RSP), NumericalConstantTree(8), BinaryTreeOperationType.SUBTRACT),
                     AssignmentTree(
-                        MemoryTree(PhysicalRegisterTree(Registers.RSP)),
-                        BinaryOperationTree(ConstantTree(6), VirtualRegisterTree(6), BinaryTreeOperationType.MULTIPLY)
+                        MemoryTree(RegisterTree(PhysicalRegister.RSP)),
+                        BinaryOperationTree(NumericalConstantTree(6), RegisterTree(reg2), BinaryTreeOperationType.MULTIPLY)
                     ),
                     // Call function
-                    Call,
+                    Call(frameManager.label),
                     // Save result
                     AssignmentTree(
                         returnDest,
-                        PhysicalRegisterTree(Registers.RAX)
+                        RegisterTree(PhysicalRegister.RAX)
                     )
                 )
             ),
@@ -240,4 +252,5 @@ class FunctionFrameManagerImplTest {
             )
         )
     }
+
 }
