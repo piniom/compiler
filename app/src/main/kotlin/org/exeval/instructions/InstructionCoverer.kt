@@ -28,17 +28,17 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeOperationType,
             when (tree) {
                 is Call, Return -> {
                     // no tree
-                    return matchResult.createInstruction(listOf(), null)
+                    return matchResult.createInstruction(null, listOf())
                 }
 
                 is MemoryTree -> {
                     // label
-                    return matchResult.createInstruction(listOf(), tree)
+                    return matchResult.createInstruction(tree, listOf())
                 }
 
                 is RegisterTree -> {
                     // register
-                    return matchResult.createInstruction(listOf(), tree)
+                    return matchResult.createInstruction(tree, listOf())
                 }
 
                 else -> {
@@ -57,7 +57,7 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeOperationType,
             else ->
                 null
         }
-        return result + matchResult.createInstruction(registerTreeChildren, resultTree)
+        return result + matchResult.createInstruction(resultTree, registerTreeChildren)
     }
 
     private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>) {

@@ -16,6 +16,7 @@ class InstructionSetCreator {
 
     private fun initInstructionSet(): Map<Any, List<InstructionPattern>> {
         return mapOf(
+			/*
             AssignmentTree::class to createAssignmentPatterns(),
             BinaryTreeOperationType.ADD to createSafeSimple2ArgPattern(
                 BinaryTreeOperationType.ADD, OperationAsm.ADD
@@ -49,9 +50,11 @@ class InstructionSetCreator {
             Call::class to createCallPatterns(),
 
             Return::class to createReturnPatterns(),
+			*/
         )
     }
 
+	/*
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(AssignmentTree::class, InstructionKind.VALUE, 1) { operands, destRegister ->
@@ -313,4 +316,5 @@ class InstructionSetCreator {
             }
         )
     }
+	*/
 }

@@ -5,7 +5,7 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
+    val createInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
 )
 
 sealed class InstructionPattern(
@@ -20,7 +20,7 @@ class TemplatePattern(
     rootClass: Any, //TreeOperationType,
     kind: InstructionKind,
     cost: Int,
-    val lambdaInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
 ) : InstructionPattern(rootClass, kind, cost) {
 
     override fun matches(parseTree: Tree): InstructionMatchResult? {
