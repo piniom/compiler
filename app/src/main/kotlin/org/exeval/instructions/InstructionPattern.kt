@@ -9,7 +9,7 @@ data class InstructionMatchResult (
 )
 
 sealed class InstructionPattern(
-    val rootClass: TreeOperationType,
+    val rootClass: Any, //TreeOperationType,
     val kind: InstructionKind,
     val cost: Int
 ) {
@@ -17,7 +17,7 @@ sealed class InstructionPattern(
 }
 
 class TemplatePattern(
-    rootClass: TreeOperationType,
+    rootClass: Any, //TreeOperationType,
     kind: InstructionKind,
     cost: Int,
     val lambdaInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
@@ -26,14 +26,14 @@ class TemplatePattern(
     override fun matches(parseTree: Tree): InstructionMatchResult? {
         return when (parseTree) {
             is Call, is Return -> {
-                if (rootClass is NullaryTreeOperationType) {
+                if (rootClass == Call::class || rootClass == Return::class) {
                     InstructionMatchResult(emptyList(), lambdaInstruction)
                 }
                 else null
             }
 
             is AssignmentTree -> {
-                if (rootClass == BinaryTreeOperationType.ASSIGNMENT) {
+                if (rootClass == AssignmentTree::class) {
                     InstructionMatchResult(listOf(parseTree.value), lambdaInstruction)
                 }
                 else null

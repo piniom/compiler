@@ -1,6 +1,8 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.OperandArgumentTypeTree
+typealias OperandArgumentTypeTree = Any
+
+sealed interface Instruction
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
@@ -10,7 +12,7 @@ enum class OperationAsm {
     CMOVG, CMOVGE, CMOVE
 }
 
-data class Instruction(
+data class SimpleAsmInstruction(
     val operation: OperationAsm,
     val arguments: List<OperandArgumentTypeTree>
-)
+) : Instruction
