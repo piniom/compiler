@@ -13,12 +13,12 @@ class VarAccessGeneratorTest {
         val regCell = UsableMemoryCell.VirtReg(108)
         val memCell = UsableMemoryCell.MemoryPlace(24)
 
-        val regExpected = VirtualRegister(108)
-        val memExpected = Memory(
-            BinaryOperation(
-                PhysicalRegister(Registers.RBP),
-                Constant(24),
-                BinaryOperationType.SUBTRACT
+        val regExpected = VirtualRegisterTree(108)
+        val memExpected = MemoryTree(
+            BinaryOperationTree(
+                PhysicalRegisterTree(Registers.RBP),
+                ConstantTree(24),
+                BinaryTreeOperationType.SUBTRACT
             )
         )
 
@@ -37,12 +37,12 @@ class VarAccessGeneratorTest {
         val regCell = UsableMemoryCell.VirtReg(108)
         val memCell = UsableMemoryCell.MemoryPlace(24)
 
-        val regExpected = VirtualRegister(108)
-        val memExpected = Memory(
-            BinaryOperation(
-                Constant(offset),
-                Constant(24),
-                BinaryOperationType.SUBTRACT
+        val regExpected = VirtualRegisterTree(108)
+        val memExpected = MemoryTree(
+            BinaryOperationTree(
+                ConstantTree(offset),
+                ConstantTree(24),
+                BinaryTreeOperationType.SUBTRACT
             )
         )
 

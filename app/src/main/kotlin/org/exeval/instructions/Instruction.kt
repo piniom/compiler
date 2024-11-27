@@ -1,6 +1,6 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.OperandArgumentType
+import org.exeval.cfg.OperandArgumentTypeTree
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
@@ -12,5 +12,5 @@ enum class OperationAsm {
 
 data class Instruction(
     val operation: OperationAsm,
-    val arguments: List<OperandArgumentType>
+    val arguments: List<OperandArgumentTypeTree>
 )

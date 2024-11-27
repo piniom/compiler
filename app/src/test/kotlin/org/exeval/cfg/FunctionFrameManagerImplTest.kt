@@ -198,40 +198,40 @@ class FunctionFrameManagerImplTest {
 
         // args
         val trees = listOf<Tree>(
-            Constant(2),
-            VirtualRegister(5),
-            BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
+            ConstantTree(2),
+            VirtualRegisterTree(5),
+            BinaryOperationTree(ConstantTree(6), VirtualRegisterTree(6), BinaryTreeOperationType.MULTIPLY)
         )
 
         // Return
-        val returnDest = Memory(VirtualRegister(7))
+        val returnDest = MemoryTree(VirtualRegisterTree(7))
 
         assertEquals(
             CFGNodeImpl(
                 Pair(then, null),
                 listOf<Tree>(
                     // arg 1
-                    Assignment(
-                        PhysicalRegister(Registers.RCX),
-                        Constant(2)
+                    AssignmentTree(
+                        PhysicalRegisterTree(Registers.RCX),
+                        ConstantTree(2)
                     ),
                     // arg 2
-                    Assignment(
-                        PhysicalRegister(Registers.RDX),
-                        VirtualRegister(5)
+                    AssignmentTree(
+                        PhysicalRegisterTree(Registers.RDX),
+                        VirtualRegisterTree(5)
                     ),
                     // push arg 3 on stack
-                    BinaryOperation(PhysicalRegister(Registers.RSP), Constant(8), BinaryOperationType.SUBTRACT),
-                    Assignment(
-                        Memory(PhysicalRegister(Registers.RSP)),
-                        BinaryOperation(Constant(6), VirtualRegister(6), BinaryOperationType.MULTIPLY)
+                    BinaryOperationTree(PhysicalRegisterTree(Registers.RSP), ConstantTree(8), BinaryTreeOperationType.SUBTRACT),
+                    AssignmentTree(
+                        MemoryTree(PhysicalRegisterTree(Registers.RSP)),
+                        BinaryOperationTree(ConstantTree(6), VirtualRegisterTree(6), BinaryTreeOperationType.MULTIPLY)
                     ),
                     // Call function
                     Call,
                     // Save result
-                    Assignment(
+                    AssignmentTree(
                         returnDest,
-                        PhysicalRegister(Registers.RAX)
+                        PhysicalRegisterTree(Registers.RAX)
                     )
                 )
             ),

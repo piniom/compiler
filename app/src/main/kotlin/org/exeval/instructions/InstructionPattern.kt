@@ -5,11 +5,11 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (operands : List<OperandArgumentType>, destRegister : Assignable?) -> List<Instruction>
+    val createInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
 )
 
 sealed class InstructionPattern(
-    val rootClass: OperationType,
+    val rootClass: TreeOperationType,
     val kind: InstructionKind,
     val cost: Int
 ) {
@@ -17,36 +17,36 @@ sealed class InstructionPattern(
 }
 
 class TemplatePattern(
-    rootClass: OperationType,
+    rootClass: TreeOperationType,
     kind: InstructionKind,
     cost: Int,
-    val lambdaInstruction: (operands : List<OperandArgumentType>, destRegister : Assignable?) -> List<Instruction>
+    val lambdaInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
 ) : InstructionPattern(rootClass, kind, cost) {
 
     override fun matches(parseTree: Tree): InstructionMatchResult? {
         return when (parseTree) {
             is Call, is Return -> {
-                if (rootClass is NullaryOperationType) {
+                if (rootClass is NullaryTreeOperationType) {
                     InstructionMatchResult(emptyList(), lambdaInstruction)
                 }
                 else null
             }
 
-            is Assignment -> {
-                if (rootClass == BinaryOperationType.ASSIGNMENT) {
+            is AssignmentTree -> {
+                if (rootClass == BinaryTreeOperationType.ASSIGNMENT) {
                     InstructionMatchResult(listOf(parseTree.value), lambdaInstruction)
                 }
                 else null
             }
 
-            is UnaryOp -> {
+            is UnaryOperationTree -> {
                 if (parseTree.operation == rootClass) {
                     InstructionMatchResult(listOf(parseTree.child), lambdaInstruction)
                 }
                 else null
             }
 
-            is BinaryOperation -> {
+            is BinaryOperationTree -> {
                 if (parseTree.operation == rootClass) {
                     InstructionMatchResult(listOf(parseTree.left, parseTree.right), lambdaInstruction)
                 }

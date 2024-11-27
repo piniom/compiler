@@ -4,63 +4,63 @@ import org.exeval.cfg.*
 import org.exeval.cfg.constants.*
 
 class InstructionSetCreator {
-    private val patterns: Map<OperationType, List<InstructionPattern>>
+    private val patterns: Map<TreeOperationType, List<InstructionPattern>>
 
     init {
         patterns = initInstructionSet()
     }
 
-    fun createInstructionSet(): Map<OperationType, List<InstructionPattern>> = patterns
+    fun createInstructionSet(): Map<TreeOperationType, List<InstructionPattern>> = patterns
 
 
     // Private
 
-    private fun initInstructionSet(): Map<OperationType, List<InstructionPattern>> {
+    private fun initInstructionSet(): Map<TreeOperationType, List<InstructionPattern>> {
         return mapOf(
-            BinaryOperationType.ASSIGNMENT to createAssignmentPatterns(),
-            BinaryOperationType.ADD to createSafeSimple2ArgPattern(
-                BinaryOperationType.ADD, OperationAsm.ADD),
-            BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(
-                BinaryOperationType.SUBTRACT, OperationAsm.SUB),
+            BinaryTreeOperationType.ASSIGNMENT to createAssignmentPatterns(),
+            BinaryTreeOperationType.ADD to createSafeSimple2ArgPattern(
+                BinaryTreeOperationType.ADD, OperationAsm.ADD),
+            BinaryTreeOperationType.SUBTRACT to createSafeSimple2ArgPattern(
+                BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB),
 
-            BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
-            BinaryOperationType.DIVIDE to createDividePatterns(),
-            BinaryOperationType.MODULO to createModuloPatterns(),
+            BinaryTreeOperationType.MULTIPLY to createMultiplyPatterns(),
+            BinaryTreeOperationType.DIVIDE to createDividePatterns(),
+            BinaryTreeOperationType.MODULO to createModuloPatterns(),
 
-            BinaryOperationType.AND to createSimpleBoolOperationPattern(
-                BinaryOperationType.AND, OperationAsm.AND),
-            BinaryOperationType.OR to createSimpleBoolOperationPattern(
-                BinaryOperationType.OR, OperationAsm.OR),
-            BinaryOperationType.XOR to createSimpleBoolOperationPattern(
-                BinaryOperationType.XOR, OperationAsm.XOR),
+            BinaryTreeOperationType.AND to createSimpleBoolOperationPattern(
+                BinaryTreeOperationType.AND, OperationAsm.AND),
+            BinaryTreeOperationType.OR to createSimpleBoolOperationPattern(
+                BinaryTreeOperationType.OR, OperationAsm.OR),
+            BinaryTreeOperationType.XOR to createSimpleBoolOperationPattern(
+                BinaryTreeOperationType.XOR, OperationAsm.XOR),
 
-            BinaryOperationType.GREATER to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER, OperationAsm.CMOVG),
-            BinaryOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
-            BinaryOperationType.EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.EQUAL, OperationAsm.CMOVE),
+            BinaryTreeOperationType.GREATER to createSimpleComparisonPattern(
+                BinaryTreeOperationType.GREATER, OperationAsm.CMOVG),
+            BinaryTreeOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
+                BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
+            BinaryTreeOperationType.EQUAL to createSimpleComparisonPattern(
+                BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE),
 
-            UnaryOperationType.NOT to createNotPatterns(),
-            UnaryOperationType.MINUS to createNegationPatterns(),
-            UnaryOperationType.INCREMENT to createIncrementPatterns(),
-            UnaryOperationType.DECREMENT to createDecrementPatterns(),
-            UnaryOperationType.CALL to createCallPatterns(),
+            UnaryTreeOperationType.NOT to createNotPatterns(),
+            UnaryTreeOperationType.MINUS to createNegationPatterns(),
+            UnaryTreeOperationType.INCREMENT to createIncrementPatterns(),
+            UnaryTreeOperationType.DECREMENT to createDecrementPatterns(),
+            UnaryTreeOperationType.CALL to createCallPatterns(),
 
-            NullaryOperationType.RETURN to createReturnPatterns(),
+            NullaryTreeOperationType.RETURN to createReturnPatterns(),
         )
     }
 
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(BinaryTreeOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for assignment cannot be null")
                 }
-                if (destRegister is Memory && operands[0] is Memory) {
+                if (destRegister is MemoryTree && operands[0] is MemoryTree) {
                     listOf(
-                        Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
-                        Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
+                        Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operands[0])),
+                        Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R0)))
                     )
                 }
                 else {
@@ -74,7 +74,7 @@ class InstructionSetCreator {
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(BinaryTreeOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for multiply cannot be null")
                 }
@@ -85,7 +85,7 @@ class InstructionSetCreator {
 
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(BinaryTreeOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for divide cannot be null")
                 }
@@ -96,45 +96,45 @@ class InstructionSetCreator {
 
     private fun createModuloPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(BinaryTreeOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for modulo cannot be null")
                 }
                 createMulDivModInstructions(OperationAsm.DIV, operands, destRegister) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0))),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R0))),
                 )
             }
         )
     }
 
-    private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentType>, destRegister: Assignable): List<Instruction> {
+    private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentTypeTree>, destRegister: AssignableTree): List<Instruction> {
         return listOf(
-            Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(Registers.RAX))),
-            Instruction(OperationAsm.MOV, listOf(PhysicalRegister(Registers.RAX), operands[0])),
+            Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegisterTree(Registers.RAX))),
+            Instruction(OperationAsm.MOV, listOf(PhysicalRegisterTree(Registers.RAX), operands[0])),
             Instruction(OperationAsm.MOV, listOf(
-                VirtualRegister(WorkingRegisters.R0),
-                PhysicalRegister(Registers.RDX)
+                VirtualRegisterTree(WorkingRegisters.R0),
+                PhysicalRegisterTree(Registers.RDX)
             ))
         ) + when (operands[1]) {
             // Case: Register or Memory
-            is Assignable -> listOf(
+            is AssignableTree -> listOf(
                 Instruction(operation, listOf(operands[1])),
             )
             // Case: Constant
-            is Constant -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R1), operands[1])),
-                Instruction(operation, listOf(VirtualRegister(WorkingRegisters.R1))),
+            is ConstantTree -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R1), operands[1])),
+                Instruction(operation, listOf(VirtualRegisterTree(WorkingRegisters.R1))),
             )
         } + listOf(
-            Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister(Registers.RAX))),
+            Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegisterTree(Registers.RAX))),
             Instruction(OperationAsm.XCHG, listOf(
-                PhysicalRegister(Registers.RDX),
-                VirtualRegister(WorkingRegisters.R0)
+                PhysicalRegisterTree(Registers.RDX),
+                VirtualRegisterTree(WorkingRegisters.R0)
             )),
         )
     }
 
-    private fun createSafeSimple2ArgPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSafeSimple2ArgPattern(rootOperation: BinaryTreeOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
@@ -147,37 +147,37 @@ class InstructionSetCreator {
         )
     }
 
-    private fun convertBooleanTo0Or1(destRegister: Register, boolean: OperandArgumentType): List<Instruction> {
+    private fun convertBooleanTo0Or1(destRegisterTree: RegisterTree, boolean: OperandArgumentTypeTree): List<Instruction> {
         return listOf(
             // A neat conversion without jumps found on stackoverflow
 
             // Set destRegister to 0
-            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
+            Instruction(OperationAsm.XOR, listOf(destRegisterTree, destRegisterTree)),
             // Carry will be set if boolean was not 0
-            Instruction(OperationAsm.SUB, listOf(destRegister, boolean)),
+            Instruction(OperationAsm.SUB, listOf(destRegisterTree, boolean)),
             // Set destRegister to 0 once again
-            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
+            Instruction(OperationAsm.XOR, listOf(destRegisterTree, destRegisterTree)),
             // Add carry to destRegister + 0
-            Instruction(OperationAsm.ADC, listOf(destRegister, Constant(0))),
+            Instruction(OperationAsm.ADC, listOf(destRegisterTree, ConstantTree(0))),
             // If carry was set, destRegister will be equal to 1, otherwise it'll be 0
         )
     }
 
-    private fun createSimpleBoolOperationPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleBoolOperationPattern(rootOperation: BinaryTreeOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for 2-argument boolean operation ${rootOperation} cannot be null")
                 }
-                convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[0]) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
-                ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
-                create2ArgInstruction(asmOperation, destRegister, VirtualRegister(WorkingRegisters.R1))
+                convertBooleanTo0Or1(VirtualRegisterTree(WorkingRegisters.R1), operands[0]) + listOf(
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R1)))
+                ) + convertBooleanTo0Or1(VirtualRegisterTree(WorkingRegisters.R1), operands[1]) +
+                create2ArgInstruction(asmOperation, destRegister, VirtualRegisterTree(WorkingRegisters.R1))
             }
         )
     }
 
-    private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleComparisonPattern(rootOperation: BinaryTreeOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
@@ -185,60 +185,60 @@ class InstructionSetCreator {
                 }
                 listOf(
                     Instruction(OperationAsm.XOR, listOf(
-                        VirtualRegister(WorkingRegisters.R1),
-                        VirtualRegister(WorkingRegisters.R1))
+                        VirtualRegisterTree(WorkingRegisters.R1),
+                        VirtualRegisterTree(WorkingRegisters.R1))
                     ),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, Constant(1))),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, ConstantTree(1))),
                 ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
-                    Instruction(asmCmovOperation, listOf(VirtualRegister(WorkingRegisters.R1), destRegister)),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1))),
+                    Instruction(asmCmovOperation, listOf(VirtualRegisterTree(WorkingRegisters.R1), destRegister)),
+                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R1))),
                 )
             }
         )
     }
 
-    private fun create2ArgInstruction(operation: OperationAsm, operand1: OperandArgumentType, operand2: OperandArgumentType): List<Instruction> {
+    private fun create2ArgInstruction(operation: OperationAsm, operand1: OperandArgumentTypeTree, operand2: OperandArgumentTypeTree): List<Instruction> {
         return when {
             // Case: Register + Register
-            operand1 is Register && operand2 is Register -> listOf(
+            operand1 is RegisterTree && operand2 is RegisterTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Register + Memory
-            operand1 is Register && operand2 is Memory -> listOf(
+            operand1 is RegisterTree && operand2 is MemoryTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Memory + Register
-            operand1 is Memory && operand2 is Register -> listOf(
+            operand1 is MemoryTree && operand2 is RegisterTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Memory + Memory
-            operand1 is Memory && operand2 is Memory -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
+            operand1 is MemoryTree && operand2 is MemoryTree -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Register + Constant
-            operand1 is Register && operand2 is Constant -> listOf(
+            operand1 is RegisterTree && operand2 is ConstantTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Constant + Register
-            operand1 is Constant && operand2 is Register -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
+            operand1 is ConstantTree && operand2 is RegisterTree -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Memory + Constant
-            operand1 is Memory && operand2 is Constant -> listOf(
+            operand1 is MemoryTree && operand2 is ConstantTree -> listOf(
                 Instruction(operation, listOf(operand1, operand2))
             )
             // Case: Constant + Memory
-            operand1 is Constant && operand2 is Memory -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
+            operand1 is ConstantTree && operand2 is MemoryTree -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             // Case: Constant + Constant
-            operand1 is Constant && operand2 is Constant -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
+            operand1 is ConstantTree && operand2 is ConstantTree -> listOf(
+                Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
+                Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
             else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
         }
@@ -246,7 +246,7 @@ class InstructionSetCreator {
 
     private fun createNotPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryTreeOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for boolean negation cannot be null")
                 }
@@ -257,7 +257,7 @@ class InstructionSetCreator {
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    Instruction(OperationAsm.SUB, listOf(destRegister, Constant(1))),
+                    Instruction(OperationAsm.SUB, listOf(destRegister, ConstantTree(1))),
                     Instruction(OperationAsm.NEG, listOf(destRegister))
                 )
             }
@@ -266,7 +266,7 @@ class InstructionSetCreator {
 
     private fun createNegationPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryTreeOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for negation cannot be null")
                 }
@@ -280,7 +280,7 @@ class InstructionSetCreator {
 
     private fun createIncrementPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryTreeOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
                 }
@@ -294,7 +294,7 @@ class InstructionSetCreator {
 
     private fun createDecrementPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryTreeOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
                 }
@@ -308,7 +308,7 @@ class InstructionSetCreator {
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(UnaryTreeOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
                 listOf(
                     // The argument must contain the address or label where the target function is located
                     Instruction(OperationAsm.CALL, listOf(operands[0]))
@@ -319,7 +319,7 @@ class InstructionSetCreator {
 
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(NullaryOperationType.RETURN, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(NullaryTreeOperationType.RETURN, InstructionKind.VALUE, 1) { operands, destRegister ->
                 listOf(
                     Instruction(OperationAsm.RET, listOf())
                 )

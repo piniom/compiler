@@ -18,25 +18,25 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         initialiseVariableMap()
     }
 
-    override fun generate_var_access(x: AnyVariable): Assignable {
+    override fun generate_var_access(x: AnyVariable): AssignableTree {
         TODO("Not yet implemented")
     }
 
-    override fun generate_function_call(trees: List<Tree>, result: Assignable?, then: CFGNode): CFGNode {
+    override fun generate_function_call(trees: List<Tree>, result: AssignableTree?, then: CFGNode): CFGNode {
         val outTrees = mutableListOf<Tree>()
         // Put first 2 args to RCX, RDX registers
         if (trees.size >= 1) {
             outTrees.add(
-                Assignment(
-                    PhysicalRegister(Registers.RCX),
+                AssignmentTree(
+                    PhysicalRegisterTree(Registers.RCX),
                     trees[0]
                 )
             )
         }
         if (trees.size >= 2) {
             outTrees.add(
-                Assignment(
-                    PhysicalRegister(Registers.RDX),
+                AssignmentTree(
+                    PhysicalRegisterTree(Registers.RDX),
                     trees[1]
                 )
             )
@@ -53,9 +53,9 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
-                Assignment(
+                AssignmentTree(
                     it,
-                    PhysicalRegister(Registers.RAX)
+                    PhysicalRegisterTree(Registers.RAX)
                 )
             )
         }
@@ -103,8 +103,8 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
 
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
-            BinaryOperation(PhysicalRegister(Registers.RSP), Constant(Registers.REGISTER_SIZE), BinaryOperationType.SUBTRACT),
-            Assignment(Memory(PhysicalRegister(Registers.RSP)), tree)
+            BinaryOperationTree(PhysicalRegisterTree(Registers.RSP), ConstantTree(Registers.REGISTER_SIZE), BinaryTreeOperationType.SUBTRACT),
+            AssignmentTree(MemoryTree(PhysicalRegisterTree(Registers.RSP)), tree)
         )
     }
 }

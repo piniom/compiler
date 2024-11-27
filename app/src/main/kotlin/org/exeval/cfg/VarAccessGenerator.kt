@@ -13,20 +13,20 @@ class VarAccessGenerator(val functionFrameOffset: Int? = null) {
         return when (cell) {
             is UsableMemoryCell.MemoryPlace -> {
                 val functionFrameOffsetTree = if (functionFrameOffset != null)
-                    Constant(functionFrameOffset)
+                    ConstantTree(functionFrameOffset)
                 else
-                    PhysicalRegister(BASE_POINTER_NUMBER)
+                    PhysicalRegisterTree(BASE_POINTER_NUMBER)
 
-                Memory(
-                    BinaryOperation(
+                MemoryTree(
+                    BinaryOperationTree(
                         functionFrameOffsetTree,
-                        Constant(cell.offset),
-                        BinaryOperationType.SUBTRACT
+                        ConstantTree(cell.offset),
+                        BinaryTreeOperationType.SUBTRACT
                     )
                 )
             }
             is UsableMemoryCell.VirtReg -> {
-                VirtualRegister(cell.idx)
+                VirtualRegisterTree(cell.idx)
             }
         }
     }
