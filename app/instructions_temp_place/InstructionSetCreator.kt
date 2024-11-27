@@ -19,27 +19,35 @@ class InstructionSetCreator {
         return mapOf(
             BinaryTreeOperationType.ASSIGNMENT to createAssignmentPatterns(),
             BinaryTreeOperationType.ADD to createSafeSimple2ArgPattern(
-                BinaryTreeOperationType.ADD, OperationAsm.ADD),
+                BinaryTreeOperationType.ADD, OperationAsm.ADD
+            ),
             BinaryTreeOperationType.SUBTRACT to createSafeSimple2ArgPattern(
-                BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB),
+                BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB
+            ),
 
             BinaryTreeOperationType.MULTIPLY to createMultiplyPatterns(),
             BinaryTreeOperationType.DIVIDE to createDividePatterns(),
             BinaryTreeOperationType.MODULO to createModuloPatterns(),
 
             BinaryTreeOperationType.AND to createSimpleBoolOperationPattern(
-                BinaryTreeOperationType.AND, OperationAsm.AND),
+                BinaryTreeOperationType.AND, OperationAsm.AND
+            ),
             BinaryTreeOperationType.OR to createSimpleBoolOperationPattern(
-                BinaryTreeOperationType.OR, OperationAsm.OR),
+                BinaryTreeOperationType.OR, OperationAsm.OR
+            ),
             BinaryTreeOperationType.XOR to createSimpleBoolOperationPattern(
-                BinaryTreeOperationType.XOR, OperationAsm.XOR),
+                BinaryTreeOperationType.XOR, OperationAsm.XOR
+            ),
 
             BinaryTreeOperationType.GREATER to createSimpleComparisonPattern(
-                BinaryTreeOperationType.GREATER, OperationAsm.CMOVG),
+                BinaryTreeOperationType.GREATER, OperationAsm.CMOVG
+            ),
             BinaryTreeOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
-                BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
+                BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE
+            ),
             BinaryTreeOperationType.EQUAL to createSimpleComparisonPattern(
-                BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE),
+                BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE
+            ),
 
             UnaryTreeOperationType.NOT to createNotPatterns(),
             UnaryTreeOperationType.MINUS to createNegationPatterns(),
@@ -60,8 +68,7 @@ class InstructionSetCreator {
                         Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operands[0])),
                         Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R0)))
                     )
-                }
-                else {
+                } else {
                     listOf(
                         Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
                     )
@@ -105,14 +112,20 @@ class InstructionSetCreator {
         )
     }
 
-    private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentTypeTree>, destRegister: AssignableTree): List<Instruction> {
+    private fun createMulDivModInstructions(
+        operation: OperationAsm,
+        operands: List<OperandArgumentTypeTree>,
+        destRegister: AssignableTree
+    ): List<Instruction> {
         return listOf(
             Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegisterTree(Registers.RAX))),
             Instruction(OperationAsm.MOV, listOf(PhysicalRegisterTree(Registers.RAX), operands[0])),
-            Instruction(OperationAsm.MOV, listOf(
-                VirtualRegisterTree(WorkingRegisters.R0),
-                PhysicalRegisterTree(Registers.RDX)
-            ))
+            Instruction(
+                OperationAsm.MOV, listOf(
+                    VirtualRegisterTree(WorkingRegisters.R0),
+                    PhysicalRegisterTree(Registers.RDX)
+                )
+            )
         ) + when (operands[1]) {
             // Case: Register or Memory
             is AssignableTree -> listOf(
@@ -123,16 +136,23 @@ class InstructionSetCreator {
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R1), operands[1])),
                 Instruction(operation, listOf(VirtualRegisterTree(WorkingRegisters.R1))),
             )
+
+            is DataLabel -> TODO()
         } + listOf(
             Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegisterTree(Registers.RAX))),
-            Instruction(OperationAsm.XCHG, listOf(
-                PhysicalRegisterTree(Registers.RDX),
-                VirtualRegisterTree(WorkingRegisters.R0)
-            )),
+            Instruction(
+                OperationAsm.XCHG, listOf(
+                    PhysicalRegisterTree(Registers.RDX),
+                    VirtualRegisterTree(WorkingRegisters.R0)
+                )
+            ),
         )
     }
 
-    private fun createSafeSimple2ArgPattern(rootOperation: BinaryTreeOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSafeSimple2ArgPattern(
+        rootOperation: BinaryTreeOperationType,
+        asmOperation: OperationAsm
+    ): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
@@ -145,7 +165,10 @@ class InstructionSetCreator {
         )
     }
 
-    private fun convertBooleanTo0Or1(destRegisterTree: RegisterTree, boolean: OperandArgumentTypeTree): List<Instruction> {
+    private fun convertBooleanTo0Or1(
+        destRegisterTree: RegisterTree,
+        boolean: OperandArgumentTypeTree
+    ): List<Instruction> {
         return listOf(
             // A neat conversion without jumps found on stackoverflow
 
@@ -161,7 +184,10 @@ class InstructionSetCreator {
         )
     }
 
-    private fun createSimpleBoolOperationPattern(rootOperation: BinaryTreeOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleBoolOperationPattern(
+        rootOperation: BinaryTreeOperationType,
+        asmOperation: OperationAsm
+    ): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
@@ -170,21 +196,26 @@ class InstructionSetCreator {
                 convertBooleanTo0Or1(VirtualRegisterTree(WorkingRegisters.R1), operands[0]) + listOf(
                     Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegisterTree(WorkingRegisters.R1)))
                 ) + convertBooleanTo0Or1(VirtualRegisterTree(WorkingRegisters.R1), operands[1]) +
-                create2ArgInstruction(asmOperation, destRegister, VirtualRegisterTree(WorkingRegisters.R1))
+                        create2ArgInstruction(asmOperation, destRegister, VirtualRegisterTree(WorkingRegisters.R1))
             }
         )
     }
 
-    private fun createSimpleComparisonPattern(rootOperation: BinaryTreeOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleComparisonPattern(
+        rootOperation: BinaryTreeOperationType,
+        asmCmovOperation: OperationAsm
+    ): List<InstructionPattern> {
         return listOf(
             TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
                 if (destRegister == null) {
                     throw IllegalArgumentException("Destination register for value-returning comparison cannot be null")
                 }
                 listOf(
-                    Instruction(OperationAsm.XOR, listOf(
-                        VirtualRegisterTree(WorkingRegisters.R1),
-                        VirtualRegisterTree(WorkingRegisters.R1))
+                    Instruction(
+                        OperationAsm.XOR, listOf(
+                            VirtualRegisterTree(WorkingRegisters.R1),
+                            VirtualRegisterTree(WorkingRegisters.R1)
+                        )
                     ),
                     Instruction(OperationAsm.MOV, listOf(destRegister, NumericalConstantTree(1))),
                 ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
@@ -196,7 +227,11 @@ class InstructionSetCreator {
         )
     }
 
-    private fun create2ArgInstruction(operation: OperationAsm, operand1: OperandArgumentTypeTree, operand2: OperandArgumentTypeTree): List<Instruction> {
+    private fun create2ArgInstruction(
+        operation: OperationAsm,
+        operand1: OperandArgumentTypeTree,
+        operand2: OperandArgumentTypeTree
+    ): List<Instruction> {
         return when {
             // Case: Register + Register
             operand1 is RegisterTree && operand2 is RegisterTree -> listOf(
@@ -238,6 +273,7 @@ class InstructionSetCreator {
                 Instruction(OperationAsm.MOV, listOf(VirtualRegisterTree(WorkingRegisters.R0), operand2)),
                 Instruction(operation, listOf(operand1, VirtualRegisterTree(WorkingRegisters.R0))),
             )
+
             else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
         }
     }

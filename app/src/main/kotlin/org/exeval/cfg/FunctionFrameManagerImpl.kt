@@ -1,19 +1,32 @@
 package org.exeval.cfg
 
-import com.sun.source.tree.ConstantCaseLabelTree
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
-import org.exeval.cfg.constants.WorkingRegisters
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
-class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val analyser: FunctionAnalysisResult) : FunctionFrameManager {
+
+class FunctionFrameManagerImpl(
+    override val f: FunctionDeclaration,
+    private val analyser: FunctionAnalysisResult,
+    private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
+) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
     private var stackOffset: Long = 0
+    private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
 
-    val label: Label
+    public val label: Label
+    private val calleSaveRegisters = listOf(
+        PhysicalRegister.R9,
+        PhysicalRegister.R10,
+        PhysicalRegister.R11,
+        PhysicalRegister.R12,
+        PhysicalRegister.R13,
+        PhysicalRegister.R14,
+        PhysicalRegister.R15,
+    )
 
     init {
         initialiseVariableMap()
@@ -21,8 +34,16 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         label = Label(f.name)
     }
 
-    override fun generate_var_access(x: AnyVariable): AssignableTree {
-        TODO("Not yet implemented")
+    override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): AssignableTree {
+        if (variableMap[x] == null) {
+            val variableParent = analyser.variableMap[x] ?: throw IllegalArgumentException("Unknown Variable")
+            val frameManager = otherManagers[variableParent] ?: throw IllegalArgumentException("Unknown Function")
+            val nestedLevel = getNestingLevel(variableParent)
+            val parentOffset = getDisplayMemory(nestedLevel)
+            return frameManager.generate_var_access(x, parentOffset)
+        } else {
+            return VarAccessGenerator(functionFrameOffset).generateVarAccess(variableMap[x]!!)
+        }
     }
 
     override fun generate_function_call(trees: List<Tree>, result: AssignableTree?, then: CFGNode): CFGNode {
@@ -45,14 +66,14 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
             )
         }
         // Put the rest of the args on stack
-        for( i in 2..(trees.size-1) ) {
+        for (i in 2..(trees.size - 1)) {
             outTrees.addAll(
                 pushToStack(trees[i])
             )
         }
         // Add Call instruction
         outTrees.add(Call(label))
-        
+
         // Store result from RAX if needed
         result?.let {
             outTrees.add(
@@ -78,11 +99,84 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
     }
 
     override fun generate_prolog(then: CFGNode): CFGNode {
-        TODO("Not yet implemented")
+        val trees = mutableListOf<Tree>()
+
+        trees.add(AssignmentTree(RegisterTree(PhysicalRegister.RBP), RegisterTree(PhysicalRegister.RSP)))
+        trees.addAll(updateDisplay())
+
+        if (f.parameters.isNotEmpty()) {
+            trees.add(AssignmentTree(generate_var_access(f.parameters[0]), RegisterTree(PhysicalRegister.RCX)))
+        }
+
+        if (f.parameters.size >= 2) {
+            trees.add(AssignmentTree(generate_var_access(f.parameters[1]), RegisterTree(PhysicalRegister.RDX)))
+        }
+
+        for (i in 2 until f.parameters.size) {
+            val fromStack = MemoryTree(
+                BinaryOperationTree(
+                    RegisterTree(PhysicalRegister.RSP),
+                    NumericalConstantTree(((i - 2) * 4).toLong()),
+                    BinaryTreeOperationType.ADD
+                )
+            )
+
+            trees.add(AssignmentTree(generate_var_access(f.parameters[i]), fromStack))
+        }
+
+        trees.addAll(backupRegisters())
+
+        return CFGNodeImpl(
+            Pair(then, null),
+            trees
+        )
     }
 
     override fun generate_epilouge(result: Tree?): CFGNode {
-        TODO("Not yet implemented")
+        val trees = mutableListOf<Tree>()
+
+        trees.add(
+            AssignmentTree(
+                RegisterTree(PhysicalRegister.RSP),
+                BinaryOperationTree(
+                    RegisterTree(PhysicalRegister.RSP),
+                    NumericalConstantTree((stackOffset * 4).toLong()),
+                    BinaryTreeOperationType.ADD
+                )
+            )
+        )
+        trees.addAll(restoreDisplay())
+        trees.addAll(restoreRegisters())
+
+        result?.let {
+            trees.add(AssignmentTree(RegisterTree(PhysicalRegister.RAX), it))
+        }
+
+        trees.add(Return)
+
+        return CFGNodeImpl(null, trees)
+    }
+
+    private fun backupRegisters(): List<Tree> {
+        stackOffset += calleSaveRegisters.size
+
+        return calleSaveRegisters.map {
+            AssignmentTree(
+                MemoryTree(
+                    BinaryOperationTree(
+                        RegisterTree(PhysicalRegister.RSP),
+                        NumericalConstantTree(calleSaveRegisters.indexOf(it) * Register.SIZE),
+                        BinaryTreeOperationType.ADD
+                    )
+                ),
+                RegisterTree(it)
+            )
+        }
+    }
+
+
+    private fun restoreRegisters(): List<Tree> {
+        return calleSaveRegisters.map { popFromStack(RegisterTree(it)) }.flatten()
     }
 
     private fun initialiseVariableMap() {
@@ -103,10 +197,82 @@ class FunctionFrameManagerImpl(override val f: FunctionDeclaration, private val 
         }
     }
 
+    private fun updateDisplay(): List<Tree> {
+        val trees = mutableListOf<Tree>()
+
+        val nestingLevel = getNestingLevel()
+        displayBackupVirtualRegister = VirtualRegister()
+
+        trees.add(
+            AssignmentTree(
+                RegisterTree(displayBackupVirtualRegister),
+                getDisplayMemory(nestingLevel)
+            )
+        )
+
+        trees.add(
+            AssignmentTree(
+                getDisplayMemory(nestingLevel),
+                RegisterTree(PhysicalRegister.RBP)
+            )
+        )
+
+        return trees
+    }
+
+    private fun restoreDisplay(): List<Tree> {
+        return mutableListOf<Tree>(
+            AssignmentTree(
+                getDisplayMemory(getNestingLevel()),
+                RegisterTree(displayBackupVirtualRegister)
+            )
+        )
+    }
+
     private fun pushToStack(tree: Tree): List<Tree> {
         return listOf(
-            BinaryOperationTree(RegisterTree(PhysicalRegister.RSP), NumericalConstantTree(Register.SIZE), BinaryTreeOperationType.SUBTRACT),
+            BinaryOperationTree(
+                RegisterTree(PhysicalRegister.RSP),
+                NumericalConstantTree(Register.SIZE),
+                BinaryTreeOperationType.SUBTRACT
+            ),
             AssignmentTree(MemoryTree(RegisterTree(PhysicalRegister.RSP)), tree)
         )
+    }
+
+    private fun popFromStack(toAssign: AssignableTree): List<Tree> {
+        return listOf(
+            AssignmentTree(toAssign, MemoryTree(RegisterTree(PhysicalRegister.RSP))),
+            AssignmentTree(
+                RegisterTree(PhysicalRegister.RSP),
+                BinaryOperationTree(
+                    RegisterTree(PhysicalRegister.RSP),
+                    NumericalConstantTree(Register.SIZE),
+                    BinaryTreeOperationType.ADD
+                )
+            )
+        )
+    }
+
+    private fun getDisplayMemory(idx: Long): MemoryTree {
+        return MemoryTree(
+            BinaryOperationTree(
+                LabelConstantTree(Label.DISPLAY),
+                NumericalConstantTree(idx * 8),
+                BinaryTreeOperationType.ADD
+            )
+        )
+    }
+
+    private fun getNestingLevel(fnDecl: FunctionDeclaration = f): Long {
+        var result: Long = 0
+
+        var decl: FunctionDeclaration? = fnDecl
+        while (analyser.staticParents[decl] != null) {
+            result += 1
+            decl = analyser.staticParents[decl]
+        }
+
+        return result
     }
 }
