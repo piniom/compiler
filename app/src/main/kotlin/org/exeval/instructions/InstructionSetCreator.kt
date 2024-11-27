@@ -125,6 +125,8 @@ class InstructionSetCreator {
                 Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R1), operands[1])),
                 Instruction(operation, listOf(VirtualRegister(WorkingRegisters.R1))),
             )
+
+            is DataLabel -> TODO()
         } + listOf(
             Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister(Registers.RAX))),
             Instruction(OperationAsm.XCHG, listOf(

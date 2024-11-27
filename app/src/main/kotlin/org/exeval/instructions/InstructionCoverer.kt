@@ -7,7 +7,6 @@ import org.exeval.cfg.UnaryOp
 import org.exeval.cfg.Assignment
 import org.exeval.cfg.Register
 import org.exeval.cfg.Constant
-import org.exeval.cfg.Label
 import org.exeval.cfg.Memory
 import org.exeval.cfg.Call
 import org.exeval.cfg.Return

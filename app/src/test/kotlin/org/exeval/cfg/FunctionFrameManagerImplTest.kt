@@ -8,6 +8,7 @@ import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.constants.Registers
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
+import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,6 +18,7 @@ class FunctionFrameManagerImplTest {
     private lateinit var analyser: FunctionAnalysisResult
     private lateinit var functionDeclaration: FunctionDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
+    private val otherFunctions: Map<FunctionDeclaration, FunctionFrameManager> = mockk()
 
     @BeforeEach
     fun setup() {
@@ -26,7 +28,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.variableMap } returns mutableMapOf()
         every { analyser.isUsedInNested } returns mutableMapOf()
 
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
     }
 
     @Test
@@ -53,7 +55,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(a to false, b to false, max to true)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(a))
@@ -84,7 +86,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(y to false, a to false, b to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(y))
@@ -110,7 +112,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(n to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `n`
         assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(n))
@@ -130,7 +132,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(fibResult to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `fibResult`
         assertEquals(UsableMemoryCell.VirtReg(4), frameManager.variable_to_virtual_register(fibResult))
@@ -154,7 +156,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(x to true) // Mark `x` as used in a nested scope
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `x`
         assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(x))
@@ -168,7 +170,7 @@ class FunctionFrameManagerImplTest {
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // args
         val trees = listOf<Tree>()
@@ -194,7 +196,7 @@ class FunctionFrameManagerImplTest {
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // args
         val trees = listOf<Tree>(
