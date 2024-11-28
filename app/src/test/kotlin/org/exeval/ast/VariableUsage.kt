@@ -27,6 +27,7 @@ class usageAnalysisTest{
         a.run(ast)
         assert(a.getAnalysisResult()[ast]!!.read.contains(decl_b))
     }
+    @Test
     fun test2(){
         //parameter translation
         /*
@@ -63,6 +64,7 @@ class usageAnalysisTest{
         a.run(main)
         assert(a.getAnalysisResult()[main]!!.read.contains(b_decl))
     }
+    @Test
     fun test3(){
         //function propagation
         /*
@@ -122,6 +124,7 @@ class usageAnalysisTest{
         a.run(main)
         assert(a.getAnalysisResult()[main]!!.read.contains(c_decl))
     }
+    @Test
     fun test4(){
         val declaration = MutableVariableDeclaration("a", IntType)
         val ast = Block(listOf(
