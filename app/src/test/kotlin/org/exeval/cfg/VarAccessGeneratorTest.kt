@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 class VarAccessGeneratorTest {
     @Test
     fun `Generate accesses for RBP`() {
-        val generator = VarAccessGenerator()
+        val generator = VarAccessGenerator(PhysicalRegister(Registers.RBP))
 
         val regCell = UsableMemoryCell.VirtReg(108)
         val memCell = UsableMemoryCell.MemoryPlace(24)
@@ -32,7 +32,7 @@ class VarAccessGeneratorTest {
     @Test
     fun `Generate accesses for offsets`() {
         val offset = 1028
-        val generator = VarAccessGenerator(offset)
+        val generator = VarAccessGenerator(Constant(offset))
 
         val regCell = UsableMemoryCell.VirtReg(108)
         val memCell = UsableMemoryCell.MemoryPlace(24)
