@@ -7,6 +7,7 @@ import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
+import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -16,6 +17,7 @@ class FunctionFrameManagerImplTest {
     private lateinit var analyser: FunctionAnalysisResult
     private lateinit var functionDeclaration: FunctionDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
+    private val otherFunctions: Map<FunctionDeclaration, FunctionFrameManager> = mockk()
 
     @BeforeEach
     fun setup() {
@@ -26,7 +28,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mutableMapOf()
         every { functionDeclaration.name } returns "my_function_declaration_name"
 
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
     }
 
     @Test
@@ -49,11 +51,15 @@ class FunctionFrameManagerImplTest {
         val max = mockk<AnyVariable>()
 
         // Set up the mock analyser
-        every { analyser.variableMap } returns mapOf(a to functionDeclaration, b to functionDeclaration, max to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(
+            a to functionDeclaration,
+            b to functionDeclaration,
+            max to functionDeclaration
+        )
         every { analyser.isUsedInNested } returns mapOf(a to false, b to false, max to true)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
@@ -85,11 +91,15 @@ class FunctionFrameManagerImplTest {
         val b = mockk<AnyVariable>()
 
         // Set up the mock analyser
-        every { analyser.variableMap } returns mapOf(y to functionDeclaration, a to functionDeclaration, b to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(
+            y to functionDeclaration,
+            a to functionDeclaration,
+            b to functionDeclaration
+        )
         every { analyser.isUsedInNested } returns mapOf(y to false, a to false, b to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
@@ -120,7 +130,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(n to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `n`
         assertTrue(frameManager.variable_to_virtual_register(n) is UsableMemoryCell.VirtReg)
@@ -140,7 +150,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(fibResult to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `fibResult`
         assertTrue(frameManager.variable_to_virtual_register(fibResult) is UsableMemoryCell.VirtReg)
@@ -164,7 +174,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.isUsedInNested } returns mapOf(x to true) // Mark `x` as used in a nested scope
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // Check allocation for `x`
         assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(x))
@@ -178,7 +188,7 @@ class FunctionFrameManagerImplTest {
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         // args
         val trees = listOf<Tree>()
@@ -204,7 +214,7 @@ class FunctionFrameManagerImplTest {
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser)
+        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
 
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()
@@ -230,13 +240,21 @@ class FunctionFrameManagerImplTest {
                     ),                    // arg 2
                     AssignmentTree(
                         RegisterTree(PhysicalRegister.RDX),
-                       RegisterTree(reg1)
+                        RegisterTree(reg1)
                     ),
                     // push arg 3 on stack
-                    BinaryOperationTree(RegisterTree(PhysicalRegister.RSP), NumericalConstantTree(8), BinaryTreeOperationType.SUBTRACT),
+                    BinaryOperationTree(
+                        RegisterTree(PhysicalRegister.RSP),
+                        NumericalConstantTree(8),
+                        BinaryTreeOperationType.SUBTRACT
+                    ),
                     AssignmentTree(
                         MemoryTree(RegisterTree(PhysicalRegister.RSP)),
-                        BinaryOperationTree(NumericalConstantTree(6), RegisterTree(reg2), BinaryTreeOperationType.MULTIPLY)
+                        BinaryOperationTree(
+                            NumericalConstantTree(6),
+                            RegisterTree(reg2),
+                            BinaryTreeOperationType.MULTIPLY
+                        )
                     ),
                     // Call function
                     Call(frameManager.label),

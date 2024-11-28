@@ -1,3 +1,5 @@
 package org.exeval.cfg
 
-class Label(name: String)
+open class Label(val name: String) {
+    object DISPLAY : Label("display")
+}
