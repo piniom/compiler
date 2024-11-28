@@ -71,6 +71,6 @@ fun main(args: Array<String>) {
     val lexer = buildLexer()
     val lexerOutput = lexer.run(sourceCode)
     for (diagnostic in lexerOutput.diagnostics) {
-        logger.warn{"[Lexer diagnostic] ${diagnostic.message}"}
+        logger.warn{"[Lexer diagnostic] ${diagnostic.message} -> ${diagnostic.startLocation} - ${diagnostic.stopLocation}"}
     }
 }

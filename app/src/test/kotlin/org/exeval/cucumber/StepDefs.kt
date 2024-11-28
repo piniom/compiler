@@ -40,7 +40,23 @@ class StepDefs {
             for (diagnostic in lexerOutput.diagnostics) {
                 logger.info{"unexpected diagnostic: ${diagnostic.message}"}
             }
-            assertEquals(0, lexerOutput.diagnostics.size);
+            assertEquals(0, lexerOutput.diagnostics.size)
+        } catch (e: UninitializedPropertyAccessException) {
+            fail("Lexer output not known. Step starting lexer must be run first.")
+        }
+    }
+
+    @Then("returns diagnostic with message {string} that starts at line {int} and column {int} and ends at line {int} and column {int}")
+    fun verifyReturnedDiagnostic(message: String, line: Int, column: Int, endLine: Int, endColumn: Int) {
+        try {
+            val diagnostics = lexerOutput.diagnostics
+            assertEquals(1, diagnostics.size)
+            val diagnostic = diagnostics[0]
+            assertEquals(message, diagnostic.message)
+            assertEquals(line, diagnostic.startLocation.line)
+            assertEquals(column, diagnostic.startLocation.idx)
+            assertEquals(endLine, diagnostic.stopLocation.line)
+            assertEquals(endColumn, diagnostic.stopLocation.idx)
         } catch (e: UninitializedPropertyAccessException) {
             fail("Lexer output not known. Step starting lexer must be run first.")
         }
