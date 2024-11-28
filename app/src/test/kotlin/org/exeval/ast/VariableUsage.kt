@@ -23,8 +23,8 @@ class usageAnalysisTest{
             mapOf()//assignment-decl
         )
         val cg: CallGraph = mapOf()
-        val a = usageAnalysis(cg,nr)
-        a.run(ast)
+        val a = usageAnalysis(cg,nr,ast)
+        a.run()
         assert(a.getAnalysisResult()[ast]!!.read.contains(decl_b))
     }
     @Test
@@ -60,8 +60,8 @@ class usageAnalysisTest{
             mapOf()//assignment-decl
         )
         val cg: CallGraph = mapOf(f_decl to setOf())
-        val a = usageAnalysis(cg, nr)
-        a.run(main)
+        val a = usageAnalysis(cg, nr, main)
+        a.run()
         assert(a.getAnalysisResult()[main]!!.read.contains(b_decl))
     }
     @Test
@@ -120,8 +120,8 @@ class usageAnalysisTest{
         val cg: CallGraph = mapOf(
             f_decl to setOf(g_decl),
             g_decl to setOf(f_decl))
-        val a = usageAnalysis(cg, nr)
-        a.run(main)
+        val a = usageAnalysis(cg, nr,main)
+        a.run()
         assert(a.getAnalysisResult()[main]!!.read.contains(c_decl))
     }
     @Test
@@ -158,8 +158,8 @@ class usageAnalysisTest{
         }
 
 
-        val a = usageAnalysis(cg, nr)
-        a.run(ast)
+        val a = usageAnalysis(cg, nr,ast)
+        a.run()
         val l = a.getAnalysisResult()
         val readReq  = (3..10).all{l[ast.expressions[it]]!!.read.contains(declaration)}
         val writeReq = (3..10).all{l[ast.expressions[it]]!!.write.contains(declaration)}

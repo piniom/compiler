@@ -15,12 +15,14 @@ typealias rwSets = Pair<MutableSet<AnyVariable>,MutableSet<AnyVariable>>
 class usageAnalysis{
     val callGraph:CallGraph
     var nameResolution: NameResolution
+    val root: Expr
     var analysis = mutableMapOf<Expr, rwSets>()
     var enterFunc = false
     //NOTE: this wouldn't be necesarry it VariableUsageAnalysisResult, VariableUsage weren't read-only
-    constructor(g:CallGraph,n:NameResolution){
+    constructor(g:CallGraph,n:NameResolution,r: Expr){
         callGraph = g
         nameResolution = n
+        root=r
     }
     fun getAnalysisResult():VariableUsageAnalysisResult{
         return analysis.map{
@@ -146,7 +148,7 @@ class usageAnalysis{
         }
     }
     //call this function to perform analysis
-    fun run(root: Expr){
+    fun run():VariableUsageAnalysisResult{
         //calculate without calls
         enterFunc = false
         callGraph.keys.forEach{
@@ -168,5 +170,6 @@ class usageAnalysis{
             }
         }
         generateUsageAnalysis(root)
+        return getAnalysisResult()
     }
 }
