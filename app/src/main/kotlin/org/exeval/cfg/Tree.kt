@@ -19,12 +19,12 @@ sealed interface TreeOperationType
 
 data class BinaryOperationTree(val left: Tree, val right: Tree, val operation: BinaryTreeOperationType) : Tree
 enum class BinaryTreeOperationType : TreeOperationType{
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, AND, OR, XOR, GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL, ASSIGNMENT
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, AND, OR,  GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL
 }
 
 data class UnaryOperationTree(val child: Tree, val operation: UnaryTreeOperationType) : Tree
 enum class UnaryTreeOperationType : TreeOperationType{
-    NOT, MINUS, CALL
+    NOT, MINUS
 }
 
 data class Call(val label: Label) : Tree
