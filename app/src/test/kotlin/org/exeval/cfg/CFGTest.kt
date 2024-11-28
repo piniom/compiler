@@ -21,8 +21,8 @@ class CFGTest{
         val nr = NameResolutionGenerator(info).parse().result
         val tm = TypeChecker(info,nr).parse().result
         val ar = FunctionAnalyser().analyseFunctions(info)
-        /*val ffm = FunctionFrameManagerImpl()
-        val maker = CFGMaker(fm=,nameResolution=nr,varUsage=,typeMap=tm,counter=VirtualRegisterCounter())*/
+        val ffm = FunctionFrameManagerImpl(FunctionDeclaration("main",listOf(), NopeType,e),ar)
+        val maker = CFGMaker(fm=ffm,nameResolution=nr,varUsage=,typeMap=tm,counter=VirtualRegisterCounter())
         TODO("")
     }
     fun branch(cfg:CFGNode):Boolean{
