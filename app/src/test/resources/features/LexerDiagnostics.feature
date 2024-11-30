@@ -10,3 +10,15 @@ Feature: Lexer diagnostics
     Examples:
       | sourceFile                                | message                                                       | line | column | endLine | endColumn |
       | invalid/comments/not_finished_comment.exe | "Comment has not been finished at the end of the input file." | 5    | 0      | 5       | 0         |
+
+
+  @various
+  Scenario: Invalid programs using various features do cause lexer errors
+    Given ExEval source code file "invalid/various/InvalidTokens.exe"
+    When source code is passed through lexer
+    Then returns diagnostics:
+      | message                             | line | column | endLine | endColumn |
+      | String "~" didn't match any tokens! | 1    | 4      | 1       | 5         |
+      | String "$" didn't match any tokens! | 2    | 4      | 2       | 5         |
+      | String "^" didn't match any tokens! | 3    | 5      | 3       | 6         |
+
