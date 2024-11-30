@@ -1,7 +1,6 @@
 package org.exeval.parser
 
-import org.exeval.parser.Parser.LR1Item
-import org.exeval.parser.Parser.State
+import org.exeval.input.interfaces.Location
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.parser.utilities.RawParser
 import org.exeval.parser.utilities.TableCreator
@@ -32,8 +31,9 @@ class Parser<S>(analyzedGrammar: AnalyzedGrammar<S>) {
     data class Tables<Symbol, State>(
         val startState: State,
         val actions: Map<Pair<Symbol, State>, Action<Symbol, State>>,
-        val goto: Map<Pair<Symbol, State>, State>
+        val goto: Map<Pair<Symbol, State>, State>,
     )
 }
 
-class ParseError(override val message: String) : Exception()
+class ParseError(override val message: String, val startErrorLocation: Location, val endErrorLocation: Location) :
+    Exception()
