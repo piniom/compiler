@@ -57,11 +57,12 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for assignment cannot be null")
                 }
+                val reg1 = VirtualRegister()
                 @Suppress("USELESS_IS_CHECK")
                 if (dest is MemoryTree && inputRegisters[0] is MemoryTree) {
                     listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, inputRegisters[0])),
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */))
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputRegisters[0])),
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1))
                     )
                 } else {
                     listOf(
@@ -119,12 +120,14 @@ class InstructionSetCreator {
         dest: AssignableTree,
         inputRegisters: List<RegisterTree>
     ): List<Instruction> {
+        val reg1 = VirtualRegister()
+        val reg2 = VirtualRegister()
         return listOf(
             SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, PhysicalRegister.RAX)),
             SimpleAsmInstruction(OperationAsm.MOV, listOf(PhysicalRegister.RAX, inputRegisters[0])),
             SimpleAsmInstruction(
                 OperationAsm.MOV, listOf(
-                    VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */,
+                    reg1,
                     PhysicalRegister.RDX
                 )
             )
@@ -139,8 +142,8 @@ class InstructionSetCreator {
             // Case: Constant or Label
             // @Suppress("USELESS_IS_CHECK")
             is ConstantTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[1])),
-                SimpleAsmInstruction(operation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg2, inputRegisters[1])),
+                SimpleAsmInstruction(operation, listOf(reg2)),
             )
             else -> throw IllegalArgumentException("Unknown type of operands")
         } + listOf(
@@ -148,7 +151,7 @@ class InstructionSetCreator {
             SimpleAsmInstruction(
                 OperationAsm.XCHG, listOf(
                     PhysicalRegister.RDX,
-                    VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */
+                    reg1
                 )
             ),
         )
@@ -215,10 +218,11 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for 2-argument boolean operation ${rootOperation} cannot be null")
                 }
-                convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[0]) + listOf(
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */))
-                ) + convertBooleanTo0Or1(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[1]) +
-                        create2ArgInstruction(asmOperation, dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)
+                val reg1 = VirtualRegister()
+                convertBooleanTo0Or1(reg1, inputRegisters[0]) + listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1))
+                ) + convertBooleanTo0Or1(reg1, inputRegisters[1]) +
+                        create2ArgInstruction(asmOperation, dest, reg1)
             }
         )
     }
@@ -242,18 +246,15 @@ class InstructionSetCreator {
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for value-returning comparison must be an assignable")
                 }
+                val reg1 = VirtualRegister()
                 listOf(
-                    SimpleAsmInstruction(
-                        OperationAsm.XOR, listOf(
-                            VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */,
-                            VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */
-                        )
+                    SimpleAsmInstruction(OperationAsm.XOR, listOf(reg1, reg1)
                     ),
                     SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, NumericalConstantTree(1))),
                 ) + create2ArgInstruction(OperationAsm.CMP, inputRegisters[0], inputRegisters[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
-                    SimpleAsmInstruction(asmCmovOperation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, dest)),
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
+                    SimpleAsmInstruction(asmCmovOperation, listOf(reg1, dest)),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1)),
                 )
             }
         )
@@ -264,6 +265,7 @@ class InstructionSetCreator {
         operand1: OperandArgumentTypeTree,
         operand2: OperandArgumentTypeTree
     ): List<Instruction> {
+        val reg1 = VirtualRegister()
         return when {
             // Case: Register + Register
             operand1 is RegisterTree && operand2 is RegisterTree -> listOf(
@@ -279,8 +281,8 @@ class InstructionSetCreator {
             )
             // Case: Memory + Memory
             operand1 is MemoryTree && operand2 is MemoryTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
             // Case: Register + Constant
             operand1 is RegisterTree && operand2 is ConstantTree -> listOf(
@@ -288,8 +290,8 @@ class InstructionSetCreator {
             )
             // Case: Constant + Register
             operand1 is ConstantTree && operand2 is RegisterTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
             // Case: Memory + Constant
             operand1 is MemoryTree && operand2 is ConstantTree -> listOf(
@@ -297,13 +299,13 @@ class InstructionSetCreator {
             )
             // Case: Constant + Memory
             operand1 is ConstantTree && operand2 is MemoryTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
             // Case: Constant + Constant
             operand1 is ConstantTree && operand2 is ConstantTree -> listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, VirtualRegister() /* VirtualRegister(WorkingRegisters.R0) */)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
 
             else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
