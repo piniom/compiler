@@ -1,6 +1,8 @@
 package org.exeval.cfg
 
-sealed interface Register {
+import org.exeval.instructions.OperandArgumentType
+
+sealed interface Register : OperandArgumentType {
     companion object {
         const val SIZE: Long = 8
     }

@@ -44,8 +44,6 @@ class InstructionSetCreator {
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
-    // TODO inputRegisters is never a ConstantTree - inject constants at matching time
-
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
             // NOTE Value of assignment is Nope, so it only exists in EXEC variant
@@ -123,7 +121,7 @@ class InstructionSetCreator {
     private fun createMulDivModInstructions(
         operation: OperationAsm,
         dest: VirtualRegister,
-        inputRegisters: List<VirtualRegister>
+        inputRegisters: List<OperandArgumentType>
     ): List<Instruction> {
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()
@@ -223,7 +221,7 @@ class InstructionSetCreator {
 
     private fun convertBooleanTo0Or1(
         dest: VirtualRegister,
-        boolean: VirtualRegister
+        boolean: OperandArgumentType
     ): List<Instruction> {
         return listOf(
             // A neat conversion without jumps found on stackoverflow
@@ -308,8 +306,8 @@ class InstructionSetCreator {
 
     private fun create2ArgInstruction(
         operation: OperationAsm,
-        operand1: VirtualRegister,
-        operand2: VirtualRegister
+        operand1: OperandArgumentType,
+        operand2: OperandArgumentType
     ): List<Instruction> {
         val reg1 = VirtualRegister()
         @Suppress("USELESS_IS_CHECK")

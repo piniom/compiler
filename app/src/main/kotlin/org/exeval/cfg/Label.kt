@@ -1,5 +1,7 @@
 package org.exeval.cfg
 
-open class Label(val name: String) {
+import org.exeval.instructions.OperandArgumentType
+
+open class Label(val name: String): OperandArgumentType {
     object DISPLAY : Label("display")
 }
