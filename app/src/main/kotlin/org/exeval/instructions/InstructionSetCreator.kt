@@ -86,6 +86,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for multiply cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for multiply must be an assignable")
                 }
@@ -107,6 +108,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for divide cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for divide must be an assignable")
                 }
@@ -117,8 +119,8 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(
         operation: OperationAsm,
-        dest: AssignableTree,
-        inputRegisters: List<RegisterTree>
+        dest: VirtualRegister,
+        inputRegisters: List<VirtualRegister>
     ): List<Instruction> {
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()
@@ -173,6 +175,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for 2-argument operation ${rootOperation} cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for 2-argument operation ${rootOperation} must be an assignable")
                 }
@@ -243,6 +246,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for value-returning comparison cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for value-returning comparison must be an assignable")
                 }
@@ -325,6 +329,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for boolean negation cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for boolean negation must be an assignable")
                 }
@@ -355,6 +360,7 @@ class InstructionSetCreator {
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for negation cannot be null")
                 }
+                @Suppress("USELESS_IS_CHECK")
                 if (!(dest is AssignableTree)) {
                     throw IllegalArgumentException("Destination for negation must be an assignable")
                 }

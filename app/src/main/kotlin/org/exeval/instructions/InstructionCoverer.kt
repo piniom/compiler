@@ -25,6 +25,8 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeOperationType,
     private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>): List<Instruction> {
         val matchResult = subtreeCost[tree]!!.second!!.matches(tree)!!
         if (matchResult.children.isEmpty()) {
+            // TODO fix
+            /*
             when (tree) {
                 is Call, Return -> {
                     // no tree
@@ -45,6 +47,8 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeOperationType,
                     throw IllegalArgumentException("Cover tree got unexpected tree: " + tree.toString())
                 }
             }
+            */
+            return matchResult.createInstruction(null, listOf())
         }
         val childrenResults = matchResult.children.map { coverTree(it, subtreeCost) }
         var result = mutableListOf<Instruction>()
@@ -57,7 +61,11 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeOperationType,
             else ->
                 null
         }
+        // TODO fix
+        /*
         return result + matchResult.createInstruction(resultTree, registerTreeChildren)
+        */
+        return result + matchResult.createInstruction(null, listOf())
     }
 
     private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>) {
