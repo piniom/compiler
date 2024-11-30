@@ -2,6 +2,11 @@ package org.exeval.instructions
 
 import org.exeval.cfg.*
 
+data class InstructionPatternMapKey(
+    val treeRootType: InstructionPatternRootType,
+    val instructionKind: InstructionKind
+)
+
 class InstructionSetCreator {
     private val patterns: Map<InstructionPatternMapKey, List<InstructionPattern>>
 
@@ -36,7 +41,7 @@ class InstructionSetCreator {
             + createCallPatterns()
 
             + createReturnPatterns()
-        ).groupBy{ InstructionPatternMapKey(it.rootClass, it.kind) }
+        ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
     // TODO inputRegisters is never a MemoryTree - needed a way to know if was mapped to memory or register
@@ -44,7 +49,11 @@ class InstructionSetCreator {
 
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(AssignmentTree::class, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(AssignmentTree::class, null),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for assignment cannot be null")
                 }
@@ -65,7 +74,14 @@ class InstructionSetCreator {
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryTreeOperationType.MULTIPLY, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    BinaryOperationTree::class,
+                    BinaryTreeOperationType.MULTIPLY
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for multiply cannot be null")
                 }
@@ -79,7 +95,14 @@ class InstructionSetCreator {
 
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryTreeOperationType.DIVIDE, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    BinaryOperationTree::class,
+                    BinaryTreeOperationType.DIVIDE
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for divide cannot be null")
                 }
@@ -119,7 +142,7 @@ class InstructionSetCreator {
                 SimpleAsmInstruction(OperationAsm.MOV, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */, inputRegisters[1])),
                 SimpleAsmInstruction(operation, listOf(VirtualRegister() /* VirtualRegister(WorkingRegisters.R1) */)),
             )
-			else -> throw IllegalArgumentException("Unknown type of operands")
+            else -> throw IllegalArgumentException("Unknown type of operands")
         } + listOf(
             SimpleAsmInstruction(OperationAsm.XCHG, listOf(dest, PhysicalRegister.RAX)),
             SimpleAsmInstruction(
@@ -136,7 +159,14 @@ class InstructionSetCreator {
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    BinaryOperationTree::class,
+                    rootOperation
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for 2-argument operation ${rootOperation} cannot be null")
                 }
@@ -174,7 +204,14 @@ class InstructionSetCreator {
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    BinaryOperationTree::class,
+                    rootOperation
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for 2-argument boolean operation ${rootOperation} cannot be null")
                 }
@@ -191,7 +228,14 @@ class InstructionSetCreator {
         asmCmovOperation: OperationAsm
     ): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    BinaryOperationTree::class,
+                    rootOperation
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for value-returning comparison cannot be null")
                 }
@@ -268,7 +312,14 @@ class InstructionSetCreator {
 
     private fun createNotPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryTreeOperationType.NOT, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    UnaryOperationTree::class,
+                    UnaryTreeOperationType.NOT
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for boolean negation cannot be null")
                 }
@@ -291,7 +342,14 @@ class InstructionSetCreator {
 
     private fun createNegationPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryTreeOperationType.MINUS, InstructionKind.VALUE, 1) { dest, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(
+                    UnaryOperationTree::class,
+                    UnaryTreeOperationType.MINUS
+                ),
+                InstructionKind.VALUE,
+                1
+            ) { dest, inputRegisters ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for negation cannot be null")
                 }
@@ -308,7 +366,11 @@ class InstructionSetCreator {
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(Call::class, InstructionKind.VALUE, 1) { _, inputRegisters ->
+            TemplatePattern(
+                InstructionPatternRootType(Call::class, null),
+                InstructionKind.VALUE,
+                1
+            ) { _, inputRegisters ->
                 listOf(
                     // The argument must contain the address or label where the target function is located
                     SimpleAsmInstruction(OperationAsm.CALL, listOf(inputRegisters[0]))
@@ -319,7 +381,11 @@ class InstructionSetCreator {
 
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(Return::class, InstructionKind.VALUE, 1) { _, _ ->
+            TemplatePattern(
+                InstructionPatternRootType(Return::class, null),
+                InstructionKind.VALUE,
+                1
+            ) { _, _ ->
                 listOf(
                     SimpleAsmInstruction(OperationAsm.RET, listOf())
                 )

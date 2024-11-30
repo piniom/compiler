@@ -1,5 +1,7 @@
 package org.exeval.instructions
 
+import kotlin.reflect.KClass
+
 import org.exeval.cfg.*
 
 
@@ -8,27 +10,29 @@ data class InstructionMatchResult (
     val createInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
 )
 
+data class InstructionPatternRootType(
+    val rootClass: KClass<*>,
+    val operationType: Any?
+)
+
 sealed class InstructionPattern(
-    val rootClass: Any, //TreeOperationType,
+    val rootType: InstructionPatternRootType,
     val kind: InstructionKind,
     val cost: Int
 ) {
     abstract fun matches(parseTree: Tree): InstructionMatchResult?
 }
 
-data class InstructionPatternMapKey(
-    val treeRootType: Any,
-    val instructionKind: InstructionKind
-)
-
 class TemplatePattern(
-    rootClass: Any, //TreeOperationType,
+    rootType: InstructionPatternRootType, //TreeOperationType,
     kind: InstructionKind,
     cost: Int,
     val lambdaInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
-) : InstructionPattern(rootClass, kind, cost) {
+) : InstructionPattern(rootType, kind, cost) {
 
     override fun matches(parseTree: Tree): InstructionMatchResult? {
+        return null
+        /*
         return when (parseTree) {
             is Call, is Return -> {
                 if (rootClass == Call::class || rootClass == Return::class) {
@@ -60,5 +64,6 @@ class TemplatePattern(
 
             else -> null
         }
+        */
     }
 }
