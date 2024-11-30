@@ -24,14 +24,14 @@ sealed class InstructionPattern(
 }
 
 class TemplatePattern(
-    rootType: InstructionPatternRootType, //TreeOperationType,
+    rootType: InstructionPatternRootType,
     kind: InstructionKind,
     cost: Int,
     val lambdaInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
 ) : InstructionPattern(rootType, kind, cost) {
 
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-        return null
+        return null // TODO fix
         /*
         return when (parseTree) {
             is Call, is Return -> {

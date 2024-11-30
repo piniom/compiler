@@ -184,21 +184,21 @@ class InstructionSetCreator {
     }
 
     private fun convertBooleanTo0Or1(
-        destRegisterTree: VirtualRegister, //RegisterTree,
+        dest: VirtualRegister,
         boolean: OperandArgumentTypeTree
     ): List<Instruction> {
         return listOf(
             // A neat conversion without jumps found on stackoverflow
 
-            // Set destRegister to 0
-            SimpleAsmInstruction(OperationAsm.XOR, listOf(destRegisterTree, destRegisterTree)),
+            // Set dest to 0
+            SimpleAsmInstruction(OperationAsm.XOR, listOf(dest, dest)),
             // Carry will be set if boolean was not 0
-            SimpleAsmInstruction(OperationAsm.SUB, listOf(destRegisterTree, boolean)),
-            // Set destRegister to 0 once again
-            SimpleAsmInstruction(OperationAsm.XOR, listOf(destRegisterTree, destRegisterTree)),
-            // Add carry to destRegister + 0
-            SimpleAsmInstruction(OperationAsm.ADC, listOf(destRegisterTree, NumericalConstantTree(0))),
-            // If carry was set, destRegister will be equal to 1, otherwise it'll be 0
+            SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, boolean)),
+            // Set dest to 0 once again
+            SimpleAsmInstruction(OperationAsm.XOR, listOf(dest, dest)),
+            // Add carry to dest + 0
+            SimpleAsmInstruction(OperationAsm.ADC, listOf(dest, 0)),
+            // If carry was set, dest will be equal to 1, otherwise it'll be 0
         )
     }
 
@@ -250,7 +250,7 @@ class InstructionSetCreator {
                 listOf(
                     SimpleAsmInstruction(OperationAsm.XOR, listOf(reg1, reg1)
                     ),
-                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, NumericalConstantTree(1))),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, 1)),
                 ) + create2ArgInstruction(OperationAsm.CMP, inputRegisters[0], inputRegisters[1]) + listOf(
                     // The first operand HAS to be a register (cannot be memory)
                     SimpleAsmInstruction(asmCmovOperation, listOf(reg1, dest)),
@@ -335,7 +335,7 @@ class InstructionSetCreator {
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, NumericalConstantTree(1))),
+                    SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, 1)),
                     SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
             }
