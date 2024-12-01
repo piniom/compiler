@@ -20,4 +20,4 @@ jobs:
         java-version: '22'
 
     - name: Build with Gradle and run tests
-      run: ./gradlew build test
+      run: ./gradlew build test -PtestOutput=full
