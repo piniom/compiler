@@ -9,3 +9,5 @@ build
 
 # Ignore vscode local data
 .vscode
+
+app/bin
