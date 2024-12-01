@@ -10,6 +10,8 @@ import org.junit.Assert.*
 import org.exeval.buildLexer
 import org.exeval.buildInput
 import org.exeval.input.interfaces.Input
+import org.exeval.parser.grammar.GrammarSymbol
+import org.exeval.parser.interfaces.ParseTree
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
 import org.exeval.utilities.TokenCategories
@@ -21,6 +23,7 @@ class StepDefs {
 
     private lateinit var sourceCode: Input
     private lateinit var lexerOutput: OperationResult<List<LexerToken>>
+    private lateinit var parserOutput: OperationResult<ParseTree<GrammarSymbol>>
 
     @Given("ExEval source code file {string}")
     fun readSourceCodeFile(fileName: String) {
@@ -37,36 +40,40 @@ class StepDefs {
         }
     }
 
+    @When("source code is passed through parser")
+    fun prepareAndRunLexerAndParser() {
+        val lexer = buildLexer()
+        try {
+            lexerOutput = lexer.run(sourceCode)
+        } catch (e: UninitializedPropertyAccessException) {
+            fail("Input not known. Step providing source code must be run first.")
+        }
+        // TODO: Implement parser
+    }
+
     @Then("no errors are returned")
     fun ensureThereAreNoErrors() {
-        try {
-            for (diagnostic in lexerOutput.diagnostics) {
-                logger.info{"unexpected diagnostic: ${diagnostic.message}"}
-            }
-            assertEquals(0, lexerOutput.diagnostics.size)
-        } catch (e: UninitializedPropertyAccessException) {
-            fail("Lexer output not known. Step starting lexer must be run first.")
+        val allDiagnostics = getAllDiagnostics()
+        for (diagnostic in allDiagnostics) {
+            logger.info{"unexpected diagnostic: ${diagnostic.message}"}
         }
+        assertEquals(0, allDiagnostics.size)
     }
 
     @Then("returns diagnostics:")
     fun checkMultipleDiagnostics(expected: List<ExpectedDiagnostic>) {
-        try {
-            val diagnostics = lexerOutput.diagnostics
-            assertEquals(expected.size, diagnostics.size)
+        val diagnostics = getAllDiagnostics()
+        assertEquals(expected.size, diagnostics.size)
 
-            expected.zip(diagnostics).forEach { (expected, actual) ->
-                checkDiagnostic(actual, expected.message, expected.line, expected.column, expected.endLine, expected.endColumn)
-            }
-        } catch (e: UninitializedPropertyAccessException) {
-            fail("Lexer output not known. Step starting lexer must be run first.")
+        expected.zip(diagnostics).forEach { (expected, actual) ->
+            checkDiagnostic(actual, expected.message, expected.line, expected.column, expected.endLine, expected.endColumn)
         }
     }
 
     @Then("returns diagnostic with message {string} that starts at line {int} and column {int} and ends at line {int} and column {int}")
-    fun verifyReturnedDiagnostic(message: String, line: Int, column: Int, endLine: Int, endColumn: Int) {
+    fun verifySingleDiagnostic(message: String, line: Int, column: Int, endLine: Int, endColumn: Int) {
         try {
-            val diagnostics = lexerOutput.diagnostics
+            val diagnostics = getAllDiagnostics()
             assertEquals(1, diagnostics.size)
             val diagnostic = diagnostics[0]
             checkDiagnostic(diagnostic, message, line, column, endLine, endColumn)
@@ -124,6 +131,17 @@ class StepDefs {
         assertEquals(column, actual.startLocation.idx)
         assertEquals(endLine, actual.stopLocation.line)
         assertEquals(endColumn, actual.stopLocation.idx)
+    }
+
+    private fun getAllDiagnostics(): List<Diagnostics> {
+        val result = mutableListOf<Diagnostics>()
+        if (::lexerOutput.isInitialized) {
+            result.addAll(lexerOutput.diagnostics)
+        }
+        if (::parserOutput.isInitialized) {
+            result.addAll(parserOutput.diagnostics)
+        }
+        return result
     }
 
 }
