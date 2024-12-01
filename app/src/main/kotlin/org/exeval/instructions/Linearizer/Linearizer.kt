@@ -5,21 +5,6 @@ import org.exeval.cfg.DataLabel;
 import org.exeval.cfg.interfaces.CFGNode;
 import org.exeval.instructions.InstructionCovererInterface;
 
-/*
-interface CFGNode{
-    val branches: Pair<CFGNode,CFGNode?>?
-    val trees: List<Tree> 
-}
-*/
-
-/*
-data class BasicBlock (
-    val label : DataLabel,
-    val instructions : List<Instruction>,
-    val successors : List<BasicBlock>
-)
-*/
-
 class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
 
     public fun createBasicBlocks(node : CFGNode?) : List<BasicBlock> {
