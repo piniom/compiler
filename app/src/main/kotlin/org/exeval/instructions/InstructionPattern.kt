@@ -1,15 +1,22 @@
 package org.exeval.instructions
 
+import kotlin.reflect.KClass
+
 import org.exeval.cfg.*
 
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
+    val createInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
+)
+
+data class InstructionPatternRootType(
+    val rootClass: KClass<*>,
+    val operationType: Any?
 )
 
 sealed class InstructionPattern(
-    val rootClass: TreeOperationType,
+    val rootType: InstructionPatternRootType,
     val kind: InstructionKind,
     val cost: Int
 ) {
@@ -17,23 +24,25 @@ sealed class InstructionPattern(
 }
 
 class TemplatePattern(
-    rootClass: TreeOperationType,
+    rootType: InstructionPatternRootType,
     kind: InstructionKind,
     cost: Int,
-    val lambdaInstruction: (operands : List<OperandArgumentTypeTree>, destRegister : AssignableTree?) -> List<Instruction>
-) : InstructionPattern(rootClass, kind, cost) {
+    val lambdaInstruction: (resultHolder : Tree?, registers : List<RegisterTree>) -> List<Instruction>
+) : InstructionPattern(rootType, kind, cost) {
 
     override fun matches(parseTree: Tree): InstructionMatchResult? {
+        return null // TODO fix
+        /*
         return when (parseTree) {
             is Call, is Return -> {
-                if (rootClass is NullaryTreeOperationType) {
+                if (rootClass == Call::class || rootClass == Return::class) {
                     InstructionMatchResult(emptyList(), lambdaInstruction)
                 }
                 else null
             }
 
             is AssignmentTree -> {
-                if (rootClass == BinaryTreeOperationType.ASSIGNMENT) {
+                if (rootClass == AssignmentTree::class) {
                     InstructionMatchResult(listOf(parseTree.value), lambdaInstruction)
                 }
                 else null
@@ -55,5 +64,6 @@ class TemplatePattern(
 
             else -> null
         }
+        */
     }
 }
