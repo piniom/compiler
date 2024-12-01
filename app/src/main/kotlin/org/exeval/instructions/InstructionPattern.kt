@@ -25,7 +25,9 @@ sealed class InstructionPattern(
 
 interface OperandArgumentType
 
-data class NumericalConstant(val value: Long) : OperandArgumentType
+interface ConstantOperandArgumentType : OperandArgumentType
+
+data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
 
 class TemplatePattern(
     rootType: InstructionPatternRootType,
