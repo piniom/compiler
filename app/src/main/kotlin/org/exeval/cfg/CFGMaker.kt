@@ -58,7 +58,7 @@ class CFGMaker(
     private fun walkAssignment(assignment: Assignment, then: CFGNode): WalkResult {
         val node = Node(then)
         val value = walkExpr(assignment.value, node)
-        val variable = nameResolution.variableToDecl[VariableReference(assignment.variable)]!!
+        val variable = nameResolution.assignmentToDecl[assignment]!!
         val access = fm.generate_var_access(variable)
         node.trees = listOf(
             if (typeMap[assignment.value]!!.isNope()) {
