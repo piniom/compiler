@@ -1,0 +1,6 @@
+foo g(a: Int, b: Int) -> Int = a + b;
+
+foo main() -> Int = {
+    g(g, 1)
+    0
+}

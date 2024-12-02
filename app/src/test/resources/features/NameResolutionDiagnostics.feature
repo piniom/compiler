@@ -35,17 +35,17 @@ Feature: Name Resolution diagnostics
     When source code is passed through name resolution
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
-      | sourceFile                                                | message                                                                | line | column | endLine | endColumn |
-      | invalid/foonctions/badNamedArgument.exe                   | "Cannot find a provided name of argument in function declaration (b)." | 5    | 7      | 5       | 10        |
-      | invalid/foonctions/badNumberOfArguments.exe               | "Trying to pass too many arguments to a function."                     | 5    | 5      | 5       | 12        |
-      | invalid/foonctions/duplicatedNamedArgument.exe            | "Trying to pass an already provided parameter (b)."                    | 3    | 12     | 3       | 15        |
-      | invalid/foonctions/duplicatedNamedArgumentTooManyArgs.exe | "Trying to pass an already provided parameter (a)."                    | 3    | 12     | 3       | 15        |
-      | invalid/foonctions/undefFunctionCall.exe                  | "Call of a not existing function (g)."                                 | 1    | 5      | 1       | 8         |
-      | invalid/foonctions/variableAndFunctionSameNames.exe       | "Trying to call not callable thing (g)."                               | 4    | 5      | 4       | 8         |
+      | sourceFile                                                | message                                                                     | line | column | endLine | endColumn |
+      | invalid/foonctions/badNamedArgument.exe                   | "Cannot find a provided name of argument in function declaration (b)."      | 5    | 7      | 5       | 10        |
+      | invalid/foonctions/badNumberOfArguments.exe               | "Trying to pass too many arguments to a function."                          | 5    | 5      | 5       | 12        |
+      | invalid/foonctions/duplicatedNamedArgument.exe            | "Trying to pass an already provided parameter (b)."                         | 3    | 12     | 3       | 15        |
+      | invalid/foonctions/duplicatedNamedArgumentTooManyArgs.exe | "Trying to pass an already provided parameter (a)."                         | 3    | 12     | 3       | 15        |
+      | invalid/foonctions/undefFunctionCall.exe                  | "Call of a not existing function (g)."                                      | 1    | 5      | 1       | 8         |
+      | invalid/foonctions/variableAndFunctionSameNames.exe       | "Trying to call not callable thing (g)."                                    | 4    | 5      | 4       | 8         |
+      | invalid/foonctions/positionalAfterNamedArg.exe            | "Cannot use positional argument after named argument."                      | 3    | 12     | 3       | 13        |
+      | invalid/foonctions/assigningToFunction.exe                | "Trying to use something that is not a variable in a variable use context." | 3    | 5      | 3       | 11        |
+      | invalid/foonctions/passingFunctionToAnotherFunction.exe   | "Trying to use something that is not a variable in a variable use context." | 3    | 7      | 3       | 8         |
 
-
-    #TODO: there is no example of passing positional argument after named one
-    #TODO: there is no example of assigning something to idendifier that is not a variable (foo = 5;)
 
     #TODO: there is no test and check for two arguments that has same name:
     # foo f(a: Int, a: Int)
