@@ -33,7 +33,6 @@ dependencies {
     testImplementation("io.cucumber:cucumber-junit:7.20.1")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-   
 
     // This dependency is used by the application.
     implementation(libs.guava)
