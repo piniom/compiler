@@ -1,5 +1,7 @@
 package org.exeval.cfg
 
+import io.mockk.every
+import io.mockk.mockk
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.Tree
 import org.exeval.ast.*
@@ -10,16 +12,30 @@ import org.exeval.cfg.Assignment as Assigment
 
 import org.exeval.cfg.CFGMaker
 import org.exeval.cfg.VirtualRegisterCounter
+import org.exeval.cfg.interfaces.UsableMemoryCell
+import org.exeval.ffm.interfaces.FunctionFrameManager
 
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.isAccessible
+class FunctionFrameManagerMock(private val fm: FunctionFrameManager, override val f: FunctionDeclaration): FunctionFrameManager {
+    override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): Assignable {
+        return fm.generate_var_access(x, functionFrameOffset)
+    }
 
-inline fun <reified T> T.callPrivateFunc(name: String, vararg args: Any?): Any? =
-    T::class
-        .declaredMemberFunctions
-        .firstOrNull { it.name == name }
-        ?.apply { isAccessible = true }
-        ?.call(this, *args)
+    override fun generate_function_call(trees: List<Tree>, result: Assignable?, then: CFGNode): CFGNode {
+        return fm.generate_function_call(trees, result, then)
+    }
+
+    override fun variable_to_virtual_register(x: AnyVariable): UsableMemoryCell {
+        return fm.variable_to_virtual_register(x)
+    }
+
+    override fun generate_prolog(then: CFGNode): CFGNode {
+        return CFGNodeImpl(Pair(then, null), listOf())
+    }
+
+    override fun generate_epilouge(result: Tree?): CFGNode {
+        return CFGNodeImpl(null, listOfNotNull(result))
+    }
+}
 
 class CFGTest{
     class Node(
@@ -33,7 +49,7 @@ class CFGTest{
         val nr = NameResolutionGenerator(info).parse().result
         val tm = TypeChecker(info,nr).parse().result
         val ar = FunctionAnalyser().analyseFunctions(info)
-        val ffm = FunctionFrameManagerImpl(main,ar,mapOf())
+        val ffm = FunctionFrameManagerMock(FunctionFrameManagerImpl(main,ar,mapOf()), main)
         val uag = usageAnalysis(ar.callGraph,nr)
         uag.run(main)
         val ua = uag.getAnalysisResult()
@@ -41,7 +57,7 @@ class CFGTest{
 
         val node = Node(null,listOf())
 
-        return (maker.callPrivateFunc("walkExpr",main.body,node) as WalkResult).top
+        return maker.makeCfg(main)
     }
     fun branch(cfg:CFGNode):Boolean{
         /*
