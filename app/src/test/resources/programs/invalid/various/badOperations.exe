@@ -1,0 +1,9 @@
+foo a() -> Bool = true;
+foo b() -> Nope = ();
+
+foo main() -> Int = {
+    a() + b()
+    5 + true
+    !b()
+    !5
+}

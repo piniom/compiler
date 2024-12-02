@@ -1,0 +1,6 @@
+foo main() -> Int = {
+    let c: Bool = 0;
+    let mut x: Int = ();
+    x = true;
+    0
+}

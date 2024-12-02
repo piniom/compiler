@@ -44,6 +44,38 @@ Feature: Type Checker diagnostics
       | sourceFile                                   | message                                                    | line | column | endLine | endColumn |
       | invalid/functions/incompatibleReturnType.exe | "Function return type does not match declared return type" | 4    | 21     | 6       | 2         |
 
+  @functions
+  Scenario: Invalid functions using various features do cause type checker errors
+    Given ExEval source code file "invalid/functions/badArgumentType.exe"
+    When source code is passed through type checker
+    Then returns diagnostics:
+      | message                                     | line | column | endLine | endColumn |
+      | Argument type does not match parameter type | 3    | 4      | 3       | 9         |
+      | Argument type does not match parameter type | 3    | 11     | 3       | 19        |
+
+  @variables
+  Scenario: Invalid variables using various features do cause type checker errors
+    Given ExEval source code file "invalid/variables/badType.exe"
+    When source code is passed through type checker
+    Then returns diagnostics:
+      | message                                       | line | column | endLine | endColumn |
+      | Initializer type does not match declared type | 1    | 19     | 1       | 20        |
+      | Initializer type does not match declared type | 2    | 22     | 2       | 24        |
+      | Assignment type does not match variable type  | 3    | 5      | 3       | 13        |
+
+  @various
+  Scenario: Invalid functions using various features do cause type checker errors
+    Given ExEval source code file "invalid/functions/badArgumentType.exe"
+    When source code is passed through type checker
+    Then returns diagnostics:
+      | message                                              | line | column | endLine | endColumn |
+      | One of operands is NopeType!                         | 4    | 5      | 4       | 14        |
+      | Operands of binary operation must have the same type | 4    | 5      | 4       | 14        |
+      | Operands has to be numerical                         | 5    | 5      | 5       | 13        |
+      | Operand is NopeType!                                 | 6    | 5      | 6       | 9         |
+      | Operator and operand must both be the same type      | 7    | 5      | 7       | 7         |
+
+
     #TODO: InconsistientBreakLoopType.exe - there is no check for that
 
   @separator
@@ -56,12 +88,6 @@ Feature: Type Checker diagnostics
       | invalid/separator/conditional.exe         | "Then and else branches must have the same type"           | 3    | 5      | 7       | 15        |
       | invalid/separator/invalidBlock.exe        | "Function return type does not match declared return type" | 0    | 21     | 8       | 2         |
       | invalid/separator/variableDeclaration.exe | "Function return type does not match declared return type" | 0    | 21     | 3       | 2         |
-
-    #TODO: no tests for:
-    # -  Initializer type does not match declared type
-    # -  Assignment type does not match variable type
-    # -  argument types
-    # -  bad operands
 
   @various
   Scenario Outline: Invalid various do cause type checker errors
