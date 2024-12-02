@@ -34,6 +34,8 @@ dependencies {
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
+
     // This dependency is used by the application.
     implementation(libs.guava)
 

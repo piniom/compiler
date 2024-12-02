@@ -182,7 +182,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Assignment type does not match variable type", assignment.value)
         }
 
-        valueType?.let { typeMap[assignment] = valueType }
+        valueType?.let { typeMap[assignment] = NopeType }
     }
 
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {

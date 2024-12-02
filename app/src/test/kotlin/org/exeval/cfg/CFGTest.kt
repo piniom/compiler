@@ -11,12 +11,23 @@ import org.exeval.cfg.Assignment as Assigment
 import org.exeval.cfg.CFGMaker
 import org.exeval.cfg.VirtualRegisterCounter
 
+import kotlin.reflect.full.*
+import kotlin.reflect.jvm.isAccessible
+
+inline fun <reified T> T.callPrivateFunc(name: String, vararg args: Any?): Any? =
+    T::class
+        .declaredMemberFunctions
+        .firstOrNull { it.name == name }
+        ?.apply { isAccessible = true }
+        ?.call(this, *args)
+
 class CFGTest{
     class Node(
         override var branches: Pair<CFGNode,CFGNode?>?,
         override val trees: List<Tree>
     ) : CFGNode {}
     fun getCFG(e:Expr):CFGNode{
+
         val main = FunctionDeclaration("main",listOf(), NopeType,e)
         val info = AstInfo(main,mapOf())
         val nr = NameResolutionGenerator(info).parse().result
@@ -27,7 +38,10 @@ class CFGTest{
         uag.run(main)
         val ua = uag.getAnalysisResult()
         val maker = CFGMaker(fm=ffm,nameResolution=nr,varUsage=ua,typeMap=tm,counter=VirtualRegisterCounter())
-        return maker.makeCfg(main)
+
+        val node = Node(null,listOf())
+
+        return (maker.callPrivateFunc("walkExpr",main.body,node) as WalkResult).top
     }
     fun branch(cfg:CFGNode):Boolean{
         /*
@@ -47,21 +61,22 @@ class CFGTest{
     }
     fun loop(cfg:CFGNode):Boolean{
         /*prove that a loop occurs */
-        val visited = mutableSetOf<CFGNode>()
-        fun recursive(n:CFGNode):Boolean{
-            if(n in visited){
-                return true
-            }
-            visited += n
+        fun recursive(n:CFGNode,ancestors:Set<CFGNode>):Boolean{
             if(n.branches == null){
                 return false
             }else if(n.branches!!.second == null){
-                return recursive(n.branches!!.first)
+                if(n.branches!!.first in ancestors){
+                    return true
+                }
+                return recursive(n.branches!!.first,ancestors+n)
             }else{
-                return recursive(n.branches!!.first) || recursive(n.branches!!.second!!)
+                if(n.branches!!.first in ancestors || n.branches!!.second!! in ancestors){
+                    return true
+                }
+                return recursive(n.branches!!.first,ancestors+n) || recursive(n.branches!!.second!!,ancestors+n)
             }
         }
-        return recursive(cfg)
+        return recursive(cfg,setOf())
     }
     fun calculate(cfg:CFGNode,t:Tree):Boolean{
         //check for simple calculations
@@ -102,7 +117,10 @@ class CFGTest{
     fun placement(cfg:CFGNode,t:Tree):Boolean{
         //check if expression is in branch
         //1 branching, no loops
-        if(!branch(cfg) || loop(cfg)){
+        if(!branch(cfg)){
+            return false
+        }
+        if(loop(cfg)){
             return false
         }
         var i = cfg
@@ -167,7 +185,7 @@ class CFGTest{
     }
     @Test
     fun fValidation(){
-        /*prove that not everything passes*/
+        /*prove that tests can fail*/
         //branch
         val noBranch = Node(Pair(Node(Pair(Node(null,listOf()),null),listOf()),null),listOf())
         assertFalse(branch(noBranch))
@@ -275,5 +293,16 @@ class CFGTest{
             ),
             BinaryOperationType.MULTIPLY)
         assert(calculate(getCFG(ast), value))
+    }
+    @Test
+    fun placeTest(){
+        val ast = Block(listOf(
+            MutableVariableDeclaration("a",IntType,IntLiteral(0)),
+            Conditional(BoolLiteral(true),
+                Assignment("a", IntLiteral(1)),
+                Assignment("a", IntLiteral(2))
+        )))
+        val value = Constant(1)
+        assert(placement(getCFG(ast), value))
     }
 }
