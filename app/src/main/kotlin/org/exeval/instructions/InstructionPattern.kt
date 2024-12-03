@@ -15,12 +15,11 @@ data class InstructionPatternRootType(
     val operationType: Any?
 )
 
-sealed class InstructionPattern(
-    val rootType: InstructionPatternRootType,
-    val kind: InstructionKind,
+interface InstructionPattern{
+    val rootType: InstructionPatternRootType
+    val kind: InstructionKind
     val cost: Int
-) {
-    abstract fun matches(parseTree: Tree): InstructionMatchResult?
+    fun matches(parseTree: Tree): InstructionMatchResult?
 }
 
 interface OperandArgumentType
@@ -30,11 +29,11 @@ interface ConstantOperandArgumentType : OperandArgumentType
 data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
 
 class TemplatePattern(
-    rootType: InstructionPatternRootType,
-    kind: InstructionKind,
-    cost: Int,
+    override val rootType: InstructionPatternRootType,
+    override val kind: InstructionKind,
+    override val cost: Int,
     val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>) -> List<Instruction>
-) : InstructionPattern(rootType, kind, cost) {
+) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
