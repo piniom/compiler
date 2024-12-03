@@ -2,9 +2,7 @@ package org.exeval.cucumber
 
 import io.cucumber.java.DataTableType
 import io.cucumber.java.en.*
-import io.cucumber.messages.types.DataTable
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.mockk.InternalPlatformDsl.toArray
 import org.junit.Assert.*
 
 import org.exeval.buildLexer
@@ -48,7 +46,22 @@ class StepDefs {
         } catch (e: UninitializedPropertyAccessException) {
             fail("Input not known. Step providing source code must be run first.")
         }
-        // TODO: Implement parser
+        // TODO: when pipeline ready
+    }
+
+    @When("source code is passed through name resolution")
+    fun prepareAndRunNameResolution() {
+        // TODO when pipeline ready
+    }
+
+    @When("source code is passed through const checker")
+    fun prepareAndRunConstChecker() {
+        // TODO when pipeline ready
+    }
+
+    @When("source code is passed through type checker")
+    fun prepareAndRunTypeChecker() {
+        // TODO when pipeline ready
     }
 
     @Then("no errors are returned")
