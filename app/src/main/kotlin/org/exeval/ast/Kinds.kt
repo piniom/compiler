@@ -31,7 +31,7 @@ class MutableVariableDeclaration(
 class Assignment(val variable: String, val value: Expr) : Expr()
 
 sealed class Literal : Expr()
-class IntLiteral(val value: Int) : Literal()
+class IntLiteral(val value: Long) : Literal()
 
 class BoolLiteral(val value: Boolean) : Literal()
 object NopeLiteral : Literal()

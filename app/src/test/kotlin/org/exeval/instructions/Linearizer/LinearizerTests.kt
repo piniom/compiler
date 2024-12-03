@@ -1,7 +1,6 @@
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.exeval.cfg.DataLabel
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.instructions.Instruction
 import org.exeval.instructions.InstructionCovererInterface
@@ -97,23 +96,23 @@ class LinearizerTest {
     fun `test createBasicBlocks with 15+ nodes and multiple instructions and branches`() {
         // Mock dependencies
         val mockInstructionCoverer = mockk<InstructionCovererInterface>()
-    
+
         // Mock nodes
         val nodes = (1..15).map { mockk<CFGNode>("Node$it") }
         val trees = (1..15).map { mockk<Tree>("Tree$it") }
         val instructions = (1..15).map { mockk<Instruction>("Instruction$it") }
         val instructionSets = (1..15).map { getRandomNonEmptySubset(instructions) }
-    
+
         // Define instructions for each tree
         trees.forEachIndexed { index, tree ->
             every { mockInstructionCoverer.cover(tree) } returns instructionSets[index]
         }
-    
+
         // Mock tree and branch structure
         nodes.forEachIndexed { index, node ->
             every { node.trees } returns listOf(trees[index])
         }
-    
+
         // Define the CFG structure
         every { nodes[0].branches } returns Pair(nodes[1], nodes[2])      // Node1 -> Node2, Node3
         every { nodes[1].branches } returns Pair(nodes[3], nodes[4])      // Node2 -> Node4, Node5
@@ -130,35 +129,35 @@ class LinearizerTest {
         every { nodes[12].branches } returns null                         // Node13 -> End
         every { nodes[13].branches } returns null                         // Node14 -> End
         every { nodes[14].branches } returns null                         // Node15 -> End
-    
+
         /*
             BB BLOCKS should look like:
-            BB1 -> Node1 
-            BB2 -> Node2 
-            BB3 -> Node4 
-            BB4 -> Node7 
-            BB5 -> Node8 
-            BB6 -> Node12 
-            BB7 -> Node13 
-            BB8 -> Node5 
-            BB9 -> Node9 
-            BB10 -> Node14 
-            BB11 -> Node3 
-            BB12 -> Node6 
-            BB13 -> Node10 
-            BB14 -> Node15 
-            BB15 -> Node11  
+            BB1 -> Node1
+            BB2 -> Node2
+            BB3 -> Node4
+            BB4 -> Node7
+            BB5 -> Node8
+            BB6 -> Node12
+            BB7 -> Node13
+            BB8 -> Node5
+            BB9 -> Node9
+            BB10 -> Node14
+            BB11 -> Node3
+            BB12 -> Node6
+            BB13 -> Node10
+            BB14 -> Node15
+            BB15 -> Node11
         */
-    
+
         // Create the Linearizer instance
         val linearizer = Linearizer(mockInstructionCoverer)
-    
+
         // Call the method under test
         val result = linearizer.createBasicBlocks(nodes[0])
-    
+
         // Assertions
         assertEquals(15, result.size, "Expected 15 basic blocks for the given CFG structure.")
-    
+
         val blockNumToNodeNumMap = mapOf(
             0 to 0,
             1 to 1,
@@ -175,8 +174,8 @@ class LinearizerTest {
             12 to 9,
             13 to 14,
             14 to 10,
-        ) 
-    
+        )
+
         // Assert that all blocks have the correct set of instructions
         for (i in 0..14) {
             val expectedNodeIndex = blockNumToNodeNumMap[i]!!
@@ -210,7 +209,7 @@ class LinearizerTest {
             }
         }
     }
-    
+
     private fun <T> getRandomNonEmptySubset(list: List<T>): List<T> {
         val subsetSize = Random.nextInt(1, list.size + 1)
         return list.shuffled().take(subsetSize)

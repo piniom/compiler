@@ -1,7 +1,7 @@
 package org.exeval.instructions.linearizer;
 
 import org.exeval.instructions.Instruction;
-import org.exeval.cfg.DataLabel;
+import org.exeval.cfg.Label;
 import org.exeval.cfg.interfaces.CFGNode;
 import org.exeval.instructions.InstructionCovererInterface;
 
@@ -27,7 +27,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
             result.add(BasicBlock(generateLabel(), basicContent, mutableListOf()))
             return
         }
-        
+
         if (node.branches?.second == null) {
             makeBasicBlocks(node.branches?.first, result)
             var successors = mutableListOf<BasicBlock>()
@@ -37,7 +37,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
             return
         }
 
-        
+
         var successors = mutableListOf<BasicBlock>()
 
         makeBasicBlocks(node.branches?.second, result)
@@ -51,7 +51,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
         result.add(BasicBlock(generateLabel(), basicContent, successors))
     }
 
-    private fun generateLabel() : DataLabel {
-        return DataLabel("")
+    private fun generateLabel() : Label {
+        return Label("")
     }
 }

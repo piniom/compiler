@@ -1,12 +1,12 @@
 package org.exeval.cfg
 
 import org.exeval.cfg.interfaces.CFGNode
-import org.exeval.cfg.Assignment as CFGAssignment
-import org.exeval.cfg.BinaryOperation as BinaryOp
-import org.exeval.cfg.BinaryOperationType as BinaryOpType
+import org.exeval.cfg.AssignmentTree as CFGAssignment
+import org.exeval.cfg.BinaryOperationTree as BinaryOp
+import org.exeval.cfg.BinaryTreeOperationType as BinaryOpType
 import org.exeval.ast.*
 import org.exeval.ast.NameResolution
-import org.exeval.cfg.BinaryOperationType
+import org.exeval.cfg.BinaryTreeOperationType
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: List<Tree>) : CFGNode {
@@ -24,9 +24,8 @@ class CFGMaker(
     private val nameResolution: NameResolution,
     private val varUsage: VariableUsageAnalysisResult,
     private val typeMap: TypeMap,
-    private val counter: VirtualRegisterCounter
 ) {
-    private val loopToNode: MutableMap<Loop, Pair<CFGNode, Assignable?>> = mutableMapOf()
+    private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
     public fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
@@ -165,8 +164,8 @@ class CFGMaker(
 
     private fun walkLogicalExpressionShortCircuit(expr: Expr, then: CFGNode): WalkResult {
         val reg = newVirtualRegister()
-        val trueNode = Node(then, CFGAssignment(reg, Constant(1)))
-        val falseNode = Node(then, CFGAssignment(reg, Constant(0)))
+        val trueNode = Node(then, CFGAssignment(reg, NumericalConstantTree(1)))
+        val falseNode = Node(then, CFGAssignment(reg, NumericalConstantTree(0)))
         return WalkResult(
             walkShortCircuit(expr, trueNode, falseNode),
             reg
@@ -251,8 +250,8 @@ class CFGMaker(
 
     private fun walkLiteral(literal: Literal, then: CFGNode): WalkResult {
         return when (literal) {
-            is IntLiteral -> WalkResult(then, Constant(literal.value))
-            is BoolLiteral -> WalkResult(then, Constant(if (literal.value) 1 else 0))
+            is IntLiteral -> WalkResult(then, NumericalConstantTree(literal.value))
+            is BoolLiteral -> WalkResult(then, NumericalConstantTree(if (literal.value) 1 else 0))
             NopeLiteral -> WalkResult(then, null)
         }
     }
@@ -262,7 +261,7 @@ class CFGMaker(
             return walkLogicalExpressionShortCircuit(unaryOperation, then)
         }
         val inner = walkExpr(unaryOperation.operand, then)
-        return WalkResult(inner.top, UnaryOp(inner.tree!!, convertUnOp(unaryOperation.operator)))
+        return WalkResult(inner.top, UnaryOperationTree(inner.tree!!, convertUnOp(unaryOperation.operator)))
     }
 
     private fun walkVariableDeclarationBase(variableDeclaration: VariableDeclarationBase, then: CFGNode): WalkResult {
@@ -283,30 +282,30 @@ class CFGMaker(
         return WalkResult(then, value)
     }
 
-    private fun newVirtualRegister(): VirtualRegister {
-        return VirtualRegister(counter.next())
+    private fun newVirtualRegister(): AssignableTree {
+        return RegisterTree(VirtualRegister())
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {
         return when (operation) {
-            BinaryOperator.PLUS -> BinaryOperationType.ADD
-            BinaryOperator.MINUS -> BinaryOperationType.SUBTRACT
-            BinaryOperator.MULTIPLY -> BinaryOperationType.MULTIPLY
-            BinaryOperator.DIVIDE -> BinaryOperationType.DIVIDE
-            BinaryOperator.AND -> BinaryOperationType.AND
-            BinaryOperator.OR -> BinaryOperationType.OR
-            BinaryOperator.EQ -> BinaryOperationType.EQUAL
-            BinaryOperator.GT -> BinaryOperationType.GREATER
-            BinaryOperator.GTE -> BinaryOperationType.GREATER_EQUAL
-            BinaryOperator.LT -> BinaryOperationType.LESS
-            BinaryOperator.LTE -> BinaryOperationType.LESS_EQUAL
+            BinaryOperator.PLUS -> BinaryTreeOperationType.ADD
+            BinaryOperator.MINUS -> BinaryTreeOperationType.SUBTRACT
+            BinaryOperator.MULTIPLY -> BinaryTreeOperationType.MULTIPLY
+            BinaryOperator.DIVIDE -> BinaryTreeOperationType.DIVIDE
+            BinaryOperator.AND -> BinaryTreeOperationType.AND
+            BinaryOperator.OR -> BinaryTreeOperationType.OR
+            BinaryOperator.EQ -> BinaryTreeOperationType.EQUAL
+            BinaryOperator.GT -> BinaryTreeOperationType.GREATER
+            BinaryOperator.GTE -> BinaryTreeOperationType.GREATER_EQUAL
+            BinaryOperator.LT -> BinaryTreeOperationType.LESS
+            BinaryOperator.LTE -> BinaryTreeOperationType.LESS_EQUAL
         }
     }
 
-    private fun convertUnOp(operation: UnaryOperator): UnaryOperationType {
+    private fun convertUnOp(operation: UnaryOperator): UnaryTreeOperationType {
         return when (operation) {
-            UnaryOperator.NOT -> UnaryOperationType.NOT
-            UnaryOperator.MINUS -> UnaryOperationType.MINUS
+            UnaryOperator.NOT -> UnaryTreeOperationType.NOT
+            UnaryOperator.MINUS -> UnaryTreeOperationType.MINUS
         }
     }
 }
