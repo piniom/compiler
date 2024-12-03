@@ -250,15 +250,11 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun processFunParameters(parameters: List<Parameter>) {
-        val countToBeUnique = 1
-
         parameters.forEach{
-            parameters.count { param -> param.name == it.name }.let { count ->
-                if (count > countToBeUnique)
-                    addSameNameOfArgumentError(it)
-                else
-                    addDecl(it.name, it)
-            }
+            if (hasSameVarAlreadyInScope(it.name))
+                addSameNameOfArgumentError(it)
+            else
+                addDecl(it.name, it)
         }
     }
 
