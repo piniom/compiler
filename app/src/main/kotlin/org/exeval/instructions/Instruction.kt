@@ -1,6 +1,6 @@
 package org.exeval.instructions
 
-sealed interface Instruction
+interface Instruction
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
