@@ -3,29 +3,29 @@ package org.exeval.cfg
 sealed interface Tree {
     fun kind(): TreeKind {
         return when (this) {
-            is ConstantTree -> TreeKind.CONSTANT
-            is MemoryTree -> TreeKind.MEMORY
-            is RegisterTree -> TreeKind.REGISTER
-            is AssignmentTree -> TreeKind.ASSIGNMENT
+            is ConstantTree -> ConstantKind
+            is MemoryTree -> MemoryKind
+            is RegisterTree -> RegisterKind
+            is AssignmentTree -> AssignmentKind
             is BinaryOperationTree -> when (this.operation) {
-                BinaryTreeOperationType.ADD -> TreeKind.BINARY_ADD
-                BinaryTreeOperationType.SUBTRACT -> TreeKind.BINARY_SUBTRACT
-                BinaryTreeOperationType.MULTIPLY -> TreeKind.BINARY_MULTIPLY
-                BinaryTreeOperationType.DIVIDE -> TreeKind.BINARY_DIVIDE
-                BinaryTreeOperationType.AND -> TreeKind.BINARY_AND
-                BinaryTreeOperationType.OR -> TreeKind.BINARY_OR
-                BinaryTreeOperationType.GREATER -> TreeKind.BINARY_GREATER
-                BinaryTreeOperationType.GREATER_EQUAL -> TreeKind.BINARY_GREATER_EQUAL
-                BinaryTreeOperationType.EQUAL -> TreeKind.BINARY_EQUAL
-                BinaryTreeOperationType.LESS -> TreeKind.BINARY_LESS
-                BinaryTreeOperationType.LESS_EQUAL -> TreeKind.LESS_EQUAL
+                BinaryTreeOperationType.ADD -> BinaryAddKind
+                BinaryTreeOperationType.SUBTRACT -> BinarySubtractKind
+                BinaryTreeOperationType.MULTIPLY -> BinaryMultiplyKind
+                BinaryTreeOperationType.DIVIDE -> BinaryDivideKind
+                BinaryTreeOperationType.AND -> BinaryAndKind
+                BinaryTreeOperationType.OR -> BinaryOrKind
+                BinaryTreeOperationType.GREATER -> BinaryGreaterKind
+                BinaryTreeOperationType.GREATER_EQUAL -> BinaryGreaterEqualKind
+                BinaryTreeOperationType.EQUAL -> BinaryEqualKind
+                BinaryTreeOperationType.LESS -> BinaryLessKind
+                BinaryTreeOperationType.LESS_EQUAL -> BinaryLessEqualKind
             }
             is UnaryOperationTree -> when (this.operation) {
-                UnaryTreeOperationType.NOT -> TreeKind.UNARY_NOT
-                UnaryTreeOperationType.MINUS -> TreeKind.UNARY_MINUS
+                UnaryTreeOperationType.NOT -> UnaryNotKind
+                UnaryTreeOperationType.MINUS -> UnaryMinusKind
             }
-            is Call -> TreeKind.CALL
-            Return -> TreeKind.RETURN
+            is Call -> CallKind
+            Return -> ReturnKind
         }
     }
 }
