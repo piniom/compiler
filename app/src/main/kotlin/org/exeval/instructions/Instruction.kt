@@ -6,7 +6,7 @@ package org.exeval.instructions
  */
 typealias OperandArgumentTypeTree = Any
 
-sealed interface Instruction
+interface Instruction
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
