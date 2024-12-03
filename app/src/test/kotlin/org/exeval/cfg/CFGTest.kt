@@ -20,13 +20,13 @@ fun Constant(i:Int):Tree{
     return NumericalConstantTree(i.toLong())
 }
 
-object virtualRegister{
+object VirtualRegisterBank{
     private val idMap = mutableMapOf<Int,VirtualRegister>()
     operator fun invoke(i:Int):VirtualRegister{
         if(idMap.containsKey(i)){
             return idMap[i]!!
         }
-        idMap[i] = org.exeval.cfg.VirtualRegister()
+        idMap[i] = VirtualRegister()
         return idMap[i]!!
     }
 }
@@ -173,13 +173,13 @@ class CFGTest{
         /*prove that tests can pass*/
         //branch
         var cfg = Node(Pair(
-            Node(null,listOf(Assigment(virtualRegister(1),Constant(1)))),
-            Node(null,listOf(Assigment(virtualRegister(1),Constant(2))))
+            Node(null,listOf(Assigment(VirtualRegisterBank(1),Constant(1)))),
+            Node(null,listOf(Assigment(VirtualRegisterBank(1),Constant(2))))
         ),listOf())
         assert(branch(cfg))
 
         //loop
-        var assNode = Node(null,listOf(Assigment(virtualRegister(1), Constant(0))))
+        var assNode = Node(null,listOf(Assigment(VirtualRegisterBank(1), Constant(0))))
         var loopNode = Node(null,listOf())
         var bodyNode = Node(Pair(loopNode,null),listOf())
         loopNode.branches = Pair(bodyNode,null)
@@ -190,25 +190,25 @@ class CFGTest{
         //1<-1+2
         //1
         val value = BinaryOperationTree(Constant(1), Constant(2), BinaryTreeOperationType.ADD)
-        val simple = Node(null,listOf(Assigment(virtualRegister(1), BinaryOperationTree(
+        val simple = Node(null,listOf(Assigment(VirtualRegisterBank(1), BinaryOperationTree(
             Constant(1), Constant(2), BinaryTreeOperationType.ADD))))
         assert(calculate(simple, value))
         //2 - spread over multiple trees
         val complex = Node(null,listOf(
-            Assigment(virtualRegister(2), Constant(2)),
-            Assigment(virtualRegister(1), BinaryOperationTree(
-                Constant(1), RegisterTree(virtualRegister(2)), BinaryTreeOperationType.ADD))
+            Assigment(VirtualRegisterBank(2), Constant(2)),
+            Assigment(VirtualRegisterBank(1), BinaryOperationTree(
+                Constant(1), RegisterTree(VirtualRegisterBank(2)), BinaryTreeOperationType.ADD))
         ))
         assert(calculate(complex, value))
         //3 - spread over multiple nodes
-        val separated1 = Node(null,listOf(Assigment(virtualRegister(2), Constant(2))))
-        val separated2 = Node(null,listOf(Assigment(virtualRegister(1), BinaryOperationTree(
-            Constant(1), RegisterTree(virtualRegister(2)), BinaryTreeOperationType.ADD))))
+        val separated1 = Node(null,listOf(Assigment(VirtualRegisterBank(2), Constant(2))))
+        val separated2 = Node(null,listOf(Assigment(VirtualRegisterBank(1), BinaryOperationTree(
+            Constant(1), RegisterTree(VirtualRegisterBank(2)), BinaryTreeOperationType.ADD))))
         separated1.branches = Pair(separated2,null)
         assert(calculate(separated1, value))
 
         //placement
-        val op = Node(null,listOf(Assigment(virtualRegister(1), BinaryOperationTree(
+        val op = Node(null,listOf(Assigment(VirtualRegisterBank(1), BinaryOperationTree(
             Constant(2), Constant(3), BinaryTreeOperationType.MULTIPLY
         ))))
         val deepOp = Node(Pair(op,Node(null,listOf())),listOf())
