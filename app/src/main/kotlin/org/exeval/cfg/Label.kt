@@ -1,5 +1,7 @@
 package org.exeval.cfg
 
-open class Label(val name: String) {
+import org.exeval.instructions.ConstantOperandArgumentType
+
+open class Label(val name: String) : ConstantOperandArgumentType {
     object DISPLAY : Label("display")
 }
