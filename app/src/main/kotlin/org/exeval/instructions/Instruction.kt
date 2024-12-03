@@ -1,16 +1,16 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.OperandArgumentType
+interface Instruction
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
     AND, OR, XOR, XCHG, NEG,
     INC, DEC, CALL, RET, CMP,
     JMP, JG, JGE, JE, ADC,
-    CMOVG, CMOVGE, CMOVE
+    CMOVG, CMOVGE, CMOVE, JNE
 }
 
-data class Instruction(
+data class SimpleAsmInstruction(
     val operation: OperationAsm,
     val arguments: List<OperandArgumentType>
-)
+) : Instruction

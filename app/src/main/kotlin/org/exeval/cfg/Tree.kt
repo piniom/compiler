@@ -2,37 +2,32 @@ package org.exeval.cfg
 
 sealed interface Tree
 
-sealed interface OperandArgumentType : Tree
 
-data class Constant(val value: Int) : OperandArgumentType
+interface ConstantTree: Tree
 
-sealed interface Assignable : OperandArgumentType
+data class LabelConstantTree(val label: Label) : ConstantTree
 
-data class DataLabel(val name: String) : OperandArgumentType
+data class NumericalConstantTree(val value: Long) : ConstantTree
 
-data class Memory(val address: Tree) : Assignable
-sealed class Register : Assignable {
-    abstract val id: Int
+sealed interface AssignableTree : Tree
+
+data class MemoryTree(val address: Tree) : AssignableTree
+data class RegisterTree(val register: Register) : AssignableTree
+data class AssignmentTree(val destination: AssignableTree, val value: Tree) : Tree
+
+sealed interface TreeOperationType
+
+data class BinaryOperationTree(val left: Tree, val right: Tree, val operation: BinaryTreeOperationType) : Tree
+enum class BinaryTreeOperationType : TreeOperationType{
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, AND, OR,  GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL
 }
 
-data class VirtualRegister(override val id: Int) : Register()
-data class PhysicalRegister(override val id: Int) : Register()
-data class Assignment(val destination: Assignable, val value: Tree) : Tree
-
-sealed interface OperationType
-
-data class BinaryOperation(val left: Tree, val right: Tree, val operation: BinaryOperationType) : Tree
-enum class BinaryOperationType : OperationType{
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO, AND, OR, XOR, GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL, ASSIGNMENT
+data class UnaryOperationTree(val child: Tree, val operation: UnaryTreeOperationType) : Tree
+enum class UnaryTreeOperationType : TreeOperationType{
+    NOT, MINUS
 }
 
-data class UnaryOp(val child: Tree, val operation: UnaryOperationType) : Tree
-enum class UnaryOperationType : OperationType{
-    NOT, MINUS, INCREMENT, DECREMENT, CALL
-}
+data class Call(val label: Label) : Tree
 
-data object Call : Tree
 data object Return : Tree
-enum class NullaryOperationType : OperationType{
-    RETURN
-}
+
