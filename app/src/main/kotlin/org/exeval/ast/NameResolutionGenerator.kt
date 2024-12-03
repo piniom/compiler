@@ -1,5 +1,7 @@
 package org.exeval.ast
 
+import org.exeval.input.SimpleLocation
+import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
@@ -370,15 +372,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {
-        astInfo.locations[astNode]?.let {
-            diagnostics.add(
-                SimpleDiagnostics(
-                    message = message,
-                    startLocation = it.start,
-                    stopLocation = it.end
-                )
+        val noLocation = SimpleLocation(0, 0)
+        val loc = astInfo.locations[astNode] ?: LocationRange(noLocation, noLocation)
+
+        diagnostics.add(
+            SimpleDiagnostics(
+                message = message,
+                startLocation = loc.start,
+                stopLocation = loc.end
             )
-        }
+        )
     }
 }
 
