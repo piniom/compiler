@@ -13,10 +13,10 @@ import org.exeval.cfg.Call
 import org.exeval.cfg.Return
 import org.exeval.cfg.AssignableTree
 
-class InstructionCoverer(private val instructionPatterns : Map<OperationType, List<InstructionPattern>>) : InstructionCovererInterface {
-    
-    
-    public fun cover(tree : Tree) : List<Instruction> {
+class InstructionCoverer(private val instructionPatterns : Map<TreeOperationType, List<InstructionPattern>>) : InstructionCovererInterface {
+
+
+    override fun cover(tree : Tree) : List<Instruction> {
         var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
         computeCost(tree, subtreeCost)
         return coverTree(tree, subtreeCost.toMap())
