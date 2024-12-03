@@ -50,8 +50,8 @@ class CFGTest{
         val tm = TypeChecker(info,nr).parse().result
         val ar = FunctionAnalyser().analyseFunctions(info)
         val ffm = FunctionFrameManagerMock(FunctionFrameManagerImpl(main,ar,mapOf()), main)
-        val uag = usageAnalysis(ar.callGraph,nr)
-        uag.run(main)
+        val uag = usageAnalysis(ar.callGraph,nr,main)
+        uag.run()
         val ua = uag.getAnalysisResult()
         val maker = CFGMaker(fm=ffm,nameResolution=nr,varUsage=ua,typeMap=tm,counter=VirtualRegisterCounter())
 
