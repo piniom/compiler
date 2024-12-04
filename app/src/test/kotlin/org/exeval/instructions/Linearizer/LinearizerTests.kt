@@ -31,7 +31,7 @@ class LinearizerTest {
 
         every { mockNode.trees } returns emptyList()
         every { mockNode.branches } returns null
-        every { mockInstructionCoverer.cover(any()) } returns listOf(mockInstruction)
+        every { mockInstructionCoverer.cover(any(), null) } returns listOf(mockInstruction)
 
         val linearizer = Linearizer(mockInstructionCoverer)
 
@@ -54,7 +54,7 @@ class LinearizerTest {
         every { mockNode1.trees } returns listOf()
         every { mockNode2.trees } returns listOf()
         every { mockNode3.trees } returns listOf()
-        every { mockInstructionCoverer.cover(any()) } returns listOf(mockInstruction1, mockInstruction2)
+        every { mockInstructionCoverer.cover(any(), null) } returns listOf(mockInstruction1, mockInstruction2)
 
         every { mockNode1.branches } returns Pair(mockNode2, mockNode3)
         every { mockNode2.branches } returns null
@@ -80,13 +80,13 @@ class LinearizerTest {
 
         every { mockNode.trees } returns listOf(mockTree)
         every { mockNode.branches } returns null
-        every { mockInstructionCoverer.cover(mockTree) } returns listOf(mockInstruction)
+        every { mockInstructionCoverer.cover(mockTree, null) } returns listOf(mockInstruction)
 
         val linearizer = Linearizer(mockInstructionCoverer)
 
         val result = linearizer.createBasicBlocks(mockNode)
 
-        verify(exactly = 1) { mockInstructionCoverer.cover(mockTree) }
+        verify(exactly = 1) { mockInstructionCoverer.cover(mockTree, null) }
         assertEquals(1, result.size, "Expected one basic block.")
         assertEquals(1, result[0].instructions.size, "Expected one instruction in the basic block.")
         assertEquals(mockInstruction, result[0].instructions[0], "Expected the mocked instruction to be included.")
@@ -105,7 +105,7 @@ class LinearizerTest {
 
         // Define instructions for each tree
         trees.forEachIndexed { index, tree ->
-            every { mockInstructionCoverer.cover(tree) } returns instructionSets[index]
+            every { mockInstructionCoverer.cover(tree, null) } returns instructionSets[index]
         }
 
         // Mock tree and branch structure
