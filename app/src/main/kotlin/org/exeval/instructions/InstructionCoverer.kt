@@ -17,7 +17,7 @@ import org.exeval.cfg.VirtualRegister
 class InstructionCoverer(private val instructionPatterns : Map<TreeOperationType, List<InstructionPattern>>) : InstructionCovererInterface {
 
 
-    override fun cover(tree : Tree) : List<Instruction> {
+    override fun cover(tree : Tree, labelTrue: Label?) : List<Instruction> {
         var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
         var registerMap = mutableMapOf<Tree, VirtualRegister?>()
         computeCost(tree, subtreeCost)

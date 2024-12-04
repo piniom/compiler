@@ -21,7 +21,8 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
 
         var basicContent = mutableListOf<Instruction>()
         for (tree in node.trees)
-            basicContent.addAll(instructionCoverer.cover(tree))
+            // TODO: think about the label
+            basicContent.addAll(instructionCoverer.cover(tree, null))
 
         if (node.branches == null || node.branches?.first == null) {
             result.add(BasicBlock(generateLabel(), basicContent, mutableListOf()))
