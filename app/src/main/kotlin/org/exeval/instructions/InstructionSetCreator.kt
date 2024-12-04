@@ -44,16 +44,9 @@ class InstructionSetCreator {
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
-    // TODO Are labels considered by assembly as "immediate values"?
-
     // TODO Fix labels in JUMP patterns
 
     private fun createAssignmentPatterns(): List<InstructionPattern> {
-        /* NOTE Needed only if both operand virtual registers are mapped to memory.
-         *      Then has to be a physical register, not memory.
-         */
-        val reg1 = VirtualRegister()
-
         return listOf(
             // NOTE Value of assignment is Nope, so it only exists in EXEC variant
             TemplatePattern(
@@ -68,21 +61,14 @@ class InstructionSetCreator {
                         [2] source (what to assign)""".trimIndent()
                     )
                 }
-                if (!(inputs is Register)) { // TODO or Memory
+                if (!(inputs is VirtualRegister)) {
                     throw IllegalArgumentException(
                         "First argument for assignment must be a register or memory location"
                     )
                 }
-                if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
-                    listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(inputs[0], reg1))
-                    )
-                } else {
-                    listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(inputs[0], inputs[1]))
-                    )
-                }
+                listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(inputs[0], inputs[1]))
+                )
             }
         )
     }
@@ -182,7 +168,6 @@ class InstructionSetCreator {
                     throw IllegalArgumentException("${rootOperation} takes exactly two arguments")
                 }
                 listOf(
-                    // TODO fix if both are memory
                     SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0]))
                 ) + create2ArgInstruction(asmOperation, dest, inputs[1])
             },
@@ -388,29 +373,16 @@ class InstructionSetCreator {
         operand1: OperandArgumentType,
         operand2: OperandArgumentType
     ): List<Instruction> {
-        /* NOTE Needed if:
-         *      - both operands are memory, must be a register
-         *      - first operand is constant and second is register, can be either register or memory
-         *      - first operand is constant and second isn't register, must be a register
+        /* NOTE Needed if first operand is constant and:
+         *      - second is register, can be either register or memory
+         *      - second isn't register, must be a register
          */
         val reg1 = VirtualRegister()
 
-        // TODO fix register/memory types
-        return if (operand1 is Register) {
+        return if (operand1 is ConstantOperandArgumentType) {
             listOf(
-                SimpleAsmInstruction(operation, listOf(operand1, operand2))
-            )
-        }
-        else if (operand1 is ConstantOperandArgumentType) {
-            listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
-            )
-        }
-        else if (false /* operand2 is Memory */) {
-            listOf(
-                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
-                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand1)),
+                SimpleAsmInstruction(operation, listOf(reg1, operand2)),
             )
         }
         else {
@@ -475,9 +447,6 @@ class InstructionSetCreator {
     }
 
     private fun createNegationPatterns(): List<InstructionPattern> {
-        // NOTE Needed only if dest and input are both memory, has to be a register, not memory
-        val reg1 = VirtualRegister()
-
         val rootType = InstructionPatternRootType(
             UnaryOperationTree::class,
             UnaryTreeOperationType.MINUS
@@ -490,19 +459,10 @@ class InstructionSetCreator {
                 if (inputs.size != 1) {
                     throw IllegalArgumentException("Negation takes exactly one argument")
                 }
-                if (false /* dest is Memory && inputs[0] is Memory */) {
-                    listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1)),
-                        SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
-                    )
-                }
-                else {
-                    listOf(
-                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0])),
-                        SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
-                    )
-                }
+                listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0])),
+                    SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
+                )
             },
             // NOTE In EXEC version it's equivalent to no-op
             createEmptyExecPattern(rootType)
