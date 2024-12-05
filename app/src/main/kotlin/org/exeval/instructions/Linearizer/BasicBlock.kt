@@ -5,6 +5,6 @@ import org.exeval.cfg.Label;
 
 data class BasicBlock (
     val label : Label,
-    val instructions : List<Instruction>,
-    val successors : List<BasicBlock>
+    var instructions : List<Instruction>,
+    var successors : List<BasicBlock>
 )

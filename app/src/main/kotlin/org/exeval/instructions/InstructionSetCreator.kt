@@ -3,7 +3,7 @@ package org.exeval.instructions
 import org.exeval.cfg.*
 
 data class InstructionPatternMapKey(
-    val treeRootType: InstructionPatternRootType,
+    val treeRootType: TreeKind,
     val instructionKind: InstructionKind
 )
 
@@ -23,8 +23,8 @@ class InstructionSetCreator {
         return (
             createAssignmentPatterns()
 
-            + createSafeSimple2ArgPatterns(BinaryTreeOperationType.ADD, OperationAsm.ADD)
-            + createSafeSimple2ArgPatterns(BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB)
+            + createSafeSimple2ArgPatterns(BinaryAddKind, OperationAsm.ADD)
+            + createSafeSimple2ArgPatterns(BinarySubtractKind, OperationAsm.SUB)
 
             + createMultiplyPatterns()
             + createDividePatterns()
@@ -32,9 +32,9 @@ class InstructionSetCreator {
             + createAndPatterns()
             + createOrPatterns()
 
-            + createSimpleComparisonPatterns(BinaryTreeOperationType.GREATER, OperationAsm.CMOVG, OperationAsm.JG)
-            + createSimpleComparisonPatterns(BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE, OperationAsm.JGE)
-            + createSimpleComparisonPatterns(BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE, OperationAsm.JE)
+            + createSimpleComparisonPatterns(BinaryGreaterKind, OperationAsm.CMOVG, OperationAsm.JG)
+            + createSimpleComparisonPatterns(BinaryGreaterEqualKind, OperationAsm.CMOVGE, OperationAsm.JGE)
+            + createSimpleComparisonPatterns(BinaryEqualKind, OperationAsm.CMOVE, OperationAsm.JE)
 
             + createNotPatterns()
             + createNegationPatterns()
@@ -46,8 +46,6 @@ class InstructionSetCreator {
 
     // TODO Are labels considered by assembly as "immediate values"?
 
-    // TODO Fix labels in JUMP patterns
-
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         /* NOTE Needed only if both operand virtual registers are mapped to memory.
          *      Then has to be a physical register, not memory.
@@ -57,10 +55,10 @@ class InstructionSetCreator {
         return listOf(
             // NOTE Value of assignment is Nope, so it only exists in EXEC variant
             TemplatePattern(
-                InstructionPatternRootType(AssignmentTree::class, null),
+                AssignmentKind,
                 InstructionKind.EXEC,
                 1
-            ) { _, inputs ->
+            ) { _, inputs, _ ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException(
                         """Assignment takes exactly two arguments:
@@ -88,12 +86,8 @@ class InstructionSetCreator {
     }
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.MULTIPLY
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(BinaryMultiplyKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning multiply cannot be null"
@@ -105,17 +99,13 @@ class InstructionSetCreator {
                 createMulDivModInstructions(OperationAsm.MUL, dest, inputs)
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(BinaryMultiplyKind)
         )
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.DIVIDE
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(BinaryDivideKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning divide cannot be null"
@@ -127,7 +117,7 @@ class InstructionSetCreator {
                 createMulDivModInstructions(OperationAsm.DIV, dest, inputs)
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(BinaryDivideKind)
         )
     }
 
@@ -164,15 +154,11 @@ class InstructionSetCreator {
     }
 
     private fun createSafeSimple2ArgPatterns(
-        rootOperation: BinaryTreeOperationType,
+        rootOperation: TreeKind,
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning ${rootOperation} cannot be null"
@@ -187,7 +173,7 @@ class InstructionSetCreator {
                 ) + create2ArgInstruction(asmOperation, dest, inputs[1])
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(rootOperation)
         )
     }
 
@@ -195,14 +181,13 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.AND
-        )
-        return createSimpleBoolOperationPatterns(BinaryTreeOperationType.AND, OperationAsm.AND) + listOf(
-            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+        return createSimpleBoolOperationPatterns(BinaryAndKind, OperationAsm.AND) + listOf(
+            TemplatePattern(BinaryAndKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException("Boolean and takes exactly two arguments")
+                }
+                if (label == null) {
+                    throw IllegalArgumentException("Label must be passed to jump operation")
                 }
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
@@ -215,8 +200,7 @@ class InstructionSetCreator {
                         SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0)))
                     )
                 } + listOf(
-                    // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-false */ )),
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
@@ -229,8 +213,7 @@ class InstructionSetCreator {
                     )
                 } + listOf(
                     // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-false */ )),
-                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-true */ )),
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
                 )
             }
         )
@@ -240,14 +223,13 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.OR
-        )
-        return createSimpleBoolOperationPatterns(BinaryTreeOperationType.OR, OperationAsm.OR) + listOf(
-            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+        return createSimpleBoolOperationPatterns(BinaryOrKind, OperationAsm.OR) + listOf(
+            TemplatePattern(BinaryOrKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException("Boolean or takes exactly two arguments")
+                }
+                if (label == null) {
+                    throw IllegalArgumentException("Label must be passed to jump operation")
                 }
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
@@ -261,7 +243,7 @@ class InstructionSetCreator {
                     )
                 } + listOf(
                     // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JNE, listOf( /* label-true */ )),
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
@@ -273,9 +255,7 @@ class InstructionSetCreator {
                         SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(0)))
                     )
                 } + listOf(
-                    // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JNE, listOf( /* label-true */ )),
-                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ )),
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
                 )
             }
         )
@@ -301,18 +281,14 @@ class InstructionSetCreator {
     }
 
     private fun createSimpleBoolOperationPatterns(
-        rootOperation: BinaryTreeOperationType,
+        rootOperation: TreeKind,
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
         // NOTE Needed always (for VALUE kind), must be a register
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning boolean ${rootOperation} cannot be null"
@@ -329,24 +305,20 @@ class InstructionSetCreator {
                         create2ArgInstruction(asmOperation, dest, reg1)
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(rootOperation)
         )
     }
 
     private fun createSimpleComparisonPatterns(
-        rootOperation: BinaryTreeOperationType,
+        rootOperation: TreeKind,
         asmCmovOperation: OperationAsm,
         asmJccOperation: OperationAsm
     ): List<InstructionPattern> {
         // NOTE Needed always in VALUE variant. Must be a register, not memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning comparison ${rootOperation} cannot be null"
@@ -366,20 +338,21 @@ class InstructionSetCreator {
                     SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1)),
                 )
             },
-            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+            TemplatePattern(rootOperation, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException(
                         "Comparision ${rootOperation} takes exactly two arguments"
                     )
                 }
-                // TODO fix labels
+                if (label == null) {
+                    throw IllegalArgumentException("Label must be passed to jump operation")
+                }
                 create2ArgInstruction(OperationAsm.CMP, inputs[0], inputs[1]) + listOf(
-                    SimpleAsmInstruction(asmJccOperation, listOf( /* label-true */ )),
-                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ ))
+                    SimpleAsmInstruction(asmJccOperation, listOf( label )),
                 )
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(rootOperation)
         )
     }
 
@@ -424,12 +397,8 @@ class InstructionSetCreator {
         // NOTE Needed only in JUMP variant if operand is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            UnaryOperationTree::class,
-            UnaryTreeOperationType.NOT
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(UnaryNotKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning boolean negation cannot be null"
@@ -449,9 +418,12 @@ class InstructionSetCreator {
                     SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
             },
-            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+            TemplatePattern(UnaryNotKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 1) {
                     throw IllegalArgumentException("Boolean negation takes exactly one argument")
+                }
+                if (label == null) {
+                    throw IllegalArgumentException("Label must be passed to jump operation")
                 }
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
@@ -465,12 +437,11 @@ class InstructionSetCreator {
                     )
                 } + listOf(
                     // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-true */ )),
-                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ )),
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( label )),
                 )
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(UnaryNotKind)
         )
     }
 
@@ -478,12 +449,8 @@ class InstructionSetCreator {
         // NOTE Needed only if dest and input are both memory, has to be a register, not memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            UnaryOperationTree::class,
-            UnaryTreeOperationType.MINUS
-        )
         return listOf(
-            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+            TemplatePattern(UnaryMinusKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for negation cannot be null")
                 }
@@ -505,17 +472,17 @@ class InstructionSetCreator {
                 }
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(rootType)
+            createEmptyExecPattern(UnaryMinusKind)
         )
     }
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                InstructionPatternRootType(Call::class, null),
+                CallKind,
                 InstructionKind.EXEC,
                 1
-            ) { _, inputs ->
+            ) { _, inputs, _ ->
                 if (inputs.size != 1) {
                     throw IllegalArgumentException(
                         "Function call takes exactly one argument: address of function to be called"
@@ -532,10 +499,10 @@ class InstructionSetCreator {
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                InstructionPatternRootType(Return::class, null),
+                ReturnKind,
                 InstructionKind.VALUE,
                 1
-            ) { _, _ ->
+            ) { _, _, _ ->
                 listOf(
                     SimpleAsmInstruction(OperationAsm.RET, listOf())
                 )
@@ -543,7 +510,7 @@ class InstructionSetCreator {
         )
     }
 
-    private fun createEmptyExecPattern(rootType: InstructionPatternRootType): TemplatePattern {
-        return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ -> listOf() }
+    private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
+        return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ , _-> listOf() }
     }
 }

@@ -9,10 +9,10 @@ class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<In
         var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
         var registerMap = mutableMapOf<Tree, VirtualRegister?>()
         computeCost(tree, subtreeCost)
-        return coverTree(tree, subtreeCost.toMap(), registerMap)
+        return coverTree(tree, subtreeCost.toMap(), registerMap, labelTrue)
     }
 
-    private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>, registerMap: MutableMap<Tree, VirtualRegister?>): List<Instruction> {
+    private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>, registerMap: MutableMap<Tree, VirtualRegister?>, labelTrue : Label?): List<Instruction> {
         val matchResult = subtreeCost[tree]!!.second!!.matches(tree)!!
         val register =  when (tree) {
              is AssignmentTree, Return -> {
@@ -27,14 +27,14 @@ class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<In
          }
 
         if (matchResult.children.isEmpty()) {
-            return matchResult.createInstruction(register, listOf())
+            return matchResult.createInstruction(register, listOf(), labelTrue)
         }
-        val childrenResults = matchResult.children.map { coverTree(it, subtreeCost, registerMap) }
+        val childrenResults = matchResult.children.map { coverTree(it, subtreeCost, registerMap, labelTrue) }
         var result = mutableListOf<Instruction>()
         for (childResult in childrenResults) result.addAll(childResult)
         var childRegisters = mutableListOf<VirtualRegister>()
         for(child in matchResult.children) if(registerMap[child] != null) childRegisters.add(registerMap[child]!!)
-        return result + matchResult.createInstruction(register, childRegisters)
+        return result + matchResult.createInstruction(register, childRegisters, labelTrue)
     }
 
     private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>) {
@@ -59,23 +59,21 @@ class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<In
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for (instructionPatternsPerOperation in instructionPatterns.values) {
-            for (instructionPattern in instructionPatternsPerOperation) {
-                val result = instructionPattern.matches(tree)
-                if (result != null) {
-                    var newCost = instructionPattern.cost
-                    for (child in result.children){
-                        val childCost = subtreeCost[child]!!.first
-                        if (childCost == Int.MAX_VALUE){
-                            newCost = Int.MAX_VALUE
-                            break
-                        }
-                        newCost += childCost
+        for (instructionPattern in instructionPatterns[tree.kind()]!!) {
+            val result = instructionPattern.matches(tree)
+            if (result != null) {
+                var newCost = instructionPattern.cost
+                for (child in result.children){
+                    val childCost = subtreeCost[child]!!.first
+                    if (childCost == Int.MAX_VALUE){
+                        newCost = Int.MAX_VALUE
+                        break
                     }
-                    if (minCost > newCost) {
-                        minCost = newCost
-                        bestInstr = instructionPattern
-                    }
+                    newCost += childCost
+                }
+                if (minCost > newCost) {
+                    minCost = newCost
+                    bestInstr = instructionPattern
                 }
             }
         }

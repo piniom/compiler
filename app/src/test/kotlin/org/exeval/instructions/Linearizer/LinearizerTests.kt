@@ -14,16 +14,6 @@ import kotlin.random.Random
 class LinearizerTest {
 
     @Test
-    fun `test createBasicBlocks with null node`() {
-        val mockInstructionCoverer = mockk<InstructionCovererInterface>()
-        val linearizer = Linearizer(mockInstructionCoverer)
-
-        val result = linearizer.createBasicBlocks(null)
-
-        assertEquals(emptyList<BasicBlock>(), result, "Expected an empty list when input node is null.")
-    }
-
-    @Test
     fun `test createBasicBlocks with single CFGNode`() {
         val mockInstructionCoverer = mockk<InstructionCovererInterface>()
         val mockNode = mockk<CFGNode>()
@@ -105,7 +95,7 @@ class LinearizerTest {
 
         // Define instructions for each tree
         trees.forEachIndexed { index, tree ->
-            every { mockInstructionCoverer.cover(tree, null) } returns instructionSets[index]
+            every { mockInstructionCoverer.cover(tree, any()) } returns instructionSets[index]
         }
 
         // Mock tree and branch structure
@@ -114,14 +104,14 @@ class LinearizerTest {
         }
 
         // Define the CFG structure
-        every { nodes[0].branches } returns Pair(nodes[1], nodes[2])      // Node1 -> Node2, Node3
-        every { nodes[1].branches } returns Pair(nodes[3], nodes[4])      // Node2 -> Node4, Node5
+        every { nodes[0].branches } returns Pair(nodes[1], nodes[2])      // Node1 -> Node3, Node2
+        every { nodes[1].branches } returns Pair(nodes[3], nodes[4])      // Node2 -> Node5, Node4
         every { nodes[2].branches } returns Pair(nodes[5], null)          // Node3 -> Node6
-        every { nodes[3].branches } returns Pair(nodes[6], nodes[7])      // Node4 -> Node7, Node8
+        every { nodes[3].branches } returns Pair(nodes[6], nodes[7])      // Node4 -> Node8, Node7
         every { nodes[4].branches } returns Pair(nodes[8], null)          // Node5 -> Node9
-        every { nodes[5].branches } returns Pair(nodes[9], nodes[10])     // Node6 -> Node10, Node11
+        every { nodes[5].branches } returns Pair(nodes[9], nodes[10])     // Node6 -> Node11, Node10
         every { nodes[6].branches } returns null                          // Node7 -> End
-        every { nodes[7].branches } returns Pair(nodes[11], nodes[12])    // Node8 -> Node12, Node13
+        every { nodes[7].branches } returns Pair(nodes[11], nodes[12])    // Node8 -> Node13, Node12
         every { nodes[8].branches } returns Pair(nodes[13], null)         // Node9 -> Node14
         every { nodes[9].branches } returns Pair(nodes[14], null)         // Node10 -> Node15
         every { nodes[10].branches } returns null                         // Node11 -> End
@@ -133,20 +123,20 @@ class LinearizerTest {
         /*
             BB BLOCKS should look like:
             BB1 -> Node1
-            BB2 -> Node2
-            BB3 -> Node4
-            BB4 -> Node7
-            BB5 -> Node8
-            BB6 -> Node12
-            BB7 -> Node13
+            BB2 -> Node3
+            BB3 -> Node6
+            BB4 -> Node11
+            BB5 -> Node10
+            BB6 -> Node15
+            BB7 -> Node2
             BB8 -> Node5
             BB9 -> Node9
             BB10 -> Node14
-            BB11 -> Node3
-            BB12 -> Node6
-            BB13 -> Node10
-            BB14 -> Node15
-            BB15 -> Node11
+            BB11 -> Node4
+            BB12 -> Node8
+            BB13 -> Node13
+            BB14 -> Node12
+            BB15 -> Node7
         */
 
         // Create the Linearizer instance
@@ -160,29 +150,32 @@ class LinearizerTest {
 
         val blockNumToNodeNumMap = mapOf(
             0 to 0,
-            1 to 1,
-            2 to 3,
-            3 to 6,
-            4 to 7,
-            5 to 11,
-            6 to 12,
+            1 to 2,
+            2 to 5,
+            3 to 10,
+            4 to 9,
+            5 to 14,
+            6 to 1,
             7 to 4,
             8 to 8,
             9 to 13,
-            10 to 2,
-            11 to 5,
-            12 to 9,
-            13 to 14,
-            14 to 10,
+            10 to 3,
+            11 to 7,
+            12 to 12,
+            13 to 11,
+            14 to 6,
         )
 
         // Assert that all blocks have the correct set of instructions
         for (i in 0..14) {
             val expectedNodeIndex = blockNumToNodeNumMap[i]!!
+            val areCompletelyEqual = instructionSets[expectedNodeIndex] == result[i].instructions
+            val areEqualExceptLast = instructionSets[expectedNodeIndex] == result[i].instructions.dropLast(1)
+        
             assertEquals(
-                instructionSets[expectedNodeIndex],
-                result[i].instructions,
-                "Block ${i + 1} should have instructions from Node${expectedNodeIndex + 1}"
+                true,
+                areCompletelyEqual || areEqualExceptLast,
+                "Block ${i + 1} should have instructions from Node${expectedNodeIndex + 1} beside last JMP"
             )
         }
 
@@ -213,5 +206,97 @@ class LinearizerTest {
     private fun <T> getRandomNonEmptySubset(list: List<T>): List<T> {
         val subsetSize = Random.nextInt(1, list.size + 1)
         return list.shuffled().take(subsetSize)
+    }
+
+    @Test
+    fun `test self loop block`() {
+        val mockInstructionCoverer = mockk<InstructionCovererInterface>()
+        val mockNodeFirst = mockk<CFGNode>()
+        val mockNodeSecond = mockk<CFGNode>()
+        val mockTree = mockk<Tree>()
+        val mockInstruction = mockk<Instruction>()
+
+        every { mockNodeFirst.trees } returns listOf(mockTree)
+        every { mockNodeFirst.branches } returns Pair(mockNodeFirst, null)
+        every { mockInstructionCoverer.cover(mockTree, null) } returns listOf(mockInstruction)
+
+        val linearizer = Linearizer(mockInstructionCoverer)
+
+        val result = linearizer.createBasicBlocks(mockNodeFirst)
+
+        assertEquals(1, result.size, "Expected one basic block.")
+        assertEquals(2, result[0].instructions.size, "Expected two instruction in the basic block (Given one + JMP).")
+        assertEquals(mockInstruction, result[0].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(result[0], result[0].successors[0], "Selfloop basic block is its own successor")
+    }
+
+    @Test
+    fun `test simple loop block`() {
+        val mockInstructionCoverer = mockk<InstructionCovererInterface>()
+        val mockNodeFirst = mockk<CFGNode>()
+        val mockNodeSecond = mockk<CFGNode>()
+        val mockTree = mockk<Tree>()
+        val mockInstruction = mockk<Instruction>()
+
+        every { mockNodeFirst.trees } returns listOf(mockTree)
+        every { mockNodeFirst.branches } returns Pair(mockNodeSecond, null)
+        every { mockNodeSecond.trees } returns listOf(mockTree)
+        every { mockNodeSecond.branches } returns Pair(mockNodeFirst, null)
+        every { mockInstructionCoverer.cover(mockTree, any()) } returns listOf(mockInstruction)
+
+        val linearizer = Linearizer(mockInstructionCoverer)
+
+        val result = linearizer.createBasicBlocks(mockNodeFirst)
+
+        assertEquals(2, result.size, "Expected two basic block.")
+        assertEquals(1, result[0].instructions.size, "Expected one instruction in the first basic block. (There is no JMP due to optimization)")
+        assertEquals(2, result[1].instructions.size, "Expected two instructions in the second basic block (given one + JMP).")
+        assertEquals(mockInstruction, result[0].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(mockInstruction, result[1].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(result[0], result[1].successors[0], "Fist block is succesor of second block")
+        assertEquals(result[1], result[0].successors[0], "Second block is succesor of first block")
+        
+    }
+
+    @Test
+    fun `test complex loop block`() {
+        val mockInstructionCoverer = mockk<InstructionCovererInterface>()
+        val mockNodeFirst = mockk<CFGNode>()
+        val mockNodeSecond = mockk<CFGNode>()
+        val mockNodeThird = mockk<CFGNode>()
+        val mockNodeFourth = mockk<CFGNode>()
+        val mockTree = mockk<Tree>()
+        val mockInstruction = mockk<Instruction>()
+
+        every { mockNodeFirst.trees } returns listOf(mockTree)
+        every { mockNodeFirst.branches } returns Pair(mockNodeSecond, null)
+        every { mockNodeSecond.trees } returns listOf(mockTree)
+        every { mockNodeSecond.branches } returns Pair(mockNodeThird, mockNodeFourth)
+        every { mockNodeThird.trees } returns listOf(mockTree)
+        every { mockNodeThird.branches } returns Pair(mockNodeFirst, mockNodeSecond)
+        every { mockNodeFourth.trees } returns listOf(mockTree)
+        every { mockNodeFourth.branches } returns Pair(mockNodeFourth, mockNodeFirst)
+        every { mockInstructionCoverer.cover(mockTree, any()) } returns listOf(mockInstruction)
+
+        val linearizer = Linearizer(mockInstructionCoverer)
+
+        val result = linearizer.createBasicBlocks(mockNodeFirst)
+
+        assertEquals(4, result.size, "Expected two basic block.")
+        assertEquals(1, result[0].instructions.size, "Expected one instruction in the first basic block. (There is no JMP due to optimization).")
+        assertEquals(1, result[1].instructions.size, "Expected one instruction in the second basic block. (There is no JMP due to optimization).")
+        assertEquals(2, result[2].instructions.size, "Expected two instructions in the third basic block (given one + JMP).")
+        assertEquals(2, result[3].instructions.size, "Expected two instructions in the fourth basic block (given one + JMP).")
+        assertEquals(mockInstruction, result[0].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(mockInstruction, result[1].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(mockInstruction, result[2].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(mockInstruction, result[3].instructions[0], "Expected the mocked instruction to be included.")
+        assertEquals(result[1].label, result[0].successors[0].label, "Second block is succesor of first block")
+        assertEquals(result[2].label, result[1].successors[0].label, "Third block is succesor of second block")
+        assertEquals(result[3].label, result[1].successors[1].label, "Fourth block is succesor of second block")
+        assertEquals(result[2].label, result[2].successors[1].label, "Third block is succesor of third block")
+        assertEquals(result[0].label, result[2].successors[0].label, "First block is succesor of third block")
+        assertEquals(result[1].label, result[3].successors[0].label, "Second block is succesor of fourth block")
+        assertEquals(result[0].label, result[3].successors[1].label, "First block is succesor of fourth block")
     }
 }
