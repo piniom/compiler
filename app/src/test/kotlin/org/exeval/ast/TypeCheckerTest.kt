@@ -197,4 +197,210 @@ class TypeCheckerTest {
         assertEquals(IntType, result.result[functionCall], "Expected function call type to be IntType")
         assertEquals(0, result.diagnostics.size, "Expected diagnostic for mixed argument types")
     }
+
+    // Assigment
+    @Test
+    fun `should report error for block with mismatched types`() {
+        // Code:
+        // ```
+        // {
+        //     let mut a: Int;
+        //     let b: Bool = true;
+        //     a = b;
+        // }
+        // ```
+
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType)
+        val bDeclaration = ConstantDeclaration(name = "b", type = BoolType, initializer = BoolLiteral(true))
+        val assignment = Assignment(variable = "a", value = VariableReference("b"))
+        val block = Block(listOf(aDeclaration, bDeclaration, assignment))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations } returns mapOf(
+            assignment to LocationRange(SimpleLocation(2, 5), SimpleLocation(2, 9))
+        )
+        every { mockNameResolution.variableToDecl[VariableReference("b")] } returns bDeclaration
+        every { mockNameResolution.variableToDecl[VariableReference("a")] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for invalid assignment in block")
+        assertEquals(
+            "Assignment type does not match variable type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for type mismatch in assignment"
+        )
+    }
+
+
+    // If statement
+    @Test
+    fun `should report error for conditional with mismatched then and else types`() {
+        // Code: `if true then 1 else false`
+        val condition = BoolLiteral(true)
+        val thenBranch = IntLiteral(1)
+        val elseBranch = BoolLiteral(false)
+        val conditionalExpr = Conditional(condition, thenBranch, elseBranch)
+
+        // Set up AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns conditionalExpr
+        every { mockAstInfo.locations } returns mapOf(
+            conditionalExpr to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 10))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for mismatched then and else types")
+        assertEquals(
+            "Then and else branches must have the same type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for mismatched branches"
+        )
+    }
+
+    @Test
+    fun `should report error for conditional with non-Bool condition`() {
+        // Code: `if 42 then 1 else 0`
+        val condition = IntLiteral(42)
+        val thenBranch = IntLiteral(1)
+        val elseBranch = IntLiteral(0)
+        val conditionalExpr = Conditional(condition, thenBranch, elseBranch)
+
+        // Set up AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns conditionalExpr
+        every { mockAstInfo.locations } returns mapOf(
+            conditionalExpr to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 10))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for non-Bool condition")
+        assertEquals(
+            "Condition expression must be Bool",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for non-Bool condition"
+        )
+    }
+
+    @Test
+    fun `should report error for nested conditional with mismatched types`() {
+        // Code:
+        // ```
+        // if true then
+        //     if false then 1 else true
+        // else 0
+        // ```
+
+        val innerCondition = BoolLiteral(false)
+        val innerThenBranch = IntLiteral(1)
+        val innerElseBranch = BoolLiteral(true)
+        val innerConditional = Conditional(innerCondition, innerThenBranch, innerElseBranch)
+
+        val outerCondition = BoolLiteral(true)
+        val outerThenBranch = innerConditional
+        val outerElseBranch = IntLiteral(0)
+        val outerConditional = Conditional(outerCondition, outerThenBranch, outerElseBranch)
+
+        // Set up AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns outerConditional
+        every { mockAstInfo.locations } returns mapOf(
+            innerConditional to LocationRange(SimpleLocation(1, 0), SimpleLocation(1, 15)),
+            outerConditional to LocationRange(SimpleLocation(0, 0), SimpleLocation(2, 5))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(2, result.diagnostics.size, "Expected two diagnostics for nested conditional with mismatched types")
+        assertEquals(
+            "Then and else branches must have the same type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for inner conditional type mismatch"
+        )
+        assertEquals(
+            "Then and else branches must have the same type",
+            result.diagnostics[1].message,
+            "Expected diagnostic message for outer conditional type mismatch"
+        )
+    }
+
+    @Test
+    fun `should report error for assignment in conditional condition`() {
+        // Code: `if (x = 42) then 1 else 0`
+        val assignmentInCondition = Assignment(variable = "x", value = IntLiteral(42))
+        val condition = assignmentInCondition
+        val thenBranch = IntLiteral(1)
+        val elseBranch = IntLiteral(0)
+        val conditionalExpr = Conditional(condition, thenBranch, elseBranch)
+
+        // Set up AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns conditionalExpr
+        every { mockAstInfo.locations } returns mapOf(
+            conditionalExpr to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 15))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for assignment in condition")
+        assertEquals(
+            "Condition expression must be Bool",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for invalid assignment in condition"
+        )
+    }
+
+
+    // Loops
+    @Test
+    fun `should report error for loop with NopeType body`() {
+        // Code: `loop { NopeLiteral }`
+        val loopBody = NopeLiteral
+        val loop = Loop(identifier = null, body = loopBody)
+
+        // Set up AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns loop
+        every { mockAstInfo.locations } returns mapOf(
+            loop to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 6))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for NopeType loop body")
+        assertEquals(
+            "Loop body cannot be of NopeType",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for NopeType body"
+        )
+    }
+
 }
