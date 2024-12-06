@@ -171,7 +171,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
     private fun getBreakType(breakEl: Break) {
         val identifier = breakEl.identifier
-        val expressionType = breakEl.expression?.let { innerParse(it) }
+        val expressionType = breakEl.expression?.let { innerParse(it) } ?: NopeType
 
         // Check if break without label
         if (identifier == null) {
