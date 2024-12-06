@@ -10,13 +10,8 @@ data class InstructionMatchResult (
     val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>) -> List<Instruction>
 )
 
-data class InstructionPatternRootType(
-    val rootClass: KClass<*>,
-    val operationType: Any?
-)
-
 interface InstructionPattern{
-    val rootType: InstructionPatternRootType
+    val rootType: TreeKind
     val kind: InstructionKind
     val cost: Int
     fun matches(parseTree: Tree): InstructionMatchResult?
@@ -29,7 +24,7 @@ interface ConstantOperandArgumentType : OperandArgumentType
 data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
 
 class TemplatePattern(
-    override val rootType: InstructionPatternRootType,
+    override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
     val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>) -> List<Instruction>
@@ -37,20 +32,14 @@ class TemplatePattern(
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-        if (rootType.rootClass != parseTree::class) {
+        if (rootType != parseTree.treeKind()) {
             return null
         }
         val args = when (parseTree) {
             is BinaryOperationTree -> {
-                if (rootType.operationType != parseTree.operation) {
-                    return null
-                }
                 listOf(parseTree.left, parseTree.right)
             }
             is UnaryOperationTree -> {
-                if (rootType.operationType != parseTree.operation) {
-                    return null
-                }
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {
