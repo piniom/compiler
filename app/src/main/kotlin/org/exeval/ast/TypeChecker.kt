@@ -8,6 +8,9 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private val typeMap: MutableMap<Expr, Type> = mutableMapOf()
     private val diagnostics: MutableList<Diagnostics> = mutableListOf()
 
+    private var activeLoop: Type? = null
+    private val activeLoopMap: MutableMap<String, Type?> = mutableMapOf()
+
     public fun parse() : OperationResult<TypeMap> {
         innerParse(astInfo.root)
 
@@ -52,8 +55,15 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Condition expression must be Bool", conditional.condition)
         }
 
-        if (thenType != elseType) {
-            addDiagnostic("Then and else branches must have the same type", conditional)
+        if (conditional.elseBranch == null) {
+            if (thenType != NopeType) {
+                addDiagnostic("Condition expression without else must be a Nope type", conditional.thenBranch)
+            }
+        }
+        else {
+            if (thenType != elseType) {
+                addDiagnostic("Then and else branches must have the same type", conditional)
+            }
         }
 
         thenType?.let { typeMap[conditional] = thenType }
@@ -118,13 +128,77 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     }
 
     private fun getLoopType(loop: Loop) {
-        val bodyType = innerParse(loop.body)
+        val currLoop = activeLoop
+        activeLoop = null
+        loop.identifier?.let { activeLoopMap[it] = null }
 
-        bodyType?.let { typeMap[loop] = bodyType }
+        innerParse(loop.body)
+
+        if (loop.identifier == null) {
+            val currentActiveLoop = activeLoop
+            if (currentActiveLoop == null) {
+                addDiagnostic("Loop does not contain a valid break", loop)
+            }
+            else {
+                typeMap[loop] = currentActiveLoop
+            }
+        }
+        else {
+            val currentActiveLoop = activeLoop
+            val targetLoopType = activeLoopMap[loop.identifier]
+            if (currentActiveLoop == null &&  targetLoopType == null) {
+                addDiagnostic("Loop does not contain a valid break", loop)
+            }
+            else if (currentActiveLoop != null && targetLoopType != null) {
+                if (currentActiveLoop != targetLoopType) {
+                    addDiagnostic("Break type does not match the loop's type", loop)
+                }
+                else {
+                    typeMap[loop] = targetLoopType
+                }
+            }
+            else if (currentActiveLoop != null){
+                typeMap[loop] = currentActiveLoop
+            }
+            else if (targetLoopType != null){
+                typeMap[loop] = targetLoopType
+            }
+        }
+
+        activeLoop = currLoop
+        loop.identifier?.let { activeLoopMap.remove(it) }
     }
 
     private fun getBreakType(breakEl: Break) {
+        val identifier = breakEl.identifier
         val expressionType = breakEl.expression?.let { innerParse(it) }
+
+        // Check if break without label
+        if (identifier == null) {
+            // If first break then it defines loop type
+            if (activeLoop == null) {
+                activeLoop = expressionType
+            }
+            // If second or later break, then it has to match loop type
+            else if (activeLoop != expressionType) {
+                addDiagnostic("Break type does not match loop type", breakEl)
+            }
+        }
+        // Check if break has label
+        else {
+            // If the loop with the label is not registered in the map
+            if (!activeLoopMap.containsKey(identifier)) {
+                addDiagnostic("Break targets an unknown or invalid loop", breakEl)
+            }
+            // If first break then it defines loop type
+            if (activeLoopMap[identifier] == null) {
+                activeLoopMap[identifier] = expressionType
+            }
+            // If second or later break, then it has to match loop type
+            else if (activeLoopMap[identifier] != expressionType) {
+                addDiagnostic("Break type does not match loop type", breakEl)
+            }
+        }
 
         expressionType?.let { typeMap[breakEl] = expressionType }
     }
@@ -142,7 +216,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getMutableVariableDeclarationType(mutableVariableDeclaration: MutableVariableDeclaration) {
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
-        if (initializerType != mutableVariableDeclaration.type) {
+        if (initializerType != null && initializerType != mutableVariableDeclaration.type) {
             addDiagnostic("Initializer type does not match declared type", mutableVariableDeclaration.initializer ?: mutableVariableDeclaration)
         }
 
