@@ -203,16 +203,16 @@ class InstructionSetCreator {
                         SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0)))
                     )
                 } + listOf(
-                    SimpleAsmInstruction(OperationAsm.JNE, listOf( shortCutLabel )),
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( shortCutLabel )),
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
-                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(1))),
                     )
                 }
                 else {
                     listOf(
-                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(0)))
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(1)))
                     )
                 } + listOf(
                     SimpleAsmInstruction(OperationAsm.JE, listOf( label )),
