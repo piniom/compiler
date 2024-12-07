@@ -12,5 +12,5 @@ data class LivenessResult(
 	val copy: RegisterGraph
 )
 
-typealias RegisterGraph = Map<Register, List<Register>>
-typealias MutableRegisterGraph = MutableMap<Register, MutableList<Register>>
+typealias RegisterGraph = Map<Register, Set<Register>>
+typealias MutableRegisterGraph = MutableMap<Register, MutableSet<Register>>
