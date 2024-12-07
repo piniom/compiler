@@ -2,13 +2,13 @@ package org.exeval.instructions
 
 import org.exeval.cfg.*
 
-class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<InstructionPattern>>) : InstructionCovererInterface {
+class InstructionCoverer(private val instructionPatterns : Map<InstructionPatternMapKey, List<InstructionPattern>>) : InstructionCovererInterface {
 
 
     override fun cover(tree : Tree, labelTrue: Label?) : List<Instruction> {
         var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
         var registerMap = mutableMapOf<Tree, VirtualRegister?>()
-        computeCost(tree, subtreeCost)
+        computeCost(tree, subtreeCost, if(labelTrue == null) InstructionKind.EXEC else InstructionKind.JUMP)
         return coverTree(tree, subtreeCost.toMap(), registerMap, labelTrue)
     }
 
@@ -37,20 +37,20 @@ class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<In
         return result + matchResult.createInstruction(register, childRegisters, labelTrue)
     }
 
-    private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>) {
+    private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>, instructionKind : InstructionKind) {
         when (tree) {
             is BinaryOperationTree -> {
-                computeCost(tree.left, subtreeCost)
-                computeCost(tree.right, subtreeCost)
+                computeCost(tree.left, subtreeCost, InstructionKind.VALUE)
+                computeCost(tree.right, subtreeCost, InstructionKind.VALUE)
             }
 
             is UnaryOperationTree -> {
-                computeCost(tree.child, subtreeCost)
+                computeCost(tree.child, subtreeCost, InstructionKind.VALUE)
             }
 
             is AssignmentTree -> {
-                computeCost(tree.destination, subtreeCost)
-                computeCost(tree.value, subtreeCost)
+                computeCost(tree.destination, subtreeCost, InstructionKind.VALUE)
+                computeCost(tree.value, subtreeCost, InstructionKind.VALUE)
             }
 
             else -> {
@@ -59,7 +59,8 @@ class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<In
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for (instructionPattern in instructionPatterns[tree.kind()]!!) {
+        var mapKey: InstructionPatternMapKey = InstructionPatternMapKey(tree.kind(), instructionKind)
+        for (instructionPattern in instructionPatterns[mapKey]!!) {
             val result = instructionPattern.matches(tree)
             if (result != null) {
                 var newCost = instructionPattern.cost

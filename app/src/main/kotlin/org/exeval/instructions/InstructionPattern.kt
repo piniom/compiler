@@ -37,15 +37,9 @@ class TemplatePattern(
         }
         val args = when (parseTree) {
             is BinaryOperationTree -> {
-                if (rootType != parseTree.kind()) {
-                    return null
-                }
                 listOf(parseTree.left, parseTree.right)
             }
             is UnaryOperationTree -> {
-                if (rootType != parseTree.kind()) {
-                    return null
-                }
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {

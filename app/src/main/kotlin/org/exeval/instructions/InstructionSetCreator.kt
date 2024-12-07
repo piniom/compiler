@@ -9,8 +9,10 @@ data class InstructionPatternMapKey(
 
 class InstructionSetCreator {
     private val patterns: Map<InstructionPatternMapKey, List<InstructionPattern>>
+    private val labelFactory : LabelInstructionFactory
 
     init {
+        labelFactory = LabelInstructionFactory()
         patterns = initInstructionSet()
     }
 
@@ -189,6 +191,7 @@ class InstructionSetCreator {
                 if (label == null) {
                     throw IllegalArgumentException("Label must be passed to jump operation")
                 }
+                var shortCutLabel = labelFactory.createLabel("ShortcutAndLabel")
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
                         SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
@@ -200,7 +203,7 @@ class InstructionSetCreator {
                         SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0)))
                     )
                 } + listOf(
-                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( shortCutLabel )),
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
@@ -212,8 +215,8 @@ class InstructionSetCreator {
                         SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(0)))
                     )
                 } + listOf(
-                    // TODO fix labels
-                    SimpleAsmInstruction(OperationAsm.JNE, listOf( label )),
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( label )),
+                    LabelDeclarationInstruction(shortCutLabel)
                 )
             }
         )
@@ -512,5 +515,33 @@ class InstructionSetCreator {
 
     private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
         return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ , _-> listOf() }
+    }
+
+    private class LabelDeclarationInstruction(private val label: Label) : Instruction {
+
+        fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
+            return label.name + ":"
+        }
+    
+        fun usedRegisters(): List<Register> {
+            return listOf()
+        }
+    
+        fun definedRegisters(): List<Register> {
+            return listOf()
+        }
+    
+        fun isCopy(): Boolean {
+            return false
+        }
+    }
+    
+    private class LabelInstructionFactory {
+        private var currentLabelNumber : Int = 0
+    
+        public fun createLabel(labelBaseName : String) : Label {
+            currentLabelNumber += 1
+            return Label(labelBaseName + currentLabelNumber.toString())
+        }
     }
 }
