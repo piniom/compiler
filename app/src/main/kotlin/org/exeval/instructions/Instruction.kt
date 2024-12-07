@@ -1,5 +1,7 @@
 package org.exeval.instructions
 
+package org.exeval.instructions
+
 import org.exeval.cfg.Register
 import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.VirtualRegister
@@ -19,6 +21,11 @@ interface Instruction {
     fun definedRegisters(): List<Register>
     fun isCopy(): Boolean
 }
+
+// data class SimpleAsmInstruction(
+//     val operation: OperationAsm,
+//     val arguments: List<OperandArgumentType>
+// ) : Instruction
 
 fun argToString(arg: OperandArgumentType, mapping: Map<Register, PhysicalRegister>): String {
     return when (arg) {
@@ -78,7 +85,7 @@ class SubInstruction(val dest: AssignableDest, val src: OperandArgumentType) : I
 class MulInstruction(val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "MUL ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(PhysicalRegister.RAX, src as? Register)
+    override fun usedRegisters() = listOfNotNull(src as? Register)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
     override fun isCopy() = false
 }
@@ -86,9 +93,8 @@ class MulInstruction(val src: OperandArgumentType) : Instruction {
 class DivInstruction(val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "DIV ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOf(
-            PhysicalRegister.RAX, PhysicalRegister.RDX
-        ) + listOfNotNull(src as? Register)
+        override fun usedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
+            + listOfNotNull(src as? Register)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
     override fun isCopy() = false
 }
