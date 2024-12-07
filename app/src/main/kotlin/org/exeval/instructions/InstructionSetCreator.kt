@@ -3,7 +3,7 @@ package org.exeval.instructions
 import org.exeval.cfg.*
 
 data class InstructionPatternMapKey(
-    val treeRootType: InstructionPatternRootType,
+    val treeRootType: TreeKind,
     val instructionKind: InstructionKind
 )
 
@@ -57,7 +57,7 @@ class InstructionSetCreator {
         return listOf(
             // NOTE Value of assignment is Nope, so it only exists in EXEC variant
             TemplatePattern(
-                InstructionPatternRootType(AssignmentTree::class, null),
+                AssignmentTreeKind,
                 InstructionKind.EXEC,
                 1
             ) { _, inputs ->
@@ -88,10 +88,7 @@ class InstructionSetCreator {
     }
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.MULTIPLY
-        )
+        val rootType = BinaryMultiplyTreeKind
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -110,10 +107,7 @@ class InstructionSetCreator {
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.DIVIDE
-        )
+        val rootType = BinaryDivideTreeKind
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -167,10 +161,7 @@ class InstructionSetCreator {
         rootOperation: BinaryTreeOperationType,
         asmOperation: OperationAsm
     ): List<InstructionPattern> {
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
+        val rootType = rootOperation.treeKind();
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -195,10 +186,7 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.AND
-        )
+        val rootType = BinaryAddTreeKind
         return createSimpleBoolOperationPatterns(BinaryTreeOperationType.AND, OperationAsm.AND) + listOf(
             TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
                 if (inputs.size != 2) {
@@ -240,10 +228,7 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            BinaryTreeOperationType.OR
-        )
+        val rootType = BinaryOrTreeKind
         return createSimpleBoolOperationPatterns(BinaryTreeOperationType.OR, OperationAsm.OR) + listOf(
             TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
                 if (inputs.size != 2) {
@@ -307,10 +292,7 @@ class InstructionSetCreator {
         // NOTE Needed always (for VALUE kind), must be a register
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
+        val rootType = rootOperation.treeKind()
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -341,10 +323,7 @@ class InstructionSetCreator {
         // NOTE Needed always in VALUE variant. Must be a register, not memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            BinaryOperationTree::class,
-            rootOperation
-        )
+        val rootType = rootOperation.treeKind()
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -424,10 +403,7 @@ class InstructionSetCreator {
         // NOTE Needed only in JUMP variant if operand is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            UnaryOperationTree::class,
-            UnaryTreeOperationType.NOT
-        )
+        val rootType = UnaryNotTreeKind
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -478,10 +454,7 @@ class InstructionSetCreator {
         // NOTE Needed only if dest and input are both memory, has to be a register, not memory
         val reg1 = VirtualRegister()
 
-        val rootType = InstructionPatternRootType(
-            UnaryOperationTree::class,
-            UnaryTreeOperationType.MINUS
-        )
+        val rootType = UnaryMinusTreeKind
         return listOf(
             TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
                 if (dest == null) {
@@ -512,7 +485,7 @@ class InstructionSetCreator {
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                InstructionPatternRootType(Call::class, null),
+                CallTreeKind,
                 InstructionKind.EXEC,
                 1
             ) { _, inputs ->
@@ -532,7 +505,7 @@ class InstructionSetCreator {
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                InstructionPatternRootType(Return::class, null),
+                ReturnTreeKind,
                 InstructionKind.VALUE,
                 1
             ) { _, _ ->
@@ -543,7 +516,7 @@ class InstructionSetCreator {
         )
     }
 
-    private fun createEmptyExecPattern(rootType: InstructionPatternRootType): TemplatePattern {
+    private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
         return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ -> listOf() }
     }
 }
