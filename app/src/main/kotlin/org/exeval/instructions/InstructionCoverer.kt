@@ -1,23 +1,11 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.Tree
-import org.exeval.cfg.TreeOperationType
-import org.exeval.cfg.BinaryOperationTree
-import org.exeval.cfg.UnaryOperationTree
-import org.exeval.cfg.AssignmentTree
-import org.exeval.cfg.RegisterTree
-import org.exeval.cfg.NumericalConstantTree
-import org.exeval.cfg.Label
-import org.exeval.cfg.MemoryTree
-import org.exeval.cfg.Call
-import org.exeval.cfg.Return
-import org.exeval.cfg.AssignableTree
-import org.exeval.cfg.VirtualRegister
+import org.exeval.cfg.*
 
-class InstructionCoverer(private val instructionPatterns : Map<TreeOperationType, List<InstructionPattern>>) : InstructionCovererInterface {
+class InstructionCoverer(private val instructionPatterns : Map<TreeKind, List<InstructionPattern>>) : InstructionCovererInterface {
 
 
-    override fun cover(tree : Tree) : List<Instruction> {
+    override fun cover(tree : Tree, labelTrue: Label?) : List<Instruction> {
         var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
         var registerMap = mutableMapOf<Tree, VirtualRegister?>()
         computeCost(tree, subtreeCost)
