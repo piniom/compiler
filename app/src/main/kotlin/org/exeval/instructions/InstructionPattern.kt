@@ -19,6 +19,8 @@ interface InstructionPattern{
 
 interface OperandArgumentType
 
+interface AssignableDest : OperandArgumentType
+
 interface ConstantOperandArgumentType : OperandArgumentType
 
 data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
