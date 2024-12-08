@@ -137,7 +137,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         if (loop.identifier == null) {
             val currentActiveLoop = activeLoop
             if (currentActiveLoop == null) {
-                addDiagnostic("Loop does not contain a valid break", loop)
+                // Loop type is NopeType if there is no break
+                typeMap[loop] = NopeType
             }
             else {
                 typeMap[loop] = currentActiveLoop
@@ -147,11 +148,12 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             val currentActiveLoop = activeLoop
             val targetLoopType = activeLoopMap[loop.identifier]
             if (currentActiveLoop == null &&  targetLoopType == null) {
-                addDiagnostic("Loop does not contain a valid break", loop)
+                // Loop type is NopeType if there is no break
+                typeMap[loop] = NopeType
             }
             else if (currentActiveLoop != null && targetLoopType != null) {
                 if (currentActiveLoop != targetLoopType) {
-                    addDiagnostic("Break type does not match the loop's type", loop)
+                    addDiagnostic("Break type does not match the loop's type. Given: $currentActiveLoop, Expected: $targetLoopType", loop)
                 }
                 else {
                     typeMap[loop] = targetLoopType
@@ -210,7 +212,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Initializer type does not match declared type", constantDeclaration.initializer)
         }
 
-        typeMap[constantDeclaration] = constantDeclaration.type
+        typeMap[constantDeclaration] = NopeType
     }
 
     private fun getMutableVariableDeclarationType(mutableVariableDeclaration: MutableVariableDeclaration) {
@@ -220,7 +222,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Initializer type does not match declared type", mutableVariableDeclaration.initializer ?: mutableVariableDeclaration)
         }
 
-        typeMap[mutableVariableDeclaration] = mutableVariableDeclaration.type
+        typeMap[mutableVariableDeclaration] = NopeType
     }
 
     private fun getVariableReferenceType(variableReference: VariableReference) {
@@ -241,8 +243,14 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getAssignmentType(assignment: Assignment) {
         val variable = nameResolutionResult.assignmentToDecl[assignment]
         val variableType = when (variable) {
-            is ConstantDeclaration -> innerParse(variable)
-            is MutableVariableDeclaration -> innerParse(variable)
+            is ConstantDeclaration -> {
+                innerParse(variable)
+                variable.type
+            }
+            is MutableVariableDeclaration -> {
+                innerParse(variable)
+                variable.type
+            }
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)

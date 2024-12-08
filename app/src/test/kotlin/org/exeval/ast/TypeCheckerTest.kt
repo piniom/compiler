@@ -200,6 +200,86 @@ class TypeCheckerTest {
 
     // Assigment
     @Test
+    fun `should type-check simplest assignment`() {
+        // Code:
+        // ```
+        // {
+        //     let mut a: Int = 0;
+        // }
+        // ```
+
+        // AST construction
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
+        val block = Block(listOf(aDeclaration))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations[any()] } answers {
+            LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
+        }
+        every { mockNameResolution.variableToDecl[VariableReference("a")] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for valid mutable variable declaration")
+        assertEquals(
+            NopeType,
+            result.result[aDeclaration],
+            "Expected the variable 'a' to have type NopeType"
+        )
+    }
+
+    @Test
+    fun `should type-check declaration and assignment expressions with NopeType`() {
+        // Code:
+        // ```
+        // {
+        //     let mut a: Int = 0;
+        //     a = 42;
+        // }
+        // ```
+
+        // AST Construction
+        val aReference = VariableReference("a")
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
+        val aAssignment = Assignment(variable = "a", value = IntLiteral(42))
+        val block = Block(listOf(aDeclaration, aAssignment))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations[any()] } answers {
+            LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
+        }
+        every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
+        every { mockNameResolution.assignmentToDecl[aAssignment] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for valid declaration and assignment expressions")
+        assertEquals(
+            NopeType,
+            result.result[aDeclaration],
+            "Expected the type of the declaration expression to be NopeType"
+        )
+        assertEquals(
+            NopeType,
+            result.result[aAssignment],
+            "Expected the type of the assignment expression to be NopeType"
+        )
+    }
+
+
+    @Test
     fun `should report error for block with mismatched types`() {
         // Code:
         // ```
@@ -234,7 +314,71 @@ class TypeCheckerTest {
 
         // Assertions
         assertEquals(1, result.diagnostics.size, "Expected one diagnostic for invalid assignment in block")
+        assertEquals(
+            "Assignment type does not match variable type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for mismatched types in assignment"
+        )
     }
+
+    @Test
+    fun `should type-check loop with assignment and break returning a value`() {
+        // Code:
+        // ```
+        // {
+        //     let mut a: Int = 0;
+        //     a = loop {
+        //         a = a + 1;
+        //         break a;
+        //     };
+        // }
+        // ```
+
+        // AST construction
+        val aReference = VariableReference("a")
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
+        val increment = BinaryOperation(aReference, BinaryOperator.PLUS, IntLiteral(1))
+        val assignmentInsideLoop = Assignment(variable = "a", value = increment)
+        val breakStatement = Break(null, aReference)
+        val loopBody = Block(listOf(assignmentInsideLoop, breakStatement))
+        val loop = Loop(null, loopBody)
+        val outerAssignment = Assignment(variable = "a", value = loop)
+        val block = Block(listOf(aDeclaration, outerAssignment))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations[any()] } answers {
+            LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
+        }
+        every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
+        every { mockNameResolution.assignmentToDecl[outerAssignment] } returns aDeclaration
+        every { mockNameResolution.assignmentToDecl[assignmentInsideLoop] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for valid loop with assignment and break")
+        assertEquals(
+            NopeType,
+            result.result[aDeclaration],
+            "Expected the declaration of 'a' to have type NopeType"
+        )
+        assertEquals(
+            IntType,
+            result.result[loop],
+            "Expected the loop to have type IntType"
+        )
+        assertEquals(
+            NopeType,
+            result.result[outerAssignment],
+            "Expected the assignment to have type NopeType"
+        )
+    }
+
 
 
     // If statement
@@ -289,6 +433,12 @@ class TypeCheckerTest {
 
         // Assertions
         assertEquals(1, result.diagnostics.size, "Expected one diagnostic for non-Bool condition")
+        assertEquals(
+            "Condition expression must be Bool",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for non-Bool condition in if statement"
+        )
+
     }
 
     @Test
@@ -324,8 +474,93 @@ class TypeCheckerTest {
 
         // Assertions
         assertEquals(1, result.diagnostics.size, "Expected two diagnostics for nested conditional with mismatched types")
+        assertEquals(
+            "Then and else branches must have the same type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for mismatched branches in inner conditional"
+        )
     }
 
+    @Test
+    fun `should pass for if without else returning NopeType like in assigment`() {
+        // Code:
+        // ```
+        // let mut a: Int = 0;
+        // if true {
+        //     a = 1;
+        // }
+        // ```
+
+        // AST Construction
+        val aReference = VariableReference("a")
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
+        val aAssignment = Assignment(variable = "a", value = IntLiteral(1))
+        val ifStatement = Conditional(
+            condition = BoolLiteral(true),
+            thenBranch = Block(listOf(aAssignment)),
+            elseBranch = null
+        )
+        val block = Block(listOf(aDeclaration, ifStatement))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations[any()] } answers {
+            LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
+        }
+        every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
+        every { mockNameResolution.assignmentToDecl[aAssignment] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(0, result.diagnostics.size, "Expected one diagnostic for invalid if without else")
+    }
+
+    @Test
+    fun `should report error for if without else not returning NopeType`() {
+        // Code:
+        // ```
+        // let mut a: Int = 0;
+        // if true {
+        //     1;
+        // }
+        // ```
+
+        // AST Construction
+        val aReference = VariableReference("a")
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
+        val ifStatement = Conditional(
+            condition = BoolLiteral(true),
+            thenBranch = Block(listOf(IntLiteral(1))),
+            elseBranch = null
+        )
+        val block = Block(listOf(aDeclaration, ifStatement))
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns block
+        every { mockAstInfo.locations[any()] } answers {
+            LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
+        }
+        every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for invalid if without else")
+        assertEquals(
+            "Condition expression without else must be a Nope type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for invalid if without else"
+        )
+    }
 
     // Loops
     @Test
@@ -423,7 +658,12 @@ class TypeCheckerTest {
         val result = typeChecker.parse()
 
         // Assertions
-        assertEquals(2, result.diagnostics.size, "Expected one diagnostic for break targeting non-existent label")
+        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for break targeting non-existent label")
+        assertEquals(
+            "Break targets an unknown or invalid loop",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for break targeting non-existent loop label"
+        )
     }
 
     @Test
@@ -453,10 +693,20 @@ class TypeCheckerTest {
 
         // Assertions
         assertEquals(2, result.diagnostics.size, "Expected one diagnostic for inconsistent break types")
+        assertEquals(
+            "Condition expression without else must be a Nope type",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for conditional without else not returning Nope type"
+        )
+        assertEquals(
+            "Break type does not match loop type",
+            result.diagnostics[1].message,
+            "Expected diagnostic message for conditional without else not returning Nope type"
+        )
     }
 
     @Test
-    fun `should report error for loop without break statements`() {
+    fun `should allow infinite loop without break statements`() {
         // Code:
         // loop {
         //     if true then {
@@ -482,7 +732,7 @@ class TypeCheckerTest {
         every { mockAstInfo.locations } returns mapOf(
             letX to LocationRange(SimpleLocation(2, 4), SimpleLocation(2, 18)),
             letY to LocationRange(SimpleLocation(3, 4), SimpleLocation(3, 18)),
-            loop to LocationRange(SimpleLocation(3, 4), SimpleLocation(3, 18)),
+            loop to LocationRange(SimpleLocation(1, 4), SimpleLocation(4, 18)),
         )
 
         // Run TypeChecker
@@ -490,6 +740,11 @@ class TypeCheckerTest {
         val result = typeChecker.parse()
 
         // Assertions
-        assertEquals(1, result.diagnostics.size, "Expected one diagnostic for loop without break statements")
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for infinite loop without break statements")
+        assertEquals(
+            NopeType,
+            result.result[loop],
+            "Expected the loop type to be NopeType for infinite loop without break statements"
+        )
     }
 }
