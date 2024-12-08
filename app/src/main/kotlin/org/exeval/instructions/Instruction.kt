@@ -78,7 +78,7 @@ class SubInstruction(val dest: AssignableDest, val src: OperandArgumentType) : I
 class MulInstruction(val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "MUL ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(src as? Register)
+    override fun usedRegisters() = listOfNotNull(PhysicalRegister.RAX, src as? Register)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
     override fun isCopy() = false
 }
@@ -86,7 +86,7 @@ class MulInstruction(val src: OperandArgumentType) : Instruction {
 class DivInstruction(val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "DIV ${argToString(src, mapping)}"
-        override fun usedRegisters() = listOf(
+    override fun usedRegisters() = listOf(
             PhysicalRegister.RAX, PhysicalRegister.RDX
         ) + listOfNotNull(src as? Register)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
