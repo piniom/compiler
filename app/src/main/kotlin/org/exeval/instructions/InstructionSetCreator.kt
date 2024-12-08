@@ -399,7 +399,7 @@ class InstructionSetCreator {
     }
 
     private fun create2ArgInstruction(
-        create2ArgInstruction: (OperandArgumentType, OperandArgumentType) -> Instruction,
+        instrFactory2arg: (OperandArgumentType, OperandArgumentType) -> Instruction,
         operand1: OperandArgumentType,
         operand2: OperandArgumentType
     ): List<Instruction> {
@@ -413,24 +413,24 @@ class InstructionSetCreator {
         // TODO fix register/memory types
         return if (operand1 is Register) {
             listOf(
-                create2ArgInstruction(operand1, operand2)
+                instrFactory2arg(operand1, operand2)
             )
         }
         else if (operand1 is ConstantOperandArgumentType) {
             listOf(
                 MovInstruction(reg1, operand2),
-                create2ArgInstruction(operand1, reg1)
+                instrFactory2arg(operand1, reg1)
             )
         }
         else if (false /* operand2 is Memory */) {
             listOf(
                 MovInstruction(reg1, operand2),
-                create2ArgInstruction(operand1, reg1)
+                instrFactory2arg(operand1, reg1)
             )
         }
         else {
             listOf(
-                create2ArgInstruction(operand1, operand2)
+                instrFactory2arg(operand1, operand2)
             )
         }
     }
