@@ -7,7 +7,7 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>) -> List<Instruction>
+    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
 )
 
 interface InstructionPattern{
@@ -27,7 +27,7 @@ class TemplatePattern(
     override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
-    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
 ) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
@@ -58,8 +58,8 @@ class TemplatePattern(
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
-        return InstructionMatchResult(toMatch, { dest, registers ->
-            lambdaInstruction(dest, injectConstants(constants, registers))
+        return InstructionMatchResult(toMatch, { dest, registers, label ->
+            lambdaInstruction(dest, injectConstants(constants, registers), label)
         })
     }
 
