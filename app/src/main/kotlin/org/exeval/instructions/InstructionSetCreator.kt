@@ -84,7 +84,7 @@ class InstructionSetCreator {
                     )
                 } else {
                     listOf(
-                        MovInstruction(inputs[0] as AssignableDest, inputs[1] as AssignableDest)
+                        MovInstruction(inputs[0] as AssignableDest, inputs[1])
                     )
                 }
             }
@@ -195,8 +195,6 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-
-        val rootType = BinaryAddTreeKind
         return createSimpleBoolOperationPatterns(
             BinaryAndTreeKind,
             {par1: OperandArgumentType, par2: OperandArgumentType -> AndInstruction(par1 as AssignableDest, par2)}
@@ -224,12 +222,12 @@ class InstructionSetCreator {
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         MovInstruction(reg1, inputs[1]),
-                        CmpInstruction(reg1, NumericalConstant(0)),
+                        CmpInstruction(reg1, NumericalConstant(1)),
                     )
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(0))
+                        CmpInstruction(inputs[1], NumericalConstant(1))
                     )
                 } + listOf(
                     JeInstruction(label),
@@ -356,7 +354,7 @@ class InstructionSetCreator {
                     XorInstruction(reg1, reg1),
                     MovInstruction(dest, NumericalConstant(1))
                 ) + create2ArgInstruction(
-                    {par1: OperandArgumentType, par2: OperandArgumentType -> SubInstruction(par1 as AssignableDest, par2)},
+                    {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
                     inputs[0],
                     inputs[1]
                 ) + listOf(
