@@ -25,8 +25,8 @@ class InstructionSetCreator {
         return (
             createAssignmentPatterns()
 
-            + createSafeSimple2ArgPatterns(BinaryAddKind, OperationAsm.ADD)
-            + createSafeSimple2ArgPatterns(BinarySubtractKind, OperationAsm.SUB)
+            + createSafeSimple2ArgPatterns(BinaryAddTreeKind, OperationAsm.ADD)
+            + createSafeSimple2ArgPatterns(BinarySubtractTreeKind, OperationAsm.SUB)
 
             + createMultiplyPatterns()
             + createDividePatterns()
@@ -34,9 +34,9 @@ class InstructionSetCreator {
             + createAndPatterns()
             + createOrPatterns()
 
-            + createSimpleComparisonPatterns(BinaryGreaterKind, OperationAsm.CMOVG, OperationAsm.JG)
-            + createSimpleComparisonPatterns(BinaryGreaterEqualKind, OperationAsm.CMOVGE, OperationAsm.JGE)
-            + createSimpleComparisonPatterns(BinaryEqualKind, OperationAsm.CMOVE, OperationAsm.JE)
+            + createSimpleComparisonPatterns(BinaryGreaterTreeKind, OperationAsm.CMOVG, OperationAsm.JG)
+            + createSimpleComparisonPatterns(BinaryGreaterEqualTreeKind, OperationAsm.CMOVGE, OperationAsm.JGE)
+            + createSimpleComparisonPatterns(BinaryEqualTreeKind, OperationAsm.CMOVE, OperationAsm.JE)
 
             + createNotPatterns()
             + createNegationPatterns()
@@ -89,7 +89,7 @@ class InstructionSetCreator {
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryMultiplyKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+            TemplatePattern(BinaryMultiplyTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning multiply cannot be null"
@@ -101,13 +101,13 @@ class InstructionSetCreator {
                 createMulDivModInstructions(OperationAsm.MUL, dest, inputs)
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(BinaryMultiplyKind)
+            createEmptyExecPattern(BinaryMultiplyTreeKind)
         )
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(BinaryDivideKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+            TemplatePattern(BinaryDivideTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning divide cannot be null"
@@ -119,7 +119,7 @@ class InstructionSetCreator {
                 createMulDivModInstructions(OperationAsm.DIV, dest, inputs)
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(BinaryDivideKind)
+            createEmptyExecPattern(BinaryDivideTreeKind)
         )
     }
 
@@ -183,8 +183,8 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        return createSimpleBoolOperationPatterns(BinaryAndKind, OperationAsm.AND) + listOf(
-            TemplatePattern(BinaryAndKind, InstructionKind.JUMP, 1) { _, inputs, label ->
+        return createSimpleBoolOperationPatterns(BinaryAndTreeKind, OperationAsm.AND) + listOf(
+            TemplatePattern(BinaryAndTreeKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException("Boolean and takes exactly two arguments")
                 }
@@ -226,8 +226,8 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
-        return createSimpleBoolOperationPatterns(BinaryOrKind, OperationAsm.OR) + listOf(
-            TemplatePattern(BinaryOrKind, InstructionKind.JUMP, 1) { _, inputs, label ->
+        return createSimpleBoolOperationPatterns(BinaryOrTreeKind, OperationAsm.OR) + listOf(
+            TemplatePattern(BinaryOrTreeKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 2) {
                     throw IllegalArgumentException("Boolean or takes exactly two arguments")
                 }
@@ -401,7 +401,7 @@ class InstructionSetCreator {
         val reg1 = VirtualRegister()
 
         return listOf(
-            TemplatePattern(UnaryNotKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+            TemplatePattern(UnaryNotTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException(
                         "Destination for value-returning boolean negation cannot be null"
@@ -421,7 +421,7 @@ class InstructionSetCreator {
                     SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
             },
-            TemplatePattern(UnaryNotKind, InstructionKind.JUMP, 1) { _, inputs, label ->
+            TemplatePattern(UnaryNotTreeKind, InstructionKind.JUMP, 1) { _, inputs, label ->
                 if (inputs.size != 1) {
                     throw IllegalArgumentException("Boolean negation takes exactly one argument")
                 }
@@ -444,7 +444,7 @@ class InstructionSetCreator {
                 )
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(UnaryNotKind)
+            createEmptyExecPattern(UnaryNotTreeKind)
         )
     }
 
@@ -453,7 +453,7 @@ class InstructionSetCreator {
         val reg1 = VirtualRegister()
 
         return listOf(
-            TemplatePattern(UnaryMinusKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+            TemplatePattern(UnaryMinusTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for negation cannot be null")
                 }
@@ -475,14 +475,14 @@ class InstructionSetCreator {
                 }
             },
             // NOTE In EXEC version it's equivalent to no-op
-            createEmptyExecPattern(UnaryMinusKind)
+            createEmptyExecPattern(UnaryMinusTreeKind)
         )
     }
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                CallKind,
+                CallTreeKind,
                 InstructionKind.EXEC,
                 1
             ) { _, inputs, _ ->
@@ -502,7 +502,7 @@ class InstructionSetCreator {
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
             TemplatePattern(
-                ReturnKind,
+                ReturnTreeKind,
                 InstructionKind.VALUE,
                 1
             ) { _, _, _ ->

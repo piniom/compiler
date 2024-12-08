@@ -59,7 +59,7 @@ class InstructionCoverer(private val instructionPatterns : Map<InstructionPatter
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        var mapKey: InstructionPatternMapKey = InstructionPatternMapKey(tree.kind(), instructionKind)
+        var mapKey: InstructionPatternMapKey = InstructionPatternMapKey(tree.treeKind(), instructionKind)
         for (instructionPattern in instructionPatterns[mapKey]!!) {
             val result = instructionPattern.matches(tree)
             if (result != null) {
