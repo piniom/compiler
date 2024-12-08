@@ -84,7 +84,7 @@ class InstructionSetCreator {
                     )
                 } else {
                     listOf(
-                        MovInstruction(inputs[0] as AssignableDest, inputs[1])
+                        MovInstruction(inputs[0] as AssignableDest, inputs[1] as AssignableDest)
                     )
                 }
             }
@@ -195,6 +195,8 @@ class InstructionSetCreator {
         // NOTE Needed only if at least one argument is a constant, can be either register or memory
         val reg1 = VirtualRegister()
 
+
+        val rootType = BinaryAddTreeKind
         return createSimpleBoolOperationPatterns(
             BinaryAndTreeKind,
             {par1: OperandArgumentType, par2: OperandArgumentType -> AndInstruction(par1 as AssignableDest, par2)}
@@ -222,12 +224,12 @@ class InstructionSetCreator {
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
                         MovInstruction(reg1, inputs[1]),
-                        CmpInstruction(reg1, NumericalConstant(1)),
+                        CmpInstruction(reg1, NumericalConstant(0)),
                     )
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(1))
+                        CmpInstruction(inputs[1], NumericalConstant(0))
                     )
                 } + listOf(
                     JeInstruction(label),
@@ -354,7 +356,7 @@ class InstructionSetCreator {
                     XorInstruction(reg1, reg1),
                     MovInstruction(dest, NumericalConstant(1))
                 ) + create2ArgInstruction(
-                    {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
+                    {par1: OperandArgumentType, par2: OperandArgumentType -> SubInstruction(par1 as AssignableDest, par2)},
                     inputs[0],
                     inputs[1]
                 ) + listOf(
@@ -397,7 +399,7 @@ class InstructionSetCreator {
     }
 
     private fun create2ArgInstruction(
-        instrFactory2arg: (OperandArgumentType, OperandArgumentType) -> Instruction,
+        create2ArgInstruction: (OperandArgumentType, OperandArgumentType) -> Instruction,
         operand1: OperandArgumentType,
         operand2: OperandArgumentType
     ): List<Instruction> {
@@ -411,24 +413,24 @@ class InstructionSetCreator {
         // TODO fix register/memory types
         return if (operand1 is Register) {
             listOf(
-                instrFactory2arg(operand1, operand2)
+                create2ArgInstruction(operand1, operand2)
             )
         }
         else if (operand1 is ConstantOperandArgumentType) {
             listOf(
                 MovInstruction(reg1, operand2),
-                instrFactory2arg(operand1, reg1)
+                create2ArgInstruction(operand1, reg1)
             )
         }
         else if (false /* operand2 is Memory */) {
             listOf(
                 MovInstruction(reg1, operand2),
-                instrFactory2arg(operand1, reg1)
+                create2ArgInstruction(operand1, reg1)
             )
         }
         else {
             listOf(
-                instrFactory2arg(operand1, operand2)
+                create2ArgInstruction(operand1, operand2)
             )
         }
     }
