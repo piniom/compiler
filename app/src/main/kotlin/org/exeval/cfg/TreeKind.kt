@@ -1,31 +1,26 @@
 package org.exeval.cfg
 
-// Define the TreeKind interface
 interface TreeKind
 
-// Implement TreeKind as singleton objects for each type
-object ConstantKind : TreeKind
-object MemoryKind : TreeKind
-object RegisterKind : TreeKind
-object AssignmentKind : TreeKind
+object ConstantTreeKind : TreeKind
+object MemoryTreeKind : TreeKind
+object RegisterTreeKind : TreeKind
+object AssignmentTreeKind : TreeKind
 
-// Binary operation kinds
-object BinaryAddKind : TreeKind
-object BinarySubtractKind : TreeKind
-object BinaryMultiplyKind : TreeKind
-object BinaryDivideKind : TreeKind
-object BinaryAndKind : TreeKind
-object BinaryOrKind : TreeKind
-object BinaryGreaterKind : TreeKind
-object BinaryGreaterEqualKind : TreeKind
-object BinaryEqualKind : TreeKind
-object BinaryLessKind : TreeKind
-object BinaryLessEqualKind : TreeKind
+object BinaryAddTreeKind : TreeKind
+object BinarySubtractTreeKind : TreeKind
+object BinaryMultiplyTreeKind : TreeKind
+object BinaryDivideTreeKind : TreeKind
+object BinaryAndTreeKind : TreeKind
+object BinaryOrTreeKind : TreeKind
+object BinaryGreaterTreeKind : TreeKind
+object BinaryGreaterEqualTreeKind : TreeKind
+object BinaryEqualTreeKind : TreeKind
+object BinaryLessTreeKind : TreeKind
+object BinaryLessEqualTreeKind : TreeKind
 
-// Unary operation kinds
-object UnaryNotKind : TreeKind
-object UnaryMinusKind : TreeKind
+object UnaryNotTreeKind : TreeKind
+object UnaryMinusTreeKind : TreeKind
 
-// Other kinds
-object CallKind : TreeKind
-object ReturnKind : TreeKind
+object CallTreeKind : TreeKind
+object ReturnTreeKind : TreeKind

@@ -32,7 +32,7 @@ class TemplatePattern(
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-        if (rootType != parseTree.kind()) {
+        if (rootType != parseTree.treeKind()) {
             return null
         }
         val args = when (parseTree) {

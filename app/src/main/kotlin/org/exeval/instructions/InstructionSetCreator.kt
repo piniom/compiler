@@ -57,7 +57,7 @@ class InstructionSetCreator {
         return listOf(
             // NOTE Value of assignment is Nope, so it only exists in EXEC variant
             TemplatePattern(
-                AssignmentKind,
+                AssignmentTreeKind,
                 InstructionKind.EXEC,
                 1
             ) { _, inputs, _ ->
