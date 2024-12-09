@@ -1,5 +1,7 @@
 package org.exeval.ast
 
+import org.exeval.input.SimpleLocation
+import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
@@ -114,13 +116,21 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun processConstDecl(constDecl: ConstantDeclaration) {
-        addDecl(constDecl.name, constDecl)
-        processAsBlock { processNode(constDecl.initializer) }
+        processVarDecl(constDecl, constDecl.name, constDecl.initializer)
     }
 
     private fun processMutDecl(mutDecl: MutableVariableDeclaration) {
-        addDecl(mutDecl.name, mutDecl)
-        mutDecl.initializer?.let {
+        processVarDecl(mutDecl, mutDecl.name, mutDecl.initializer)
+    }
+
+    private fun processVarDecl(varDecl: AnyVariable, name: String, inializer: ASTNode?) {
+        if (hasSameVarAlreadyInScope(name)) {
+            addSameVariableNameError(varDecl)
+            return
+        }
+
+        addDecl(name, varDecl)
+        inializer?.let {
             processAsBlock { processNode(it) }
         }
     }
@@ -209,6 +219,18 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         return null
     }
 
+    private fun hasSameVarAlreadyInScope(name: String): Boolean {
+        if (declarations.isEmpty())
+            return false
+
+        val scope = declarations.last()
+        return scope.containsKey(name)
+    }
+
+    private fun hasSameLoopIdentifierInScope(name: String): Boolean {
+        return loopStack.any { it.loopMap.containsKey(name) }
+    }
+
     private fun findDecl(name: String): ASTNode? {
         for (declInSingleBlock in declarations.reversed())
             declInSingleBlock[name]?.let { return it }
@@ -221,9 +243,18 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
         processAsBlock {
             pushLoopStack()
-            functionDecl.parameters.forEach{ processNode(it) }
+            processFunParameters(functionDecl.parameters)
             processNode(functionDecl.body)
             popLoopStack()
+        }
+    }
+
+    private fun processFunParameters(parameters: List<Parameter>) {
+        parameters.forEach{
+            if (hasSameVarAlreadyInScope(it.name))
+                addSameNameOfArgumentError(it)
+            else
+                addDecl(it.name, it)
         }
     }
 
@@ -246,6 +277,13 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
 
     private fun processLoop(loopNode: Loop) {
+        loopNode.identifier?.let {
+            if (hasSameLoopIdentifierInScope(it)) {
+                addSameLoopIdentifierError(loopNode)
+                return
+            }
+        }
+
         val prevLoop = getClosestLoop()
         setClosestLoop(loopNode)
         loopNode.identifier?.let { getLoopData().loopMap[it] = loopNode }
@@ -319,17 +357,27 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun addAlreadyUsedArgError(argument: ASTNode) {
         addDiagnostic("Trying to pass to an already provided parameter.", argument)
     }
+    private fun addSameNameOfArgumentError(argument: ASTNode) {
+        addDiagnostic("Cannot use the same name for argument twice.", argument)
+    }
+    private fun addSameVariableNameError(variable: ASTNode) {
+        addDiagnostic("Cannot use the same name in the same scope for variable twice.", variable)
+    }
+    private fun addSameLoopIdentifierError(loop: Loop) {
+        addDiagnostic("Cannot use the same identifier in nessted loop.", loop)
+    }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {
-        astInfo.locations[astNode]?.let {
-            diagnostics.add(
-                SimpleDiagnostics(
-                    message = message,
-                    startLocation = it.start,
-                    stopLocation = it.end
-                )
+        val noLocation = SimpleLocation(0, 0)
+        val loc = astInfo.locations[astNode] ?: LocationRange(noLocation, noLocation)
+
+        diagnostics.add(
+            SimpleDiagnostics(
+                message = message,
+                startLocation = loc.start,
+                stopLocation = loc.end
             )
-        }
+        )
     }
 }
 

@@ -1,71 +1,86 @@
 package org.exeval.instructions
 
 import org.exeval.cfg.*
-import org.exeval.cfg.constants.*
+
+data class InstructionPatternMapKey(
+    val treeRootType: TreeKind,
+    val instructionKind: InstructionKind
+)
 
 class InstructionSetCreator {
-    private val patterns: Map<OperationType, List<InstructionPattern>>
+    private val patterns: Map<InstructionPatternMapKey, List<InstructionPattern>>
 
     init {
         patterns = initInstructionSet()
     }
 
-    fun createInstructionSet(): Map<OperationType, List<InstructionPattern>> = patterns
+    fun createInstructionSet(): Map<InstructionPatternMapKey, List<InstructionPattern>> = patterns
 
 
     // Private
 
-    private fun initInstructionSet(): Map<OperationType, List<InstructionPattern>> {
-        return mapOf(
-            BinaryOperationType.ASSIGNMENT to createAssignmentPatterns(),
-            BinaryOperationType.ADD to createSafeSimple2ArgPattern(
-                BinaryOperationType.ADD, OperationAsm.ADD),
-            BinaryOperationType.SUBTRACT to createSafeSimple2ArgPattern(
-                BinaryOperationType.SUBTRACT, OperationAsm.SUB),
+    private fun initInstructionSet(): Map<InstructionPatternMapKey, List<InstructionPattern>> {
+        return (
+            createAssignmentPatterns()
 
-            BinaryOperationType.MULTIPLY to createMultiplyPatterns(),
-            BinaryOperationType.DIVIDE to createDividePatterns(),
-            BinaryOperationType.MODULO to createModuloPatterns(),
+            + createSafeSimple2ArgPatterns(BinaryTreeOperationType.ADD, OperationAsm.ADD)
+            + createSafeSimple2ArgPatterns(BinaryTreeOperationType.SUBTRACT, OperationAsm.SUB)
 
-            BinaryOperationType.AND to createSimpleBoolOperationPattern(
-                BinaryOperationType.AND, OperationAsm.AND),
-            BinaryOperationType.OR to createSimpleBoolOperationPattern(
-                BinaryOperationType.OR, OperationAsm.OR),
-            BinaryOperationType.XOR to createSimpleBoolOperationPattern(
-                BinaryOperationType.XOR, OperationAsm.XOR),
+            + createMultiplyPatterns()
+            + createDividePatterns()
 
-            BinaryOperationType.GREATER to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER, OperationAsm.CMOVG),
-            BinaryOperationType.GREATER_EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.GREATER_EQUAL, OperationAsm.CMOVGE),
-            BinaryOperationType.EQUAL to createSimpleComparisonPattern(
-                BinaryOperationType.EQUAL, OperationAsm.CMOVE),
+            + createAndPatterns()
+            + createOrPatterns()
 
-            UnaryOperationType.NOT to createNotPatterns(),
-            UnaryOperationType.MINUS to createNegationPatterns(),
-            UnaryOperationType.INCREMENT to createIncrementPatterns(),
-            UnaryOperationType.DECREMENT to createDecrementPatterns(),
-            UnaryOperationType.CALL to createCallPatterns(),
+            + createSimpleComparisonPatterns(BinaryTreeOperationType.GREATER, OperationAsm.CMOVG, OperationAsm.JG)
+            + createSimpleComparisonPatterns(BinaryTreeOperationType.GREATER_EQUAL, OperationAsm.CMOVGE, OperationAsm.JGE)
+            + createSimpleComparisonPatterns(BinaryTreeOperationType.EQUAL, OperationAsm.CMOVE, OperationAsm.JE)
 
-            NullaryOperationType.RETURN to createReturnPatterns(),
-        )
+            + createNotPatterns()
+            + createNegationPatterns()
+            + createCallPatterns()
+
+            + createReturnPatterns()
+        ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
+    // TODO Are labels considered by assembly as "immediate values"?
+
+    // TODO Fix labels in JUMP patterns
+
     private fun createAssignmentPatterns(): List<InstructionPattern> {
+        /* NOTE Needed only if both operand virtual registers are mapped to memory.
+         *      Then has to be a physical register, not memory.
+         */
+        val reg1 = VirtualRegister()
+
         return listOf(
-            TemplatePattern(BinaryOperationType.ASSIGNMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for assignment cannot be null")
-                }
-                if (destRegister is Memory && operands[0] is Memory) {
-                    listOf(
-                        Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operands[0])),
-                        Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0)))
+            // NOTE Value of assignment is Nope, so it only exists in EXEC variant
+            TemplatePattern(
+                AssignmentTreeKind,
+                InstructionKind.EXEC,
+                1
+            ) { _, inputs ->
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException(
+                        """Assignment takes exactly two arguments:
+                        [1] destination (where to assign) and
+                        [2] source (what to assign)""".trimIndent()
                     )
                 }
-                else {
+                if (!(inputs is Register)) { // TODO or Memory
+                    throw IllegalArgumentException(
+                        "First argument for assignment must be a register or memory location"
+                    )
+                }
+                if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
                     listOf(
-                        Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(inputs[0], reg1))
+                    )
+                } else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(inputs[0], inputs[1]))
                     )
                 }
             }
@@ -73,245 +88,415 @@ class InstructionSetCreator {
     }
 
     private fun createMultiplyPatterns(): List<InstructionPattern> {
+        val rootType = BinaryMultiplyTreeKind
         return listOf(
-            TemplatePattern(BinaryOperationType.MULTIPLY, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for multiply cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning multiply cannot be null"
+                    )
                 }
-                createMulDivModInstructions(OperationAsm.MUL, operands, destRegister)
-            }
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException("Multiply takes exactly two arguments")
+                }
+                createMulDivModInstructions(OperationAsm.MUL, dest, inputs)
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
     private fun createDividePatterns(): List<InstructionPattern> {
+        val rootType = BinaryDivideTreeKind
         return listOf(
-            TemplatePattern(BinaryOperationType.DIVIDE, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for divide cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning divide cannot be null"
+                    )
                 }
-                createMulDivModInstructions(OperationAsm.DIV, operands, destRegister)
-            }
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException("Divide takes exactly two arguments")
+                }
+                createMulDivModInstructions(OperationAsm.DIV, dest, inputs)
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
-    private fun createModuloPatterns(): List<InstructionPattern> {
+    private fun createMulDivModInstructions(
+        operation: OperationAsm,
+        dest: VirtualRegister,
+        inputs: List<OperandArgumentType>
+    ): List<Instruction> {
+        // NOTE Needed always, can be either register or memory
+        val reg1 = VirtualRegister()
+        // NOTE Needed only if second argument is a constant, can be either register or memory
+        val reg2 = VirtualRegister()
+
         return listOf(
-            TemplatePattern(BinaryOperationType.MODULO, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for modulo cannot be null")
+            // Save registers modified by assembly instruction
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, PhysicalRegister.RAX)),
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(PhysicalRegister.RAX, inputs[0])),
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, PhysicalRegister.RDX)),
+        ) + if (inputs[1] is ConstantOperandArgumentType) {
+            listOf(
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg2, inputs[1])),
+                SimpleAsmInstruction(operation, listOf(reg2)),
+            )
+        }
+        else {
+            listOf(
+                SimpleAsmInstruction(operation, listOf(inputs[1])),
+            )
+        } + listOf(
+            // Save result & restore registers
+            SimpleAsmInstruction(OperationAsm.XCHG, listOf(dest, PhysicalRegister.RAX)),
+            SimpleAsmInstruction(OperationAsm.MOV, listOf(PhysicalRegister.RDX, reg1)),
+        )
+    }
+
+    private fun createSafeSimple2ArgPatterns(
+        rootOperation: BinaryTreeOperationType,
+        asmOperation: OperationAsm
+    ): List<InstructionPattern> {
+        val rootType = rootOperation.treeKind();
+        return listOf(
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning ${rootOperation} cannot be null"
+                    )
                 }
-                createMulDivModInstructions(OperationAsm.DIV, operands, destRegister) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R0))),
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException("${rootOperation} takes exactly two arguments")
+                }
+                listOf(
+                    // TODO fix if both are memory
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0]))
+                ) + create2ArgInstruction(asmOperation, dest, inputs[1])
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
+        )
+    }
+
+    private fun createAndPatterns(): List<InstructionPattern> {
+        // NOTE Needed only if at least one argument is a constant, can be either register or memory
+        val reg1 = VirtualRegister()
+
+        val rootType = BinaryAddTreeKind
+        return createSimpleBoolOperationPatterns(BinaryTreeOperationType.AND, OperationAsm.AND) + listOf(
+            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException("Boolean and takes exactly two arguments")
+                }
+                if (inputs[0] is ConstantOperandArgumentType) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                    )
+                }
+                else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0)))
+                    )
+                } + listOf(
+                    // TODO fix labels
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-false */ )),
+                ) + if (inputs[1] is ConstantOperandArgumentType) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                    )
+                }
+                else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(0)))
+                    )
+                } + listOf(
+                    // TODO fix labels
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-false */ )),
+                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-true */ )),
                 )
             }
         )
     }
 
-    private fun createMulDivModInstructions(operation: OperationAsm, operands: List<OperandArgumentType>, destRegister: Assignable): List<Instruction> {
-        return listOf(
-            Instruction(OperationAsm.MOV, listOf(destRegister, PhysicalRegister(Registers.RAX))),
-            Instruction(OperationAsm.MOV, listOf(PhysicalRegister(Registers.RAX), operands[0])),
-            Instruction(OperationAsm.MOV, listOf(
-                VirtualRegister(WorkingRegisters.R0),
-                PhysicalRegister(Registers.RDX)
-            ))
-        ) + when (operands[1]) {
-            // Case: Register or Memory
-            is Assignable -> listOf(
-                Instruction(operation, listOf(operands[1])),
-            )
-            // Case: Constant
-            is Constant -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R1), operands[1])),
-                Instruction(operation, listOf(VirtualRegister(WorkingRegisters.R1))),
-            )
-        } + listOf(
-            Instruction(OperationAsm.XCHG, listOf(destRegister, PhysicalRegister(Registers.RAX))),
-            Instruction(OperationAsm.XCHG, listOf(
-                PhysicalRegister(Registers.RDX),
-                VirtualRegister(WorkingRegisters.R0)
-            )),
-        )
-    }
+    private fun createOrPatterns(): List<InstructionPattern> {
+        // NOTE Needed only if at least one argument is a constant, can be either register or memory
+        val reg1 = VirtualRegister()
 
-    private fun createSafeSimple2ArgPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument operation ${rootOperation} cannot be null")
+        val rootType = BinaryOrTreeKind
+        return createSimpleBoolOperationPatterns(BinaryTreeOperationType.OR, OperationAsm.OR) + listOf(
+            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException("Boolean or takes exactly two arguments")
                 }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0]))
-                ) + create2ArgInstruction(asmOperation, destRegister, operands[1])
+                if (inputs[0] is ConstantOperandArgumentType) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                    )
+                }
+                else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0)))
+                    )
+                } + listOf(
+                    // TODO fix labels
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( /* label-true */ )),
+                ) + if (inputs[1] is ConstantOperandArgumentType) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[1])),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                    )
+                }
+                else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[1], NumericalConstant(0)))
+                    )
+                } + listOf(
+                    // TODO fix labels
+                    SimpleAsmInstruction(OperationAsm.JNE, listOf( /* label-true */ )),
+                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ )),
+                )
             }
         )
     }
 
-    private fun convertBooleanTo0Or1(destRegister: Register, boolean: OperandArgumentType): List<Instruction> {
+    private fun convertBooleanTo0Or1(
+        dest: VirtualRegister,
+        boolean: OperandArgumentType
+    ): List<Instruction> {
         return listOf(
             // A neat conversion without jumps found on stackoverflow
 
-            // Set destRegister to 0
-            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
+            // Set dest to 0
+            SimpleAsmInstruction(OperationAsm.XOR, listOf(dest, dest)),
             // Carry will be set if boolean was not 0
-            Instruction(OperationAsm.SUB, listOf(destRegister, boolean)),
-            // Set destRegister to 0 once again
-            Instruction(OperationAsm.XOR, listOf(destRegister, destRegister)),
-            // Add carry to destRegister + 0
-            Instruction(OperationAsm.ADC, listOf(destRegister, Constant(0))),
-            // If carry was set, destRegister will be equal to 1, otherwise it'll be 0
+            SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, boolean)),
+            // Set dest to 0 once again
+            SimpleAsmInstruction(OperationAsm.XOR, listOf(dest, dest)),
+            // Add carry to dest + 0
+            SimpleAsmInstruction(OperationAsm.ADC, listOf(dest, NumericalConstant(0))),
+            // If carry was set, dest will be equal to 1, otherwise it'll be 0
         )
     }
 
-    private fun createSimpleBoolOperationPattern(rootOperation: BinaryOperationType, asmOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleBoolOperationPatterns(
+        rootOperation: BinaryTreeOperationType,
+        asmOperation: OperationAsm
+    ): List<InstructionPattern> {
+        // NOTE Needed always (for VALUE kind), must be a register
+        val reg1 = VirtualRegister()
+
+        val rootType = rootOperation.treeKind()
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for 2-argument boolean operation ${rootOperation} cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning boolean ${rootOperation} cannot be null"
+                    )
                 }
-                convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[0]) + listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1)))
-                ) + convertBooleanTo0Or1(VirtualRegister(WorkingRegisters.R1), operands[1]) +
-                create2ArgInstruction(asmOperation, destRegister, VirtualRegister(WorkingRegisters.R1))
-            }
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException(
+                        "Boolean ${rootOperation} takes exactly two arguments"
+                    )
+                }
+                convertBooleanTo0Or1(reg1, inputs[0]) + listOf(
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1))
+                ) + convertBooleanTo0Or1(reg1, inputs[1]) +
+                        create2ArgInstruction(asmOperation, dest, reg1)
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
-    private fun createSimpleComparisonPattern(rootOperation: BinaryOperationType, asmCmovOperation: OperationAsm): List<InstructionPattern> {
+    private fun createSimpleComparisonPatterns(
+        rootOperation: BinaryTreeOperationType,
+        asmCmovOperation: OperationAsm,
+        asmJccOperation: OperationAsm
+    ): List<InstructionPattern> {
+        // NOTE Needed always in VALUE variant. Must be a register, not memory
+        val reg1 = VirtualRegister()
+
+        val rootType = rootOperation.treeKind()
         return listOf(
-            TemplatePattern(rootOperation, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning comparison cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning comparison ${rootOperation} cannot be null"
+                    )
+                }
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException(
+                        "Comparision ${rootOperation} takes exactly two arguments"
+                    )
                 }
                 listOf(
-                    Instruction(OperationAsm.XOR, listOf(
-                        VirtualRegister(WorkingRegisters.R1),
-                        VirtualRegister(WorkingRegisters.R1))
-                    ),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, Constant(1))),
-                ) + create2ArgInstruction(OperationAsm.CMP, operands[0], operands[1]) + listOf(
-                    // The first operand HAS to be a register (cannot be memory)
-                    Instruction(asmCmovOperation, listOf(VirtualRegister(WorkingRegisters.R1), destRegister)),
-                    Instruction(OperationAsm.MOV, listOf(destRegister, VirtualRegister(WorkingRegisters.R1))),
+                    SimpleAsmInstruction(OperationAsm.XOR, listOf(reg1, reg1)),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, NumericalConstant(1))),
+                ) + create2ArgInstruction(OperationAsm.CMP, inputs[0], inputs[1]) + listOf(
+                    // NOTE The first operand HAS to be a register (cannot be memory)
+                    SimpleAsmInstruction(asmCmovOperation, listOf(reg1, dest)),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1)),
                 )
-            }
+            },
+            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+                if (inputs.size != 2) {
+                    throw IllegalArgumentException(
+                        "Comparision ${rootOperation} takes exactly two arguments"
+                    )
+                }
+                // TODO fix labels
+                create2ArgInstruction(OperationAsm.CMP, inputs[0], inputs[1]) + listOf(
+                    SimpleAsmInstruction(asmJccOperation, listOf( /* label-true */ )),
+                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ ))
+                )
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
-    private fun create2ArgInstruction(operation: OperationAsm, operand1: OperandArgumentType, operand2: OperandArgumentType): List<Instruction> {
-        return when {
-            // Case: Register + Register
-            operand1 is Register && operand2 is Register -> listOf(
-                Instruction(operation, listOf(operand1, operand2))
+    private fun create2ArgInstruction(
+        operation: OperationAsm,
+        operand1: OperandArgumentType,
+        operand2: OperandArgumentType
+    ): List<Instruction> {
+        /* NOTE Needed if:
+         *      - both operands are memory, must be a register
+         *      - first operand is constant and second is register, can be either register or memory
+         *      - first operand is constant and second isn't register, must be a register
+         */
+        val reg1 = VirtualRegister()
+
+        // TODO fix register/memory types
+        return if (operand1 is Register) {
+            listOf(
+                SimpleAsmInstruction(operation, listOf(operand1, operand2))
             )
-            // Case: Register + Memory
-            operand1 is Register && operand2 is Memory -> listOf(
-                Instruction(operation, listOf(operand1, operand2))
+        }
+        else if (operand1 is ConstantOperandArgumentType) {
+            listOf(
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
-            // Case: Memory + Register
-            operand1 is Memory && operand2 is Register -> listOf(
-                Instruction(operation, listOf(operand1, operand2))
+        }
+        else if (false /* operand2 is Memory */) {
+            listOf(
+                SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, operand2)),
+                SimpleAsmInstruction(operation, listOf(operand1, reg1)),
             )
-            // Case: Memory + Memory
-            operand1 is Memory && operand2 is Memory -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
+        }
+        else {
+            listOf(
+                SimpleAsmInstruction(operation, listOf(operand1, operand2))
             )
-            // Case: Register + Constant
-            operand1 is Register && operand2 is Constant -> listOf(
-                Instruction(operation, listOf(operand1, operand2))
-            )
-            // Case: Constant + Register
-            operand1 is Constant && operand2 is Register -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
-            )
-            // Case: Memory + Constant
-            operand1 is Memory && operand2 is Constant -> listOf(
-                Instruction(operation, listOf(operand1, operand2))
-            )
-            // Case: Constant + Memory
-            operand1 is Constant && operand2 is Memory -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
-            )
-            // Case: Constant + Constant
-            operand1 is Constant && operand2 is Constant -> listOf(
-                Instruction(OperationAsm.MOV, listOf(VirtualRegister(WorkingRegisters.R0), operand2)),
-                Instruction(operation, listOf(operand1, VirtualRegister(WorkingRegisters.R0))),
-            )
-            else -> throw IllegalArgumentException("Unsupported operand types for 2-argument instuction ${operation}")
         }
     }
 
     private fun createNotPatterns(): List<InstructionPattern> {
+        // NOTE Needed only in JUMP variant if operand is a constant, can be either register or memory
+        val reg1 = VirtualRegister()
+
+        val rootType = UnaryNotTreeKind
         return listOf(
-            TemplatePattern(UnaryOperationType.NOT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for boolean negation cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for value-returning boolean negation cannot be null"
+                    )
+                }
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException("Boolean negation takes exactly one argument")
                 }
                 listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
+                    SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0])),
                     /* Cannot use single instruction NOT, as it works bitwise:
                      * wouldn't just change 0 -> 1, 1 -> 0, but 0001 -> 1110.
                      * Typical 1 - x also cannot be used directly, as first argument
                      * to SUB cannnot be a constant.
                      */
-                    Instruction(OperationAsm.SUB, listOf(destRegister, Constant(1))),
-                    Instruction(OperationAsm.NEG, listOf(destRegister))
+                    SimpleAsmInstruction(OperationAsm.SUB, listOf(dest, NumericalConstant(1))),
+                    SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
                 )
-            }
+            },
+            TemplatePattern(rootType, InstructionKind.JUMP, 1) { _, inputs ->
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException("Boolean negation takes exactly one argument")
+                }
+                if (inputs[0] is ConstantOperandArgumentType) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
+                        SimpleAsmInstruction(OperationAsm.CMP, listOf(reg1, NumericalConstant(0))),
+                    )
+                }
+                else {
+                    listOf(
+                    SimpleAsmInstruction(OperationAsm.CMP, listOf(inputs[0], NumericalConstant(0))),
+                    )
+                } + listOf(
+                    // TODO fix labels
+                    SimpleAsmInstruction(OperationAsm.JE, listOf( /* label-true */ )),
+                    SimpleAsmInstruction(OperationAsm.JMP, listOf( /* label-false */ )),
+                )
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
     private fun createNegationPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryOperationType.MINUS, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for negation cannot be null")
-                }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.NEG, listOf(destRegister))
-                )
-            }
-        )
-    }
+        // NOTE Needed only if dest and input are both memory, has to be a register, not memory
+        val reg1 = VirtualRegister()
 
-    private fun createIncrementPatterns(): List<InstructionPattern> {
+        val rootType = UnaryMinusTreeKind
         return listOf(
-            TemplatePattern(UnaryOperationType.INCREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-retuning increment cannot be null")
+            TemplatePattern(rootType, InstructionKind.VALUE, 1) { dest, inputs ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for negation cannot be null")
                 }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.INC, listOf(destRegister))
-                )
-            }
-        )
-    }
-
-    private fun createDecrementPatterns(): List<InstructionPattern> {
-        return listOf(
-            TemplatePattern(UnaryOperationType.DECREMENT, InstructionKind.VALUE, 1) { operands, destRegister ->
-                if (destRegister == null) {
-                    throw IllegalArgumentException("Destination register for value-returning decrement cannot be null")
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException("Negation takes exactly one argument")
                 }
-                listOf(
-                    Instruction(OperationAsm.MOV, listOf(destRegister, operands[0])),
-                    Instruction(OperationAsm.DEC, listOf(destRegister))
-                )
-            }
+                if (false /* dest is Memory && inputs[0] is Memory */) {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(reg1, inputs[0])),
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, reg1)),
+                        SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
+                    )
+                }
+                else {
+                    listOf(
+                        SimpleAsmInstruction(OperationAsm.MOV, listOf(dest, inputs[0])),
+                        SimpleAsmInstruction(OperationAsm.NEG, listOf(dest))
+                    )
+                }
+            },
+            // NOTE In EXEC version it's equivalent to no-op
+            createEmptyExecPattern(rootType)
         )
     }
 
     private fun createCallPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(UnaryOperationType.CALL, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(
+                CallTreeKind,
+                InstructionKind.EXEC,
+                1
+            ) { _, inputs ->
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException(
+                        "Function call takes exactly one argument: address of function to be called"
+                    )
+                }
                 listOf(
                     // The argument must contain the address or label where the target function is located
-                    Instruction(OperationAsm.CALL, listOf(operands[0]))
+                    SimpleAsmInstruction(OperationAsm.CALL, listOf(inputs[0]))
                 )
             }
         )
@@ -319,11 +504,19 @@ class InstructionSetCreator {
 
     private fun createReturnPatterns(): List<InstructionPattern> {
         return listOf(
-            TemplatePattern(NullaryOperationType.RETURN, InstructionKind.VALUE, 1) { operands, destRegister ->
+            TemplatePattern(
+                ReturnTreeKind,
+                InstructionKind.VALUE,
+                1
+            ) { _, _ ->
                 listOf(
-                    Instruction(OperationAsm.RET, listOf())
+                    SimpleAsmInstruction(OperationAsm.RET, listOf())
                 )
             }
         )
+    }
+
+    private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
+        return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ -> listOf() }
     }
 }

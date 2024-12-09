@@ -216,4 +216,58 @@ class NameResolutionTest {
             "Expected 'var' to be matched to its declaration"
         )
     }
+
+    @Test
+    fun `should detect if two atguments have the same name`() {
+        val ast = FunctionDeclaration(
+            "main", listOf(Parameter("a", IntType), Parameter("a", IntType)),
+            IntType,
+            Block(emptyList())
+        )
+
+        val astInfo = AstInfo(ast, emptyMap())
+
+        val result = NameResolutionGenerator(astInfo).parse().diagnostics
+
+        assertEquals(
+            1,
+            result.size,
+            "Expected to have one error"
+        )
+    }
+
+    @Test
+    fun `should detect if two variables have the same name`() {
+        val ast = Block(
+            listOf(
+                MutableVariableDeclaration("a", IntType, IntLiteral(1)),
+                MutableVariableDeclaration("a", IntType, IntLiteral(2))
+            )
+        )
+
+        val astInfo = AstInfo(ast, emptyMap())
+
+        val result = NameResolutionGenerator(astInfo).parse().diagnostics
+
+        assertEquals(
+            1,
+            result.size,
+            "Expected to have one error"
+        )
+    }
+
+    @Test
+    fun `should detect if two loops have same identifiers`() {
+        val ast = Loop("a", Loop("a", Block(emptyList())))
+        val astinfo = AstInfo(ast, emptyMap())
+
+        val result = NameResolutionGenerator(astinfo).parse().diagnostics
+
+        assertEquals(
+            1,
+            result.size,
+            "Expected to have one error"
+        )
+    }
+
 }
