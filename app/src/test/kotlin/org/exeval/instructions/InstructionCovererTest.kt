@@ -273,7 +273,6 @@ class InstructionCovererTest {
 
 
     @Test
-    //@Disabled("This test is disabled. Enable it when implementing JUMP functionality in InstructionCoverer")
     fun `cover of jump should use jump`() {
         val tree = NumericalConstantTree(1)
 
