@@ -127,11 +127,16 @@ class RegisterAllocation{
                 else -> it
             }
         }
+        instructions.registerValues.clear()
         instructionList.forEach{it.run()}
         val vMap = instructions.registerValues.toMap()
         instructions.registerValues.clear()
         tInstructionsList.forEach{it.run()}
         val pMap = instructions.registerValues.toMap()
+
+        println(vMap)
+        println(pMap)
+        println(a.mapping)
 
         //for all physical registers, there must be a virtual register corresponding to it such that they have the same values
         assert(a.mapping.values.all{
@@ -174,13 +179,13 @@ class RegisterAllocation{
 
             instructions.add(vr(1),vr(2)),      //1,2 start
             instructions.subtract(vr(4),vr(3)), //3,4 start
-            instructions.move(vr(3),vr(6)),     //3->6!!! end of 3 life, 6 start
+            instructions.move(vr(6),vr(3)),     //3->6!!! end of 3 life, 6 start
             instructions.add(vr(5),vr(4)),      //5 start
             instructions.subtract(vr(2),vr(1)), //
-            instructions.move(vr(1),vr(7)),     //1->7!!! end of 1 life, 7 start
+            instructions.move(vr(7),vr(1)),     //1->7!!! end of 1 life, 7 start
             instructions.add(vr(6),vr(7)),      //
             instructions.subtract(vr(4),vr(5)), //end of 4,5 life
-            instructions.move(vr(2),vr(8)),     //2->8!!! end of 2 life, 8 start
+            instructions.move(vr(8),vr(2)),     //2<-8!!! end of 2 life, 8 start
             instructions.add(vr(8),vr(6)),      //end of 8 life
             instructions.subtract(vr(6),vr(7))  //end of 6,7 life
         )
