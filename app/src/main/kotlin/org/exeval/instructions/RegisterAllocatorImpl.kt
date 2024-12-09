@@ -16,16 +16,18 @@ class RegisterAllocatorImpl : RegisterAllocator {
         val mapping: MutableMap<Register, PhysicalRegister> = mutableMapOf()
         val spills: MutableSet<Register> = mutableSetOf()
 
+        val coalescence : MutableMap<Register, Set<Register>> = range.map { it to setOf(it) }.toMap().toMutableMap()
+        val graph = livenessResult.interference
+
+        //...
 
         val visited: MutableSet<Register> = domain.filter { it is PhysicalRegister }.toMutableSet()
         val available: MutableSet<Register> = domain.subtract(visited).toMutableSet()
         val order: MutableList<Register> = visited.toMutableList()
 
-        // todo: merge regexes based on copy
-
         while(visited.size != domain.size) {
             val el = available.minBy {
-                livenessResult.interference[it]!!.count { visited.contains(it) }
+                graph[it]!!.count { visited.contains(it) }
             }
 
             available.remove(el)
@@ -34,20 +36,20 @@ class RegisterAllocatorImpl : RegisterAllocator {
         }
 
         val colored: MutableSet<Register> = mutableSetOf()
-        for (register in order) {
-            when(register) {
-                is PhysicalRegister -> {
-                    colored.add(register)
-                    mapping.put(register, register)
+        for (vertex in order) {
+            val physicalRegister = coalescence[vertex]!!.first { it is PhysicalRegister } as PhysicalRegister?
+            if (physicalRegister !== null ) {
+                colored.add(vertex)
+                coalescence[vertex]!!.forEach {
+                    mapping.put(it, physicalRegister)
                 }
-                else -> {
-                    val availableRegisters = range subtract livenessResult.interference[register]!!.filter { colored.contains(it) }.map { mapping[it]!! }
-                    if (availableRegisters.isEmpty() ) {
-                        spills.add(register)
-                    } else {
-                        colored.add(register)
-                        mapping.put(register, availableRegisters.first())
-                    }
+            } else {
+                val availableRegisters = range subtract graph[vertex]!!.filter { colored.contains(it) }.map { mapping[it]!! }
+                if (availableRegisters.isEmpty() ) {
+                    coalescence[vertex]!!.forEach { spills.add(it) }
+                } else {
+                    colored.add(vertex)
+                    coalescence[vertex]!!.forEach { mapping.put(it, availableRegisters.first()) }
                 }
             }
         }
