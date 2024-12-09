@@ -1,33 +1,13 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.CFGTest.Node
 import io.mockk.mockk
-import org.exeval.cfg.Assigment
-import org.exeval.cfg.BinaryOperationTree
-import org.exeval.cfg.BinaryTreeOperationType
-import org.exeval.cfg.Label
 import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.Register
-import org.exeval.cfg.RegisterTree
 import org.exeval.cfg.VirtualRegister
+import org.exeval.instructions.interfaces.AllocationResult
+import org.exeval.instructions.interfaces.LivenessResult
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
-
-//these interfaces will hopefully be removed later, once they are pushed to master
-data class LivenessResult(
-    val interference: RegisterGraph,
-    val copy: RegisterGraph
-)
-typealias RegisterGraph = Map<Register, List<Register>>
-typealias MutableRegisterGraph = MutableMap<Register, MutableList<Register>>
-interface RegisterAllocator {
-    fun allocate(livenessResult: LivenessResult, domain: List<Register>, range: List<PhysicalRegister>): AllocationResult
-}
-data class AllocationResult(
-    val mapping: Map<Register, PhysicalRegister>,
-    val spills: List<Register>
-)
 
 object VirtualRegisterBank{
     private val idMap = mutableMapOf<Int,VirtualRegister>()
@@ -53,17 +33,18 @@ object PhysicalRegisterBank{
 class RegisterAllocation{
     data class allocationData(
         val livenessResult: LivenessResult,
-        val domain: List<Register>,
-        val range: List<PhysicalRegister>
+        val domain: Set<Register>,
+        val range: Set<PhysicalRegister>
     )
     fun getAllocation(data: allocationData):AllocationResult{
-        TODO()
+        val impl = RegisterAllocatorImpl()
+        return impl.allocate(data.livenessResult, data.domain, data.range)
     }
     fun sanity(data : allocationData, a: AllocationResult){
         val spills = a.spills.toSet()
 
         //mapping,spill disjoint
-        assert(spills.union(a.mapping.keys).isEmpty())
+        assert(spills.intersect(a.mapping.keys).isEmpty())
         //mapping+spill=domain
         assert(data.domain == spills+a.mapping.keys)
         //physical register -> itself
@@ -85,15 +66,15 @@ class RegisterAllocation{
     @Test
     fun spills(){
         //force spills
-        val g = mapOf<Register,List<Register>>(
-            VirtualRegisterBank(1) to listOf(VirtualRegisterBank(2),VirtualRegisterBank(3)),
-            VirtualRegisterBank(2) to listOf(VirtualRegisterBank(1),VirtualRegisterBank(3)),
-            VirtualRegisterBank(3) to listOf(VirtualRegisterBank(1),VirtualRegisterBank(2))
+        val g = mapOf<Register,Set<Register>>(
+            VirtualRegisterBank(1) to setOf(VirtualRegisterBank(2),VirtualRegisterBank(3)),
+            VirtualRegisterBank(2) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(3)),
+            VirtualRegisterBank(3) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(2))
         )
         val data = allocationData(
             LivenessResult(g,mapOf()),
-            listOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3)),
-            listOf(PhysicalRegisterBank(1))
+            setOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3)),
+            setOf(PhysicalRegisterBank(1))
         )
         val a = getAllocation(data)
         sanity(data,a)
@@ -102,15 +83,15 @@ class RegisterAllocation{
     @Test
     fun no_spills(){
         //no sills necesarry
-        val g = mapOf<Register,List<Register>>(
-            VirtualRegisterBank(1) to listOf(VirtualRegisterBank(2),VirtualRegisterBank(3)),
-            VirtualRegisterBank(2) to listOf(VirtualRegisterBank(1),VirtualRegisterBank(3)),
-            VirtualRegisterBank(3) to listOf(VirtualRegisterBank(1),VirtualRegisterBank(2))
+        val g = mapOf<Register,Set<Register>>(
+            VirtualRegisterBank(1) to setOf(VirtualRegisterBank(2),VirtualRegisterBank(3)),
+            VirtualRegisterBank(2) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(3)),
+            VirtualRegisterBank(3) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(2))
         )
         val data = allocationData(
             LivenessResult(g,mapOf()),
-            listOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3)),
-            listOf(PhysicalRegisterBank(1), PhysicalRegisterBank(2),PhysicalRegisterBank(3)))
+            setOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3)),
+            setOf(PhysicalRegisterBank(1), PhysicalRegisterBank(2),PhysicalRegisterBank(3)))
         val a = getAllocation(data)
         sanity(data,a)
         assert(a.spills.isEmpty())
@@ -203,20 +184,20 @@ class RegisterAllocation{
             instructions.add(vr(8),vr(6)),      //end of 8 life
             instructions.subtract(vr(6),vr(7))  //end of 6,7 life
         )
-        val conflictGraph = mapOf<Register,List<Register>>(
-            vr(1) to listOf(vr(2),vr(3),vr(4),vr(5),vr(6)),
-            vr(2) to listOf(vr(1),vr(3),vr(4),vr(5),vr(6),vr(7)),
-            vr(3) to listOf(vr(1),vr(2),vr(4)),
-            vr(4) to listOf(vr(1),vr(2),vr(3),vr(5),vr(6),vr(7)),
-            vr(5) to listOf(vr(1),vr(2),vr(3),vr(4),vr(6),vr(7)),
-            vr(6) to listOf(vr(1),vr(2),vr(4),vr(5),vr(7),vr(8)),
-            vr(7) to listOf(vr(2),vr(4),vr(5),vr(6),vr(8)),
-            vr(8) to listOf(vr(6),vr(7))
+        val conflictGraph = mapOf<Register,Set<Register>>(
+            vr(1) to setOf(vr(2),vr(3),vr(4),vr(5),vr(6)),
+            vr(2) to setOf(vr(1),vr(3),vr(4),vr(5),vr(6),vr(7)),
+            vr(3) to setOf(vr(1),vr(2),vr(4)),
+            vr(4) to setOf(vr(1),vr(2),vr(3),vr(5),vr(6),vr(7)),
+            vr(5) to setOf(vr(1),vr(2),vr(3),vr(4),vr(6),vr(7)),
+            vr(6) to setOf(vr(1),vr(2),vr(4),vr(5),vr(7),vr(8)),
+            vr(7) to setOf(vr(2),vr(4),vr(5),vr(6),vr(8)),
+            vr(8) to setOf(vr(6),vr(7))
         )
         val data = allocationData(
             LivenessResult(conflictGraph,mapOf()),
-            (1..8).map {vr(it)}.toList(),
-            (1..8).map {pr(it)}.toList()
+            (1..8).map {vr(it)}.toSet(),
+            (1..8).map {pr(it)}.toSet()
         )
         val a = getAllocation(data)
         sanity(data,a)
@@ -230,7 +211,7 @@ class RegisterAllocation{
         )
         val a = AllocationResult(
             mapOf(VirtualRegisterBank(1) to PhysicalRegisterBank(1)),
-            listOf()
+            setOf()
         )
         simulate(i,a)
     }

@@ -16,7 +16,7 @@ class RegisterAllocatorImpl : RegisterAllocator {
         val mapping: MutableMap<Register, PhysicalRegister> = mutableMapOf()
         val spills: MutableSet<Register> = mutableSetOf()
 
-        val coalescence : MutableMap<Register, Set<Register>> = range.map { it to setOf(it) }.toMap().toMutableMap()
+        val coalescence : MutableMap<Register, Set<Register>> = domain.map { it to setOf(it) }.toMap().toMutableMap()
         val graph = livenessResult.interference
 
         //...
@@ -37,7 +37,7 @@ class RegisterAllocatorImpl : RegisterAllocator {
 
         val colored: MutableSet<Register> = mutableSetOf()
         for (vertex in order) {
-            val physicalRegister = coalescence[vertex]!!.first { it is PhysicalRegister } as PhysicalRegister?
+            val physicalRegister = coalescence[vertex]!!.firstOrNull { it is PhysicalRegister } as PhysicalRegister?
             if (physicalRegister !== null ) {
                 colored.add(vertex)
                 coalescence[vertex]!!.forEach {
