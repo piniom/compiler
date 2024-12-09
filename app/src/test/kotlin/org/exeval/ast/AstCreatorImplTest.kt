@@ -1,16 +1,19 @@
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.exeval.ast.*
+import org.exeval.ast.AstCreatorImpl
+import org.exeval.ast.IntLiteral
+import org.exeval.ast.IntType
+import org.exeval.ast.Program
+import org.exeval.input.StringInput
 import org.exeval.input.interfaces.Input
-import org.exeval.input.interfaces.Location
+import org.exeval.parser.Production
 import org.exeval.parser.grammar.*
 import org.exeval.parser.interfaces.ParseTree
-import org.exeval.utilities.LocationRange
-import org.exeval.utilities.TokenCategories
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.exeval.utilities.TokenCategories as Token
+
+private typealias Br = ParseTree.Branch<GrammarSymbol>
+private typealias Lf = ParseTree.Leaf<GrammarSymbol>
+private typealias Pr = ParseTree.Leaf<GrammarSymbol>
 
 class AstCreatorImplTest {
 
@@ -18,74 +21,64 @@ class AstCreatorImplTest {
 
     @Test
     fun `create should parse a program containing a single main function with a constant return value`() {
-        // Arrange
-        val inputMock = mockk<Input>(relaxed = true)
+        val codeStr = """foo main() -> Int = { 4 }"""
+        val strInput: Input = StringInput(codeStr)
+        val locations = codeStr.map {
+            val location = strInput.location
+            strInput.nextChar()
+            location
+        }
+        strInput.location = locations[0]
 
-        // Mock start and end locations
-        val startLocationMock = mockk<Location> {
-            every { line } returns 1
-            every { idx } returns 0
-        }
-        val endLocationMock = mockk<Location> {
-            every { line } returns 1
-            every { idx } returns 5
-        }
-
-        // Tokens for "foo main() -> Int = 4"
-        val literalValueLeaf = mockk<ParseTree.Leaf<GrammarSymbol>> {
-            every { symbol } returns TokenCategories.LiteralInteger
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val valueBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns ValueSymbol
-            every { children } returns listOf(literalValueLeaf)
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val simpleExpressionBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns SimpleExpressionSymbol
-            every { children } returns listOf(valueBranch)
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val expressionBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns ExpressionSymbol
-            every { children } returns listOf(simpleExpressionBranch)
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val functionDeclarationBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns FunctionDeclarationSymbol
-            every { children } returns listOf(
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.KeywordFoo },
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.IdentifierEntrypoint },
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.LiteralNope },
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.PunctuationArrow },
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.IdentifierType },
-                mockk<ParseTree.Leaf<GrammarSymbol>> { every { symbol } returns TokenCategories.OperatorAssign },
-                expressionBranch
-            )
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val functionsDeclarationsBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns FunctionsDeclarationsSymbol
-            every { children } returns listOf(functionDeclarationBranch)
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-        val programBranch = mockk<ParseTree.Branch<GrammarSymbol>> {
-            every { production.left } returns ProgramSymbol
-            every { children } returns listOf(functionsDeclarationsBranch)
-            every { startLocation } returns startLocationMock
-            every { endLocation } returns endLocationMock
-        }
-
-        every { inputMock.nextChar() } returnsMany "main".toCharArray().map { it } // Mock reading input
+        val programBranch = Br(
+            Production<GrammarSymbol>(
+                ProgramSymbol, listOf(FunctionsDeclarationsSymbol)
+            ), listOf(
+                Br(
+                    Production<GrammarSymbol>(
+                        FunctionsDeclarationsSymbol, listOf(FunctionDeclarationSymbol)
+                    ), listOf(
+                        Br(
+                            Production<GrammarSymbol>(
+                                FunctionDeclarationSymbol, listOf(
+                                    Token.KeywordFoo,
+                                    Token.IdentifierEntrypoint,
+                                    Token.LiteralNope,
+                                    Token.PunctuationArrow,
+                                    Token.IdentifierType,
+                                    Token.OperatorAssign,
+                                    ExpressionSymbol,
+                                )
+                            ), listOf(
+                                Lf(Token.KeywordFoo, locations.first(), locations[2]),
+                                Lf(Token.IdentifierEntrypoint, locations[4], locations[7]),
+                                Lf(Token.LiteralNope, locations[8], locations[9]),
+                                Lf(Token.PunctuationArrow, locations[11], locations[12]),
+                                Lf(Token.IdentifierType, locations[14], locations[16]),
+                                Lf(Token.OperatorAssign, locations[18], locations[18]),
+                                Br(
+                                    Production(
+                                        ExpressionSymbol,
+                                        listOf(SimpleExpressionSymbol),
+                                    ), listOf(
+                                        Br(
+                                            Production(
+                                                SimpleExpressionSymbol, listOf(ValueSymbol)
+                                            ), listOf(
+                                                Lf(Token.LiteralInteger, locations[22], locations[22])
+                                            ), locations[20], locations.last()
+                                        )
+                                    ), locations[20], locations.last()
+                                )
+                            ), locations.first(), locations.last()
+                        )
+                    ), locations.first(), locations.last()
+                )
+            ), locations.first(), locations.last()
+        )
 
         // Act
-        val result = astCreator.create(programBranch, inputMock)
+        val result = astCreator.create(programBranch, strInput)
 
         // Assert
         assertNotNull(result)
