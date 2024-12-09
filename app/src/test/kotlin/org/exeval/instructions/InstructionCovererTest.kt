@@ -23,13 +23,14 @@ class InstructionCovererTest {
         val mockInstruction = mockk<Instruction>()
         val mockInstruction2 = mockk<Instruction>();
 
+
         val instructionPatterns = mapOf(
-            tree.treeKind() to listOf(mockPattern),
-            left.treeKind() to listOf(mockPattern),
-            right.treeKind() to listOf(mockPattern)
+            InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern),
+            InstructionPatternMapKey(left.treeKind(), InstructionKind.VALUE) to listOf(mockPattern),
+            InstructionPatternMapKey(right.treeKind(), InstructionKind.EXEC) to listOf(mockPattern)
         )
-        val instructionCoverer = InstructionCoverer(instructionPatterns)
         val instructionKind = InstructionKind.VALUE
+        val instructionCoverer = InstructionCoverer(instructionPatterns)
 
 
         val matchResult = InstructionMatchResult(
@@ -68,12 +69,12 @@ class InstructionCovererTest {
         val mockInstruction2 = mockk<Instruction>()
 
         val instructionPatterns = mapOf(
-            tree.treeKind() to listOf(expensiveMockPattern, mockPattern),
-            left.treeKind() to listOf(expensiveMockPattern, mockPattern),
-            right.treeKind() to listOf(expensiveMockPattern, mockPattern)
+            InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern),
+            InstructionPatternMapKey(left.treeKind(), InstructionKind.VALUE) to listOf(mockPattern),
+            InstructionPatternMapKey(right.treeKind(), InstructionKind.EXEC) to listOf(mockPattern)
         )
-        val instructionCoverer = InstructionCoverer(instructionPatterns)
         val instructionKind = InstructionKind.VALUE
+        val instructionCoverer = InstructionCoverer(instructionPatterns)
 
 
         val matchResult = InstructionMatchResult(
@@ -119,8 +120,8 @@ class InstructionCovererTest {
         val mockInstruction2 = mockk<Instruction>()
 
         val instructionPatterns = mapOf(
-            tree.treeKind() to listOf(mockPattern),
-            child.treeKind() to listOf(mockPattern)
+            InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern),
+            InstructionPatternMapKey(child.treeKind(), InstructionKind.VALUE) to listOf(mockPattern),
         )
         val instructionCoverer = InstructionCoverer(instructionPatterns)
         val instructionKind = InstructionKind.VALUE
@@ -147,6 +148,7 @@ class InstructionCovererTest {
             resultInstructions
         )
     }
+
 
     @Test
     fun `cover should return cheapest cover`() {
@@ -212,8 +214,9 @@ class InstructionCovererTest {
         val instructionCoverer =
             InstructionCoverer(
                 mapOf(
-                    tree.treeKind() to listOf(unaryOpExpensivePattern, unaryOpPattern),
-                    ConstantTreeKind to listOf()
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(unaryOpExpensivePattern, unaryOpPattern),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(unaryOpExpensivePattern, unaryOpPattern),
+                    InstructionPatternMapKey(ConstantTreeKind, InstructionKind.VALUE) to listOf(),
                 )
             )
         assertEquals(
@@ -221,6 +224,7 @@ class InstructionCovererTest {
             instructionCoverer.cover(tree, null)
         )
     }
+
 
     @Test
     fun `cover should return good order`() {
@@ -256,8 +260,9 @@ class InstructionCovererTest {
         val instructionCoverer =
             InstructionCoverer(
                 mapOf(
-                    tree.treeKind() to listOf(unaryOpPattern),
-                    ConstantTreeKind to listOf()
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(unaryOpPattern),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(unaryOpPattern),
+                    InstructionPatternMapKey(ConstantTreeKind, InstructionKind.VALUE) to listOf(),
                 )
             )
         assertEquals(
@@ -266,8 +271,9 @@ class InstructionCovererTest {
         )
     }
 
+
     @Test
-    @Disabled("This test is disabled. Enable it when implementing JUMP functionality in InstructionCoverer")
+    //@Disabled("This test is disabled. Enable it when implementing JUMP functionality in InstructionCoverer")
     fun `cover of jump should use jump`() {
         val tree = NumericalConstantTree(1)
 
@@ -305,7 +311,8 @@ class InstructionCovererTest {
         val instructionCoverer =
             InstructionCoverer(
                 mapOf(
-                    tree.treeKind() to listOf(unaryOpPattern, unaryOpJumpPattern)
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(unaryOpPattern),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.JUMP) to listOf(unaryOpJumpPattern),
                 )
             )
         assertEquals(

@@ -2,7 +2,7 @@ package org.exeval.instructions
 
 import org.exeval.cfg.*
 
-class InstructionCoverer(private val instructionPatterns: Map<TreeKind, List<InstructionPattern>>) : InstructionCovererInterface {
+class InstructionCoverer(private val instructionPatterns: Map<InstructionPatternMapKey, List<InstructionPattern>>) : InstructionCovererInterface {
 
 
     override fun cover(tree : Tree, labelTrue: Label?) : List<Instruction> {
@@ -63,7 +63,7 @@ class InstructionCoverer(private val instructionPatterns: Map<TreeKind, List<Ins
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for (instructionPattern in instructionPatterns[tree.treeKind()]!!) {
+        for (instructionPattern in instructionPatterns[InstructionPatternMapKey(tree.treeKind(), instructionKind)]!!) {
             val result = instructionPattern.matches(tree)
             if (result != null) {
                 var newCost = instructionPattern.cost
