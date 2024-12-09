@@ -135,6 +135,31 @@ class RegisterAllocation{
         })
 
     }
+    fun simulate(instructionList:List<instructions.base>,a: AllocationResult){
+        assert(a.spills.isEmpty())
+        val tInstructionsList : List<RegisterAllocation.instructions.base> = instructionList.map{
+            when(it){
+                is instructions.add -> instructions.add(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
+                is instructions.subtract -> instructions.subtract(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
+                is instructions.set -> instructions.set(a.mapping[it.origin]!!,it.value)
+                is instructions.move -> instructions.move(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
+                else -> it
+            }
+        }
+        instructionList.forEach{it.run()}
+        val vMap = instructions.registerValues.toMap()
+        instructions.registerValues.clear()
+        tInstructionsList.forEach{it.run()}
+        val pMap = instructions.registerValues.toMap()
+
+        //for all physical registers, there must be a virtual register corresponding to it such that they have the same values
+        assert(a.mapping.values.all{
+            val pr = it
+            a.mapping.keys.any{
+                a.mapping[it] == pr && vMap[it]!! == pMap[pr]!!
+            }
+        })
+    }
     @Test
     fun correctness(){
         fun vr(i:Int): VirtualRegister {
@@ -195,23 +220,18 @@ class RegisterAllocation{
         )
         val a = getAllocation(data)
         sanity(data,a)
-        assert(a.spills.isEmpty())
-        val tInstructionsList : List<RegisterAllocation.instructions.base> = instructionList.map{
-            when(it){
-                is instructions.add -> instructions.add(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
-                is instructions.subtract -> instructions.subtract(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
-                is instructions.set -> instructions.set(a.mapping[it.origin]!!,it.value)
-                is instructions.move -> instructions.move(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
-                else -> it
-            }
-        }
-
-        instructionList.forEach{it.run()}
-        val vMap = instructions.registerValues.toMap()
-        instructions.registerValues.clear()
-        tInstructionsList.forEach{it.run()}
-        val pMap = instructions.registerValues.toMap()
-
-        assert(vMap.all{it.value == pMap[a.mapping[it.key]!!]})
+        simulate(instructionList,a)
+    }
+    @Test
+    fun validate(){
+        val i = listOf(
+            instructions.set(VirtualRegisterBank(1),10),
+            instructions.add(VirtualRegisterBank(1),VirtualRegisterBank(1))
+        )
+        val a = AllocationResult(
+            mapOf(VirtualRegisterBank(1) to PhysicalRegisterBank(1)),
+            listOf()
+        )
+        simulate(i,a)
     }
 }
