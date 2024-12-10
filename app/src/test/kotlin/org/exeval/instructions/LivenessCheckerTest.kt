@@ -67,14 +67,14 @@ class LivenessCheckerTest {
         )
         val result = checker.check(input)
         val expectedInterference = mapOf(
-            Pair(r1, setOf(r2)),
-            Pair(r2, setOf(r1)),
-            Pair(r3, setOf())
+            Pair(r1, listOf(r2)),
+            Pair(r2, listOf(r1)),
+            Pair(r3, listOf())
         )
-        val expectedCopy = mapOf<Register, Set<Register>>(
-            Pair(r1, setOf()),
-            Pair(r2, setOf()),
-            Pair(r3, setOf())
+        val expectedCopy = mapOf<Register, List<Register>>(
+            Pair(r1, listOf()),
+            Pair(r2, listOf()),
+            Pair(r3, listOf())
         )
 
         assertEquals(result.interference, expectedInterference, result.interference.toString() + " " + expectedInterference.toString() )
@@ -134,15 +134,15 @@ class LivenessCheckerTest {
             bb3
         )
         val result = checker.check(input)
-        val expectedInterference = mapOf<Register, Set<Register>>(
-            Pair(r1, setOf()),
-            Pair(r2, setOf()),
-            Pair(r3, setOf())
+        val expectedInterference = mapOf<Register, List<Register>>(
+            Pair(r1, listOf()),
+            Pair(r2, listOf()),
+            Pair(r3, listOf())
         )
-        val expectedCopy = mapOf<Register, Set<Register>>(
-            Pair(r1, setOf(r2)),
-            Pair(r2, setOf(r1)),
-            Pair(r3, setOf())
+        val expectedCopy = mapOf<Register, List<Register>>(
+            Pair(r1, listOf(r2)),
+            Pair(r2, listOf(r1)),
+            Pair(r3, listOf())
         )
 
         assertEquals(result.interference, expectedInterference, result.interference.toString() + " " + expectedInterference.toString() )
