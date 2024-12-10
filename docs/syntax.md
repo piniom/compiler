@@ -114,6 +114,7 @@ if (expr) then {
 - Loops have identifiers `loop@identifier`.
 - Breaking out of the specific `loop` in a nested `loop` scenario is done by using `break@identifier`.
 - Loop identifiers follow the same naming rules as `variables` and `functions`.
+- Infinite loops without `break` are allowed. Then type of loop is `Nope`.
 
 ## `and`, `or`, `not` with shortcircuit
 Shortcuting means that the second expression is not evaluated if the resulting value is already determined by the first one.

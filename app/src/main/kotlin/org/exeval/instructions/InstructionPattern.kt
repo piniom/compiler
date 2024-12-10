@@ -7,16 +7,11 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>) -> List<Instruction>
-)
-
-data class InstructionPatternRootType(
-    val rootClass: KClass<*>,
-    val operationType: Any?
+    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
 )
 
 interface InstructionPattern{
-    val rootType: InstructionPatternRootType
+    val rootType: TreeKind
     val kind: InstructionKind
     val cost: Int
     fun matches(parseTree: Tree): InstructionMatchResult?
@@ -24,33 +19,29 @@ interface InstructionPattern{
 
 interface OperandArgumentType
 
+interface AssignableDest : OperandArgumentType
+
 interface ConstantOperandArgumentType : OperandArgumentType
 
 data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
 
 class TemplatePattern(
-    override val rootType: InstructionPatternRootType,
+    override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
-    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
 ) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-        if (rootType.rootClass != parseTree::class) {
+        if (rootType != parseTree.treeKind()) {
             return null
         }
         val args = when (parseTree) {
             is BinaryOperationTree -> {
-                if (rootType.operationType != parseTree.operation) {
-                    return null
-                }
                 listOf(parseTree.left, parseTree.right)
             }
             is UnaryOperationTree -> {
-                if (rootType.operationType != parseTree.operation) {
-                    return null
-                }
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {
@@ -69,8 +60,8 @@ class TemplatePattern(
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
-        return InstructionMatchResult(toMatch, { dest, registers ->
-            lambdaInstruction(dest, injectConstants(constants, registers))
+        return InstructionMatchResult(toMatch, { dest, registers, label ->
+            lambdaInstruction(dest, injectConstants(constants, registers), label)
         })
     }
 

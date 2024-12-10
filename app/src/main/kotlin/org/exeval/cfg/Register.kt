@@ -1,8 +1,8 @@
 package org.exeval.cfg
 
-import org.exeval.instructions.OperandArgumentType
+import org.exeval.instructions.AssignableDest
 
-sealed interface Register : OperandArgumentType {
+sealed interface Register : AssignableDest {
     companion object {
         const val SIZE: Long = 8
     }
