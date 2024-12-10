@@ -1,7 +1,6 @@
 package org.exeval.instructions
 
 import org.exeval.cfg.Register
-import org.exeval.instructions.Instruction
 import org.exeval.instructions.interfaces.LivenessChecker
 import org.exeval.instructions.interfaces.LivenessResult
 import org.exeval.instructions.linearizer.BasicBlock
@@ -14,7 +13,7 @@ class LivenessCheckerImpl: LivenessChecker {
         val use: MutableMap<Instruction, Set<Register>> = mutableMapOf()
         val def: MutableMap<Instruction, Set<Register>> = mutableMapOf()
         var copyGraph: MutableMap<Register, MutableSet<Register>> = mutableMapOf()
-        var inferenceGraph: MutableMap<Register, MutableSet<Register>> = mutableMapOf()
+        var interferenceGraph: MutableMap<Register, MutableSet<Register>> = mutableMapOf()
         for (bb in basicBlocks){
             for( instr in bb.instructions){
                 use[instr] = instr.usedRegisters().toSet()
@@ -24,12 +23,12 @@ class LivenessCheckerImpl: LivenessChecker {
 
                 for(r in (instr.usedRegisters() union instr.definedRegisters())){
                     if(!copyGraph.containsKey(r)) copyGraph[r] = mutableSetOf()
-                    if(!inferenceGraph.containsKey(r)) inferenceGraph[r] = mutableSetOf()
+                    if(!interferenceGraph.containsKey(r)) interferenceGraph[r] = mutableSetOf()
                 }
 
                 if (instr.isCopy()){
                     copyGraph[instr.definedRegisters().first()]!!.add(instr.usedRegisters().first())
-                    inferenceGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
+                    copyGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
                 }
             }
         }
@@ -55,21 +54,41 @@ class LivenessCheckerImpl: LivenessChecker {
                         newLiveOut = newLiveOut union liveIn[nextInstruction]!!
                     }
 
+                    liveIn[instruction] = newLiveIn
+                    liveOut[instruction] = newLiveOut
                     if ( oldLiveIn != newLiveIn || oldLiveOut != newLiveOut)
                         fixedPoint = false
                 }
             }
         }
 
+        //edges
         for((instruction, registers) in def) {
             for (register in registers) {
-                inferenceGraph[register]!!.addAll(liveOut[instruction]!!)
+                interferenceGraph[register]!!.addAll(liveOut[instruction]!!)
             }
         }
-        for((register, set) in inferenceGraph) {
-            inferenceGraph[register]!!.removeAll(copyGraph[register]!!)
+        //make undirected
+        var igCopy = mutableMapOf<Register, Set<Register>>()
+        igCopy.putAll(interferenceGraph)
+
+        for((register1, list) in igCopy){
+            for(register2 in list){
+                interferenceGraph[register1]!!.add(register2)
+                interferenceGraph[register2]!!.add(register1)
+            }
         }
-        return LivenessResult(inferenceGraph, copyGraph)
+
+        //remove loops
+        for(register in interferenceGraph.keys){
+            interferenceGraph[register]!!.remove(register)
+        }
+
+        //remove CopyGraph edges from inferenceGraph
+        for((register, list) in copyGraph){
+            interferenceGraph[register]!!.removeAll(list)
+        }
+        return LivenessResult(interferenceGraph, copyGraph)
     }
 
 }
