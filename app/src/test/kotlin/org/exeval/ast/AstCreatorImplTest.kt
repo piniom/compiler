@@ -20,10 +20,10 @@ class AstCreatorImplTest {
     private val astCreator = AstCreatorImpl()
 
     @Test
-    fun `create should parse a program containing a single main function with a constant return value`() {
-        val codeStr = """foo main() -> Int = { 4 }"""
+    fun `Create should parse a program containing a single main function which returns a constant value`() {
+        val codeStr = """foo main() -> Int = 4"""
         val strInput: Input = StringInput(codeStr)
-        val locations = codeStr.map {
+        val locations = (0..codeStr.length).map {
             val location = strInput.location
             strInput.nextChar()
             location
@@ -50,12 +50,12 @@ class AstCreatorImplTest {
                                     ExpressionSymbol,
                                 )
                             ), listOf(
-                                Lf(Token.KeywordFoo, locations.first(), locations[2]),
-                                Lf(Token.IdentifierEntrypoint, locations[4], locations[7]),
-                                Lf(Token.LiteralNope, locations[8], locations[9]),
-                                Lf(Token.PunctuationArrow, locations[11], locations[12]),
-                                Lf(Token.IdentifierType, locations[14], locations[16]),
-                                Lf(Token.OperatorAssign, locations[18], locations[18]),
+                                Lf(Token.KeywordFoo, locations.first(), locations[3]),
+                                Lf(Token.IdentifierEntrypoint, locations[4], locations[8]),
+                                Lf(Token.LiteralNope, locations[8], locations[10]),
+                                Lf(Token.PunctuationArrow, locations[11], locations[13]),
+                                Lf(Token.IdentifierType, locations[14], locations[17]),
+                                Lf(Token.OperatorAssign, locations[18], locations[19]),
                                 Br(
                                     Production(
                                         ExpressionSymbol,
@@ -65,10 +65,10 @@ class AstCreatorImplTest {
                                             Production(
                                                 SimpleExpressionSymbol, listOf(ValueSymbol)
                                             ), listOf(
-                                                Lf(Token.LiteralInteger, locations[22], locations[22])
-                                            ), locations[20], locations.last()
+                                                Lf(Token.LiteralInteger, locations[20], locations[21])
+                                            ), locations[20], locations[21]
                                         )
-                                    ), locations[20], locations.last()
+                                    ), locations[20], locations[21]
                                 )
                             ), locations.first(), locations.last()
                         )

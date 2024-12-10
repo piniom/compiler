@@ -250,7 +250,6 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         while (input.location != end) {
             builder.append(input.nextChar())
         }
-        builder.append(input.nextChar())
 
         input.location = prevLocation
         return builder.toString()
