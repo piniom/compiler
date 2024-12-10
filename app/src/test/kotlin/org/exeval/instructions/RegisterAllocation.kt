@@ -82,17 +82,33 @@ class RegisterAllocation{
     }
     @Test
     fun no_spills(){
-        //no sills necesarry
-        val g = mapOf<Register,Set<Register>>(
+        //1st case - enough registers
+        var g = mapOf<Register,Set<Register>>(
             VirtualRegisterBank(1) to setOf(VirtualRegisterBank(2),VirtualRegisterBank(3)),
             VirtualRegisterBank(2) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(3)),
             VirtualRegisterBank(3) to setOf(VirtualRegisterBank(1),VirtualRegisterBank(2))
         )
-        val data = allocationData(
+        var data = allocationData(
             LivenessResult(g,mapOf()),
             setOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3)),
             setOf(PhysicalRegisterBank(1), PhysicalRegisterBank(2),PhysicalRegisterBank(3)))
-        val a = getAllocation(data)
+        var a = getAllocation(data)
+        sanity(data,a)
+        assert(a.spills.isEmpty())
+
+        //2nd case - 2 disjoint sets
+        g = mapOf<Register,Set<Register>>(
+            VirtualRegisterBank(1) to setOf(VirtualRegisterBank(2)),
+            VirtualRegisterBank(2) to setOf(VirtualRegisterBank(1)),
+            VirtualRegisterBank(3) to setOf(VirtualRegisterBank(4)),
+            VirtualRegisterBank(4) to setOf(VirtualRegisterBank(3))
+        )
+        data = allocationData(
+            LivenessResult(g,mapOf()),
+            setOf(VirtualRegisterBank(1),VirtualRegisterBank(2),VirtualRegisterBank(3),VirtualRegisterBank(4)),
+            setOf(PhysicalRegisterBank(1),PhysicalRegisterBank(2))
+        )
+        a = getAllocation(data)
         sanity(data,a)
         assert(a.spills.isEmpty())
     }
@@ -101,29 +117,32 @@ class RegisterAllocation{
         companion object {
             val registerValues = mutableMapOf<Register,Int>().withDefault{0}
         }
-        open class base(val origin: Register,val run:()->Unit): Instruction
+        open class base(val origin: Register,val run:()->Unit)
+        /**set [origin] register content to [value] */
         class set(origin: Register,val value: Int) : base(origin, {
             registerValues[origin] = value
         })
-        class move(origin: Register, val operand: Register) : base(origin,{
+        /**copy value of [operand] to [origin] */
+        class copy(origin: Register, val operand: Register) : base(origin,{
             registerValues[origin] = registerValues.getValue(operand)
         })
+        /**add value of [operand] to [origin] */
         class add(origin: Register, val operand: Register) : base(origin,{
             registerValues[origin] = registerValues.getValue(origin)+registerValues.getValue(operand)
         })
+        /**subtract value of [operand] from [origin] */
         class subtract(origin: Register, val operand: Register) : base(origin,{
             registerValues[origin] = registerValues.getValue(origin)-registerValues.getValue(operand)
         })
-
     }
     fun simulate(instructionList:List<instructions.base>,a: AllocationResult){
         assert(a.spills.isEmpty())
-        val tInstructionsList : List<RegisterAllocation.instructions.base> = instructionList.map{
+        val tInstructionsList : List<instructions.base> = instructionList.map{
             when(it){
                 is instructions.add -> instructions.add(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
                 is instructions.subtract -> instructions.subtract(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
                 is instructions.set -> instructions.set(a.mapping[it.origin]!!,it.value)
-                is instructions.move -> instructions.move(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
+                is instructions.copy -> instructions.copy(a.mapping[it.origin]!!,a.mapping[it.operand]!!)
                 else -> it
             }
         }
@@ -179,13 +198,13 @@ class RegisterAllocation{
 
             instructions.add(vr(1),vr(2)),      //1,2 start
             instructions.subtract(vr(4),vr(3)), //3,4 start
-            instructions.move(vr(6),vr(3)),     //3->6!!! end of 3 life, 6 start
+            instructions.copy(vr(6),vr(3)),     //3->6!!! end of 3 life, 6 start
             instructions.add(vr(5),vr(4)),      //5 start
             instructions.subtract(vr(2),vr(1)), //
-            instructions.move(vr(7),vr(1)),     //1->7!!! end of 1 life, 7 start
+            instructions.copy(vr(7),vr(1)),     //1->7!!! end of 1 life, 7 start
             instructions.add(vr(6),vr(7)),      //
             instructions.subtract(vr(4),vr(5)), //end of 4,5 life
-            instructions.move(vr(8),vr(2)),     //2<-8!!! end of 2 life, 8 start
+            instructions.copy(vr(8),vr(2)),     //2<-8!!! end of 2 life, 8 start
             instructions.add(vr(8),vr(6)),      //end of 8 life
             instructions.subtract(vr(6),vr(7))  //end of 6,7 life
         )
