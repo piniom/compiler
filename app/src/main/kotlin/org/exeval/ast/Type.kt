@@ -1,6 +1,10 @@
 package org.exeval.ast
 
-sealed interface Type
+sealed interface Type{
+    public fun isNope(): Boolean {
+        return this == NopeType
+    }
+}
 
 data object IntType : Type
 data object NopeType : Type

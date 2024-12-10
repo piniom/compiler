@@ -1,24 +1,24 @@
 package org.exeval.cfg
 
 import org.exeval.cfg.interfaces.UsableMemoryCell
-import org.exeval.cfg.constants.Registers
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class VarAccessGeneratorTest {
     @Test
     fun `Generate accesses for RBP`() {
-        val generator = VarAccessGenerator()
+        val generator = VarAccessGenerator(RegisterTree(PhysicalRegister.RBP))
 
-        val regCell = UsableMemoryCell.VirtReg(108)
+        val register = VirtualRegister()
+        val regCell = UsableMemoryCell.VirtReg(register)
         val memCell = UsableMemoryCell.MemoryPlace(24)
 
-        val regExpected = VirtualRegister(108)
-        val memExpected = Memory(
-            BinaryOperation(
-                PhysicalRegister(Registers.RBP),
-                Constant(24),
-                BinaryOperationType.SUBTRACT
+        val regExpected = RegisterTree(register)
+        val memExpected = MemoryTree(
+            BinaryOperationTree(
+                RegisterTree(PhysicalRegister.RBP),
+                NumericalConstantTree(24),
+                BinaryTreeOperationType.SUBTRACT
             )
         )
 
@@ -31,18 +31,19 @@ class VarAccessGeneratorTest {
 
     @Test
     fun `Generate accesses for offsets`() {
-        val offset = 1028
-        val generator = VarAccessGenerator(offset)
+        val offset: Long = 1028
+        val generator = VarAccessGenerator(NumericalConstantTree(offset))
 
-        val regCell = UsableMemoryCell.VirtReg(108)
+        val register = VirtualRegister()
+        val regCell = UsableMemoryCell.VirtReg(register)
         val memCell = UsableMemoryCell.MemoryPlace(24)
 
-        val regExpected = VirtualRegister(108)
-        val memExpected = Memory(
-            BinaryOperation(
-                Constant(offset),
-                Constant(24),
-                BinaryOperationType.SUBTRACT
+        val regExpected = RegisterTree(register)
+        val memExpected = MemoryTree(
+            BinaryOperationTree(
+                NumericalConstantTree(offset),
+                NumericalConstantTree(24),
+                BinaryTreeOperationType.SUBTRACT
             )
         )
 

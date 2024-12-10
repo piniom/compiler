@@ -1,4 +1,4 @@
-# < Language name > compiler
+# Exeval compiler
 
 ## Contribution rules
 

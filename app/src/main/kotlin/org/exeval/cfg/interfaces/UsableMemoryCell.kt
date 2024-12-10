@@ -1,6 +1,8 @@
 package org.exeval.cfg.interfaces
 
+import org.exeval.cfg.Register
+
 sealed interface UsableMemoryCell {
-    data class VirtReg(val idx: Int): UsableMemoryCell
-    data class MemoryPlace(val offset: Int): UsableMemoryCell
+    data class VirtReg(val register: Register): UsableMemoryCell
+    data class MemoryPlace(val offset: Long): UsableMemoryCell
 }

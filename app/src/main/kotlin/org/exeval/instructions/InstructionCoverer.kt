@@ -1,90 +1,83 @@
 package org.exeval.instructions
 
-import org.exeval.cfg.Tree
-import org.exeval.cfg.OperationType
-import org.exeval.cfg.BinaryOperation
-import org.exeval.cfg.UnaryOp
-import org.exeval.cfg.Assignment
-import org.exeval.cfg.Register
-import org.exeval.cfg.Constant
-import org.exeval.cfg.Label
-import org.exeval.cfg.Memory
-import org.exeval.cfg.Call
-import org.exeval.cfg.Return
-import org.exeval.cfg.Assignable
+import org.exeval.cfg.*
 
-class InstructionCoverer(private val instructionPatterns : Map<OperationType, List<InstructionPattern>>) {
-    
-    
-    public fun cover(tree : Tree) : List<Instruction> {
-        var subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
-        computeCost(tree, subtreeCost)
-        return coverTree(tree, subtreeCost.toMap())
+class InstructionCoverer(private val instructionPatterns: Map<InstructionPatternMapKey, List<InstructionPattern>>) : InstructionCovererInterface {
+
+
+    override fun cover(tree : Tree, labelTrue: Label?) : List<Instruction> {
+        val subtreeCost = mutableMapOf<Tree, Pair<Int, InstructionPattern?>>()
+        val registerMap = mutableMapOf<Tree, VirtualRegister?>()
+        computeCost(tree, subtreeCost, if(labelTrue == null) InstructionKind.EXEC else InstructionKind.JUMP)
+        return coverTree(tree, subtreeCost.toMap(), registerMap, labelTrue)
     }
 
-    private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>) : List<Instruction>{
+    private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>, registerMap: MutableMap<Tree, VirtualRegister?>, labelTrue : Label?): List<Instruction> {
         val matchResult = subtreeCost[tree]!!.second!!.matches(tree)!!
-        if (matchResult.children.isEmpty()){
-            when(tree){
-                is Call, Return ->{
-                    // no tree
-                    return matchResult.createInstruction(listOf(), null)
-                }
-                is Memory -> {
-                    // label
-                    return matchResult.createInstruction(listOf(), tree)
-                }
-                is Register -> {
-                    // register
-                    return matchResult.createInstruction(listOf(), tree)
-                }
-                else -> {
-                    throw IllegalArgumentException("Cover tree got unexpected tree: " + tree.toString())
-                }
-            } 
-        }
-        val childrenResults = matchResult.children.map { coverTree(it, subtreeCost) }
-        var result = mutableListOf<Instruction>() 
-        for(childResult in childrenResults) result.addAll(childResult)
-        val registerChildren = matchResult.children.filterIsInstance(Register::class.java)
-        val resultTree = when (tree) {
-            is Assignable ->
-                tree
-            else ->
+        val register =  when (tree) {
+             is AssignmentTree, Return -> {
+                registerMap[tree] = null
                 null
+             }
+             else -> {
+                 val register = VirtualRegister()
+                 registerMap[tree] = register
+                 register
+             }
+         }
+
+        if (matchResult.children.isEmpty()) {
+            return matchResult.createInstruction(register, listOf(), labelTrue)
         }
-        return result + matchResult.createInstruction(registerChildren, resultTree)
+        val childrenResults = matchResult.children.map { coverTree(it, subtreeCost, registerMap, labelTrue) }
+        val result = mutableListOf<Instruction>()
+        for (childResult in childrenResults) result.addAll(childResult)
+        val childRegisters = mutableListOf<VirtualRegister>()
+        for(child in matchResult.children) if(registerMap[child] != null) childRegisters.add(registerMap[child]!!)
+        return result + matchResult.createInstruction(register, childRegisters, labelTrue)
     }
 
-    private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>){
-        when(tree){
-            is BinaryOperation ->{
-                computeCost(tree.left, subtreeCost) 
-                computeCost(tree.right, subtreeCost) 
+    private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>, instructionKind : InstructionKind) {
+        when (tree) {
+            is BinaryOperationTree -> {
+                computeCost(tree.left, subtreeCost, InstructionKind.VALUE)
+                computeCost(tree.right, subtreeCost, InstructionKind.VALUE)
             }
-            is UnaryOp ->{
-                computeCost(tree.child, subtreeCost)
+
+            is UnaryOperationTree -> {
+                computeCost(tree.child, subtreeCost, InstructionKind.VALUE)
             }
-            is Assignment ->{
-                computeCost(tree.destination, subtreeCost)
-                computeCost(tree.value, subtreeCost)
+
+            is AssignmentTree -> {
+                computeCost(tree.destination, subtreeCost, InstructionKind.VALUE)
+                computeCost(tree.value, subtreeCost, InstructionKind.VALUE)
             }
+
+            is MemoryTree -> {
+                computeCost(tree.address, subtreeCost, InstructionKind.VALUE)
+            }
+
             else -> {
                 // leaf
             }
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for(instructionPatternsPerOperation in instructionPatterns.values){
-           for(instructionPattern in instructionPatternsPerOperation){
-                val result = instructionPattern.matches(tree)
-                if (result != null){
-                    //check overfloats
-                    val newCost = instructionPattern.cost + result.children.mapNotNull { subtreeCost[it]!!.first }.sum()
-                    if( minCost > newCost){
-                        minCost = newCost 
-                        bestInstr = instructionPattern
+        for (instructionPattern in instructionPatterns[InstructionPatternMapKey(tree.treeKind(), instructionKind)]!!) {
+            val result = instructionPattern.matches(tree)
+            if (result != null) {
+                var newCost = instructionPattern.cost
+                for (child in result.children){
+                    val childCost = subtreeCost[child]!!.first
+                    if (childCost == Int.MAX_VALUE){
+                        newCost = Int.MAX_VALUE
+                        break
                     }
+                    newCost += childCost
+                }
+                if (minCost > newCost) {
+                    minCost = newCost
+                    bestInstr = instructionPattern
                 }
             }
         }
