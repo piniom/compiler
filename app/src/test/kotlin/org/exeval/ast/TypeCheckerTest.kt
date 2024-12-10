@@ -230,7 +230,7 @@ class TypeCheckerTest {
         assertEquals(
             NopeType,
             result.result[aDeclaration],
-            "Expected the variable 'a' to have type NopeType"
+            "Expected the type of variable 'a' declaration to be NopeType"
         )
     }
 
