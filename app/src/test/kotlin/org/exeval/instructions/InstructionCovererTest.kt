@@ -60,13 +60,11 @@ class InstructionCovererTest {
     fun `cover should return cheapest cover (simple)`() {
         val left = NumericalConstantTree(1)
         val right = NumericalConstantTree(2)
-        // Arrange
         val tree = BinaryOperationTree(left, right, BinaryTreeOperationType.ADD)
         val expensiveMockPattern = mockk<InstructionPattern>()
         val mockPattern = mockk<InstructionPattern>()
         val expensiveMockInstruction = mockk<Instruction>()
         val mockInstruction = mockk<Instruction>()
-        val mockInstruction2 = mockk<Instruction>()
 
         val instructionPatterns = mapOf(
             InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern),
@@ -85,11 +83,6 @@ class InstructionCovererTest {
         val expensiveMatchResult = InstructionMatchResult(
             children = listOf(),
             createInstruction = { _, _, _ -> listOf(expensiveMockInstruction) }
-        )
-
-        val anyMatchResult = InstructionMatchResult(
-            children = listOf(),
-            createInstruction = { _, _, _ -> listOf(mockInstruction2) }
         )
 
         every { expensiveMockPattern.matches(any()) } returns null
@@ -214,13 +207,100 @@ class InstructionCovererTest {
         val instructionCoverer =
             InstructionCoverer(
                 mapOf(
-                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(unaryOpExpensivePattern, unaryOpPattern),
-                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(unaryOpExpensivePattern, unaryOpPattern),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(
+                        unaryOpExpensivePattern,
+                        unaryOpPattern
+                    ),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(
+                        unaryOpExpensivePattern,
+                        unaryOpPattern
+                    ),
                     InstructionPatternMapKey(ConstantTreeKind, InstructionKind.VALUE) to listOf(),
                 )
             )
         assertEquals(
             listOf(inst1, inst1, inst1, inst1, inst1, inst1, inst1),
+            instructionCoverer.cover(tree, null)
+        )
+    }
+
+    @Test
+    fun `cover should return one expensive but cheaper than many cheap`() {
+        val tree = UnaryOperationTree(
+            UnaryOperationTree(
+                UnaryOperationTree(
+                    UnaryOperationTree(
+                        UnaryOperationTree(
+                            UnaryOperationTree(
+                                UnaryOperationTree(NumericalConstantTree(1), UnaryTreeOperationType.MINUS),
+                                UnaryTreeOperationType.MINUS
+                            ),
+                            UnaryTreeOperationType.MINUS
+                        ), UnaryTreeOperationType.MINUS
+                    ), UnaryTreeOperationType.MINUS
+                ), UnaryTreeOperationType.MINUS
+            ), UnaryTreeOperationType.MINUS
+        )
+        val inst1 = mockk<Instruction>()
+        val unaryOpPattern = object : InstructionPattern {
+            override val rootType: TreeKind
+                get() = mockk<TreeKind>()
+            override val kind: InstructionKind
+                get() = InstructionKind.VALUE
+            override val cost: Int
+                get() = 5
+
+            override fun matches(parseTree: Tree): InstructionMatchResult? {
+                if (parseTree !is UnaryOperationTree) {
+                    return null
+                }
+                if (parseTree.child is UnaryOperationTree) {
+                    return InstructionMatchResult(
+                        listOf(parseTree.child),
+                        createInstruction = { _, _, _ -> listOf(inst1) })
+                }
+                return InstructionMatchResult(
+                    listOf(),
+                    createInstruction = { _, _, _ -> listOf(inst1) })
+            }
+        }
+        val inst2 = mockk<Instruction>()
+        val unaryOpExpensivePattern = object : InstructionPattern {
+            override val rootType: TreeKind
+                get() = mockk<TreeKind>()
+            override val kind: InstructionKind
+                get() = InstructionKind.VALUE
+            override val cost: Int
+                get() = 10
+
+            override fun matches(parseTree: Tree): InstructionMatchResult? {
+                if (parseTree !is UnaryOperationTree) {
+                    return null
+                }
+                if (parseTree.child is UnaryOperationTree) {
+                    return InstructionMatchResult(
+                        listOf((parseTree.child as UnaryOperationTree).child),
+                        createInstruction = { _, _, _ -> listOf(inst2) })
+                }
+                return null
+            }
+        }
+        val instructionCoverer =
+            InstructionCoverer(
+                mapOf(
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(
+                        unaryOpExpensivePattern,
+                        unaryOpPattern
+                    ),
+                    InstructionPatternMapKey(tree.treeKind(), InstructionKind.VALUE) to listOf(
+                        unaryOpExpensivePattern,
+                        unaryOpPattern
+                    ),
+                    InstructionPatternMapKey(ConstantTreeKind, InstructionKind.VALUE) to listOf(),
+                )
+            )
+        assertEquals(
+            listOf(inst1, inst2, inst2, inst2),
             instructionCoverer.cover(tree, null)
         )
     }
