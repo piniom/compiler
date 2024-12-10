@@ -24,6 +24,7 @@ dependencies {
 
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.junit.jupiter.params)
 
     // MockK for mocking
     testImplementation(libs.io.mockk)
