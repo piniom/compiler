@@ -78,19 +78,19 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
 
     private class JmpInstruction(private val label : Label) : Instruction {
 
-        fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
+        override fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
             return "jmp " + label.name
         }
 
-        fun usedRegisters(): List<Register> {
+        override fun usedRegisters(): List<Register> {
             return listOf()
         }
 
-        fun definedRegisters(): List<Register> {
+        override fun definedRegisters(): List<Register> {
             return listOf()
         }
 
-        fun isCopy(): Boolean {
+        override fun isCopy(): Boolean {
             return false
         }
     }
