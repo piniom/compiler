@@ -6,7 +6,7 @@ import org.exeval.ffm.interfaces.FunctionFrameManager
 
 
 interface SpillsHandler {
-    fun handleSpilledVariables(instructions: List<BasicBlock>, ffm: FunctionFrameManager, spills: Set<Register>) -> List<BasicBlock>
+    fun handleSpilledVariables(instructions: List<BasicBlock>, ffm: FunctionFrameManager, spills: Set<Register>): List<BasicBlock>
 }
 
 
