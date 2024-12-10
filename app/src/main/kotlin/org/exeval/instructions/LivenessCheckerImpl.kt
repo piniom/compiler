@@ -88,7 +88,7 @@ class LivenessCheckerImpl: LivenessChecker {
         for((register, list) in copyGraph){
             interferenceGraph[register]!!.removeAll(list)
         }
-        return LivenessResult(interferenceGraph.mapValues { it.value.toList() },  copyGraph.mapValues { it.value.toList() })
+        return LivenessResult(interferenceGraph,  copyGraph)
     }
 
 }
