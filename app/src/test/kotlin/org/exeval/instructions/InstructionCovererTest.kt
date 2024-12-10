@@ -67,7 +67,7 @@ class InstructionCovererTest {
         val mockInstruction = mockk<Instruction>()
 
         val instructionPatterns = mapOf(
-            InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern),
+            InstructionPatternMapKey(tree.treeKind(), InstructionKind.EXEC) to listOf(mockPattern, expensiveMockPattern),
             InstructionPatternMapKey(left.treeKind(), InstructionKind.VALUE) to listOf(mockPattern),
             InstructionPatternMapKey(right.treeKind(), InstructionKind.EXEC) to listOf(mockPattern)
         )
