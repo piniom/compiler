@@ -51,6 +51,10 @@ class FunctionFrameManagerMock(private val fm: FunctionFrameManager, override va
     override fun generate_epilouge(result: Tree?): CFGNode {
         return CFGNodeImpl(null, listOfNotNull(result))
     }
+
+    override fun alloc_frame_memory(): AssignableTree {
+       TODO() 
+    }
 }
 
 class CFGTest{
