@@ -14,7 +14,7 @@ class FunctionFrameManagerImpl(
     private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
 ) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var stackOffset: Long = 0
+    private var stackOffset = LockableBox<Long>(0)
     private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
 
     public val label: Label
@@ -140,7 +140,7 @@ class FunctionFrameManagerImpl(
                 RegisterTree(PhysicalRegister.RSP),
                 BinaryOperationTree(
                     RegisterTree(PhysicalRegister.RSP),
-                    NumericalConstantTree((stackOffset * 4).toLong()),
+                    NumericalConstantTree(stackOffset.value * 4), // TODO change
                     BinaryTreeOperationType.ADD
                 )
             )
@@ -158,11 +158,21 @@ class FunctionFrameManagerImpl(
     }
 
     override fun alloc_frame_memory(): AssignableTree {
-        TODO()
+        val curOffset = stackOffset.value * 4
+        stackOffset.value += 1
+
+        val resTree =  MemoryTree(
+            BinaryOperationTree(
+                RegisterTree(PhysicalRegister.RBP),
+                NumericalConstantTree(curOffset * 4),
+                BinaryTreeOperationType.ADD
+            )
+        )
+        return resTree
     }
 
     private fun backupRegisters(): List<Tree> {
-        stackOffset += calleSaveRegisters.size
+        stackOffset.value += calleSaveRegisters.size
 
         return calleSaveRegisters.map {
             AssignmentTree(
@@ -190,8 +200,8 @@ class FunctionFrameManagerImpl(
                 val memoryCell: UsableMemoryCell
 
                 if (isNested) {
-                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset * 4)
-                    stackOffset += 1
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * 4)
+                    stackOffset.value += 1
                 } else {
                     memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
                 }
@@ -279,4 +289,19 @@ class FunctionFrameManagerImpl(
 
         return result
     }
+}
+
+class LockableBox<T>(value: T) {
+    var value: T = value
+        set(newValue) {
+            if (isLocked)
+                throw RuntimeException("This box is locked, so you cannot change value")
+            field = newValue
+        }
+
+    fun lock() {
+        isLocked = true
+    }
+
+    private var isLocked = false
 }
