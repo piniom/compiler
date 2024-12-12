@@ -164,7 +164,7 @@ class FunctionFrameManagerImpl(
         val resTree =  MemoryTree(
             BinaryOperationTree(
                 RegisterTree(PhysicalRegister.RBP),
-                NumericalConstantTree(curOffset * 4),
+                NumericalConstantTree(curOffset),
                 BinaryTreeOperationType.ADD
             )
         )
