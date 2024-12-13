@@ -51,6 +51,10 @@ class FunctionFrameManagerMock(private val fm: FunctionFrameManager, override va
     override fun generate_epilouge(result: Tree?): CFGNode {
         return CFGNodeImpl(null, listOfNotNull(result))
     }
+
+    override fun alloc_frame_memory(): AssignableTree {
+       TODO() 
+    }
 }
 
 class CFGTest{
@@ -289,14 +293,13 @@ class CFGTest{
         }
         */
 
-        // TODO: FIX
-//        ast  = Block(listOf(
-//            MutableVariableDeclaration("a", IntType,IntLiteral(0)),
-//            Assignment("a", Loop(null,Block(listOf(
-//                BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, IntLiteral(1))
-//            ))))
-//        ))
-//        assert(loop(getCFG(ast)))
+        ast  = Block(listOf(
+            MutableVariableDeclaration("a", IntType,IntLiteral(0)),
+            Assignment("a", Loop(null,Block(listOf(
+                BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, IntLiteral(1))
+            ))))
+        ))
+        assert(loop(getCFG(ast)))
     }
     @Test
     fun calcTest(){
