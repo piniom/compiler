@@ -9,8 +9,7 @@ import kotlin.system.exitProcess
 import java.io.FileNotFoundException
 
 import org.exeval.automata.interfaces.DFA
-import org.exeval.cfg.CFGMaker
-import org.exeval.cfg.FunctionFrameManagerImpl
+import org.exeval.cfg.*
 import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.exeval.input.CommentCutter
 import org.exeval.input.FileInput
@@ -29,6 +28,7 @@ import org.exeval.parser.Parser
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.parser.utilities.GrammarAnalyser
+import org.exeval.utilities.CodeBuilder
 import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 
@@ -113,12 +113,23 @@ fun main(args: Array<String>) {
 
     // CFG
     val nodes = functions.map {
-        val variableUsage = usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
-        it.name to CFGMaker(frameManagers[it]!!, nameResolutionOutput.result, variableUsage, typeCheckerOutput.result).makeCfg(it)
+        val variableUsage =
+            usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
+        it.name to CFGMaker(
+            frameManagers[it]!!,
+            nameResolutionOutput.result,
+            variableUsage,
+            typeCheckerOutput.result
+        ).makeCfg(it)
     }
 
     // Linearization
     val instructionPatterns = InstructionSetCreator().createInstructionSet()
     val linearizer = Linearizer(InstructionCoverer(instructionPatterns))
-    val blocks = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }
+    val linearizedFunctions = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }
+
+    val registerMapping = mapOf<Register, PhysicalRegister>() // Mocked for now
+
+    val code =
+        CodeBuilder().generate(linearizedFunctions, functionAnalisisResult.maxNestedFunctionDepth(), registerMapping)
 }
