@@ -6,9 +6,7 @@ import org.exeval.cfg.Register
 import org.exeval.instructions.linearizer.BasicBlock
 
 class CodeBuilder() {
-    private val code: MutableList<String> = mutableListOf()
-
-    public fun generate(
+    fun generate(
         linearizedFunctions: List<Pair<String, List<BasicBlock>>>,
         maxNestedFunctionDepth: Int,
         registerMapping: Map<Register, PhysicalRegister>

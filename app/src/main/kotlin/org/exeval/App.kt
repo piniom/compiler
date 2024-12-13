@@ -71,7 +71,7 @@ fun buildParser(): Parser<GrammarSymbol> {
 }
 
 fun main(args: Array<String>) {
-    if (args.size == 0) {
+    if (args.isEmpty()) {
         logger.error { "Input file not provided. Use `./gradlew run --args=\"<file name>\"'" }
         exitProcess(1)
     }
