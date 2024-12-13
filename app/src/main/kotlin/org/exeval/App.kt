@@ -4,14 +4,20 @@
 package org.exeval
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.exeval.ast.AstCreatorImpl
+import org.exeval.ast.*
 import kotlin.system.exitProcess
 import java.io.FileNotFoundException
 
 import org.exeval.automata.interfaces.DFA
+import org.exeval.cfg.CFGMaker
+import org.exeval.cfg.FunctionFrameManagerImpl
+import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.exeval.input.CommentCutter
 import org.exeval.input.FileInput
 import org.exeval.input.interfaces.Input
+import org.exeval.instructions.InstructionCoverer
+import org.exeval.instructions.InstructionSetCreator
+import org.exeval.instructions.linearizer.Linearizer
 import org.exeval.lexer.DFAmin
 import org.exeval.lexer.DFAParserImpl
 import org.exeval.lexer.MultipleTokensLexer
@@ -82,8 +88,37 @@ fun main(args: Array<String>) {
 
     // Parser
     val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
-    val parser = buildParser()
-    val parseTree = parser.run(leaves)
-    val astCreator = AstCreatorImpl()
-    val ast = astCreator.create(parseTree, sourceCode)
+    val parseTree = buildParser().run(leaves)
+    val astInfo = AstCreatorImpl().create(parseTree, sourceCode)
+
+    // AST
+    val nameResolutionOutput = NameResolutionGenerator(astInfo).parse()
+    for (diagnostic in nameResolutionOutput.diagnostics) {
+        logger.warn { "[NameResolution diagnostic] ${diagnostic.message}" }
+    }
+
+    val typeCheckerOutput = TypeChecker(astInfo, nameResolutionOutput.result).parse()
+    for (diagnostic in typeCheckerOutput.diagnostics) {
+        logger.warn { "[TypeChecker diagnostic] ${diagnostic.message}" }
+    }
+
+    val functionAnalisisResult = FunctionAnalyser().analyseFunctions(astInfo)
+
+    val functions = (astInfo.root as Program).functions
+
+    val frameManagers = mutableMapOf<FunctionDeclaration, FunctionFrameManager>()
+    for (function in functions) {
+        frameManagers[function] = FunctionFrameManagerImpl(function, functionAnalisisResult, frameManagers)
+    }
+
+    // CFG
+    val nodes = functions.map {
+        val variableUsage = usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
+        it.name to CFGMaker(frameManagers[it]!!, nameResolutionOutput.result, variableUsage, typeCheckerOutput.result).makeCfg(it)
+    }
+
+    // Linearization
+    val instructionPatterns = InstructionSetCreator().createInstructionSet()
+    val linearizer = Linearizer(InstructionCoverer(instructionPatterns))
+    val blocks = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }
 }
