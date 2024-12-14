@@ -59,9 +59,9 @@ class CFGMaker(
         val value = walkExpr(assignment.value, node)
         val variable = nameResolution.assignmentToDecl[assignment]!!
         val access = fm.generate_var_access(variable)
-        node.trees = listOf(
+        node.trees = listOfNotNull(
             if (typeMap[assignment.value]!!.isNope()) {
-                value.tree!!
+                value.tree
             } else {
                 CFGAssignment(access, value.tree!!)
             }
