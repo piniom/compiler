@@ -117,8 +117,7 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
     logger.info { "NASM successfully created program.o" }
-
-    // Step 3: Run gcc to link the object file into an executable
+    
     val gccProcess = ProcessBuilder("gcc", "program.o", "-o", "program")
         .inheritIO()
         .start()
