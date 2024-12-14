@@ -1,0 +1,185 @@
+foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
+    let tmp: Int = 0;
+    if (a > b) then {
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+    if (b > c) then {
+        tmp = b;
+        b = c;
+        c = tmp;
+    }
+    if (c > d) then {
+        tmp = c;
+        c = d;
+        d = tmp;
+    }
+
+    if (d > e) then {
+        tmp = d;
+        d = e;
+        e = tmp;
+    }
+
+    if (a > b) then {
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    if (b > c) then {
+        tmp = b;
+        b = c;
+        c = tmp;
+    }
+
+    if (c > d) then {
+        tmp = c;
+        c = d;
+        d = tmp;
+    }
+
+    if (a > b) then {
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    if (b > c) then {
+        tmp = b;
+        b = c;
+        c = tmp;
+    }
+
+    if (a > b) then {
+        tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    a <= b && b <= c && c <= d && d <= e
+}
+
+foo main() -> Int {
+    sort_five(1, 2, 3, 4, 5) &&
+    sort_five(1, 2, 3, 5, 4) &&
+    sort_five(1, 2, 4, 3, 5) &&
+    sort_five(1, 2, 4, 5, 3) &&
+    sort_five(1, 2, 5, 3, 4) &&
+    sort_five(1, 2, 5, 4, 3) &&
+    sort_five(1, 3, 2, 4, 5) &&
+    sort_five(1, 3, 2, 5, 4) &&
+    sort_five(1, 3, 4, 2, 5) &&
+    sort_five(1, 3, 4, 5, 2) &&
+    sort_five(1, 3, 5, 2, 4) &&
+    sort_five(1, 3, 5, 4, 2) &&
+    sort_five(1, 4, 2, 3, 5) &&
+    sort_five(1, 4, 2, 5, 3) &&
+    sort_five(1, 4, 3, 2, 5) &&
+    sort_five(1, 4, 3, 5, 2) &&
+    sort_five(1, 4, 5, 2, 3) &&
+    sort_five(1, 4, 5, 3, 2) &&
+    sort_five(1, 5, 2, 3, 4) &&
+    sort_five(1, 5, 2, 4, 3) &&
+    sort_five(1, 5, 3, 2, 4) &&
+    sort_five(1, 5, 3, 4, 2) &&
+    sort_five(1, 5, 4, 2, 3) &&
+    sort_five(1, 5, 4, 3, 2) &&
+    sort_five(2, 1, 3, 4, 5) &&
+    sort_five(2, 1, 3, 5, 4) &&
+    sort_five(2, 1, 4, 3, 5) &&
+    sort_five(2, 1, 4, 5, 3) &&
+    sort_five(2, 1, 5, 3, 4) &&
+    sort_five(2, 1, 5, 4, 3) &&
+    sort_five(2, 3, 1, 4, 5) &&
+    sort_five(2, 3, 1, 5, 4) &&
+    sort_five(2, 3, 4, 1, 5) &&
+    sort_five(2, 3, 4, 5, 1) &&
+    sort_five(2, 3, 5, 1, 4) &&
+    sort_five(2, 3, 5, 4, 1) &&
+    sort_five(2, 4, 1, 3, 5) &&
+    sort_five(2, 4, 1, 5, 3) &&
+    sort_five(2, 4, 3, 1, 5) &&
+    sort_five(2, 4, 3, 5, 1) &&
+    sort_five(2, 4, 5, 1, 3) &&
+    sort_five(2, 4, 5, 3, 1) &&
+    sort_five(2, 5, 1, 3, 4) &&
+    sort_five(2, 5, 1, 4, 3) &&
+    sort_five(2, 5, 3, 1, 4) &&
+    sort_five(2, 5, 3, 4, 1) &&
+    sort_five(2, 5, 4, 1, 3) &&
+    sort_five(2, 5, 4, 3, 1) &&
+    sort_five(3, 1, 2, 4, 5) &&
+    sort_five(3, 1, 2, 5, 4) &&
+    sort_five(3, 1, 4, 2, 5) &&
+    sort_five(3, 1, 4, 5, 2) &&
+    sort_five(3, 1, 5, 2, 4) &&
+    sort_five(3, 1, 5, 4, 2) &&
+    sort_five(3, 2, 1, 4, 5) &&
+    sort_five(3, 2, 1, 5, 4) &&
+    sort_five(3, 2, 4, 1, 5) &&
+    sort_five(3, 2, 4, 5, 1) &&
+    sort_five(3, 2, 5, 1, 4) &&
+    sort_five(3, 2, 5, 4, 1) &&
+    sort_five(3, 4, 1, 2, 5) &&
+    sort_five(3, 4, 1, 5, 2) &&
+    sort_five(3, 4, 2, 1, 5) &&
+    sort_five(3, 4, 2, 5, 1) &&
+    sort_five(3, 4, 5, 1, 2) &&
+    sort_five(3, 4, 5, 2, 1) &&
+    sort_five(3, 5, 1, 2, 4) &&
+    sort_five(3, 5, 1, 4, 2) &&
+    sort_five(3, 5, 2, 1, 4) &&
+    sort_five(3, 5, 2, 4, 1) &&
+    sort_five(3, 5, 4, 1, 2) &&
+    sort_five(3, 5, 4, 2, 1) &&
+    sort_five(4, 1, 2, 3, 5) &&
+    sort_five(4, 1, 2, 5, 3) &&
+    sort_five(4, 1, 3, 2, 5) &&
+    sort_five(4, 1, 3, 5, 2) &&
+    sort_five(4, 1, 5, 2, 3) &&
+    sort_five(4, 1, 5, 3, 2) &&
+    sort_five(4, 2, 1, 3, 5) &&
+    sort_five(4, 2, 1, 5, 3) &&
+    sort_five(4, 2, 3, 1, 5) &&
+    sort_five(4, 2, 3, 5, 1) &&
+    sort_five(4, 2, 5, 1, 3) &&
+    sort_five(4, 2, 5, 3, 1) &&
+    sort_five(4, 3, 1, 2, 5) &&
+    sort_five(4, 3, 1, 5, 2) &&
+    sort_five(4, 3, 2, 1, 5) &&
+    sort_five(4, 3, 2, 5, 1) &&
+    sort_five(4, 3, 5, 1, 2) &&
+    sort_five(4, 3, 5, 2, 1) &&
+    sort_five(4, 5, 1, 2, 3) &&
+    sort_five(4, 5, 1, 3, 2) &&
+    sort_five(4, 5, 2, 1, 3) &&
+    sort_five(4, 5, 2, 3, 1) &&
+    sort_five(4, 5, 3, 1, 2) &&
+    sort_five(4, 5, 3, 2, 1) &&
+    sort_five(5, 1, 2, 3, 4) &&
+    sort_five(5, 1, 2, 4, 3) &&
+    sort_five(5, 1, 3, 2, 4) &&
+    sort_five(5, 1, 3, 4, 2) &&
+    sort_five(5, 1, 4, 2, 3) &&
+    sort_five(5, 1, 4, 3, 2) &&
+    sort_five(5, 2, 1, 3, 4) &&
+    sort_five(5, 2, 1, 4, 3) &&
+    sort_five(5, 2, 3, 1, 4) &&
+    sort_five(5, 2, 3, 4, 1) &&
+    sort_five(5, 2, 4, 1, 3) &&
+    sort_five(5, 2, 4, 3, 1) &&
+    sort_five(5, 3, 1, 2, 4) &&
+    sort_five(5, 3, 1, 4, 2) &&
+    sort_five(5, 3, 2, 1, 4) &&
+    sort_five(5, 3, 2, 4, 1) &&
+    sort_five(5, 3, 4, 1, 2) &&
+    sort_five(5, 3, 4, 2, 1) &&
+    sort_five(5, 4, 1, 2, 3) &&
+    sort_five(5, 4, 1, 3, 2) &&
+    sort_five(5, 4, 2, 1, 3) &&
+    sort_five(5, 4, 2, 3, 1) &&
+    sort_five(5, 4, 3, 1, 2) &&
+    sort_five(5, 4, 3, 2, 1)
+}

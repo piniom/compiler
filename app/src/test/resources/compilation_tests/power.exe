@@ -1,0 +1,15 @@
+foo pow(x: Int, n: Int) = {
+    if n == 0 then {
+        return 1;
+    }
+
+    foo pow_aux(x: Int, n: Int) -> Int = {
+        pow(x*x, n/2)
+    }
+
+    if (n % 2 == 1) then { x * pow_aux(x, n) } else { pow_aux(x, n) }
+}
+
+foo main() -> Int = {
+    pow(10, 5) = 100000
+}
