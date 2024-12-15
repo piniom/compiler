@@ -21,7 +21,7 @@ class RegisterAllocatorImpl : RegisterAllocator {
         val spills: MutableSet<VirtualRegister> = mutableSetOf()
         val graph = livenessResult.interference
         val copyGraph = livenessResult.copy
-        val coalescence : Map<Register, Set<Register>> = CoalescenceGraphCreator().createCoalescenceGraph(graph, copyGraph, domain, range.size)
+        val coalescence: RegisterGraph = CoalescenceGraphCreator().createCoalescenceGraph(graph, copyGraph, domain, range.size)
         val visited: MutableSet<Register> = domain.filter { it is PhysicalRegister }.toMutableSet()
         val available: MutableSet<Register> = domain.subtract(visited).toMutableSet()
         val order: MutableList<Register> = visited.toMutableList()

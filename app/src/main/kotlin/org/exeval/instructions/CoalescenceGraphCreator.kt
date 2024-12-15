@@ -14,7 +14,7 @@ class CoalescenceGraphCreator {
 
 
     public fun createCoalescenceGraph(graph: RegisterGraph, copyGraph : RegisterGraph, domain : Set<Register>,
-     numOfColors : Int) : Map<Register, Set<Register>> {
+     numOfColors : Int) : RegisterGraph {
 
         val mapDomainToInt : MutableMap<Register, Int> = mutableMapOf()
         domain.forEachIndexed { index, register ->
@@ -83,7 +83,7 @@ class CoalescenceGraphCreator {
         return result
     }
 
-    private fun createGraphFromFindUnion(findUnion : FindUnion, mapIntToDomain: MutableMap<Int, Register>) : Map<Register, Set<Register>> {
+    private fun createGraphFromFindUnion(findUnion : FindUnion, mapIntToDomain: MutableMap<Int, Register>) : RegisterGraph {
         val mapLeaderToGroup : MutableMap<Int, MutableSet<Register>> = mutableMapOf()
         for (key in mapIntToDomain.keys) {
             val leader = findUnion.find(key)
