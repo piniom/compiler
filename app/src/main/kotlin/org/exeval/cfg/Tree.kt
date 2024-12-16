@@ -37,6 +37,8 @@ data class LabelConstantTree(val label: Label) : ConstantTree
 
 data class NumericalConstantTree(val value: Long) : ConstantTree
 
+data class DelayedNumericalConstantTree(val getValue: () -> Long) : ConstantTree
+
 sealed interface AssignableTree : Tree
 
 data class MemoryTree(val address: Tree) : AssignableTree
