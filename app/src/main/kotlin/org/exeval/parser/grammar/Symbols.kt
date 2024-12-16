@@ -105,6 +105,61 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
+
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.PunctuationLeftRoundBracket,
+			FunctionParamsSymbol,
+			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			SimpleExpressionSymbol,
+			Token.PunctuationSemicolon
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierEntrypoint,
+			Token.LiteralNope,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			SimpleExpressionSymbol,
+			Token.PunctuationSemicolon
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierEntrypoint,
+			Token.PunctuationLeftRoundBracket,
+			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			SimpleExpressionSymbol,
+			Token.PunctuationSemicolon
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.LiteralNope,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			SimpleExpressionSymbol,
+			Token.PunctuationSemicolon
+		),
+		listOf(
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.PunctuationLeftRoundBracket,
+			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			SimpleExpressionSymbol,
+			Token.PunctuationSemicolon
+		),
 	)
 }
 
@@ -170,7 +225,6 @@ object IfThenSymbol: GrammarSymbol {
 			ExpressionSymbol,
 			Token.KeywordThen,
 			ExpressionSymbol,
-			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -219,14 +273,12 @@ object BreakKeywordSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordBreak,
-			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 		listOf(
 			Token.KeywordBreak,
 			Token.PunctuationMonkey,
 			Token.IdentifierNontype,
-			ErrorSymbol,
 			Token.PunctuationSemicolon,
 		),
 	)
@@ -308,6 +360,13 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			ExpressionSymbol,
 			Token.PunctuationRightRoundBracket,
 		),
+		listOf(
+			Token.PunctuationLeftRoundBracket,
+			ExpressionSymbol,
+			Token.PunctuationRightRoundBracket,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
 	)
 }
 
@@ -369,7 +428,6 @@ object ExpressionBlockSymbol: GrammarSymbol {
 			listOf(ExpressionBlockSymbol),
 			listOf(
 				SimpleExpressionSymbol,
-				ErrorSymbol,
 				Token.PunctuationSemicolon,
 				ExpressionChainSymbol,
 			),
@@ -379,8 +437,15 @@ object ExpressionBlockSymbol: GrammarSymbol {
 			),
 			listOf(
 				ExpressionBlockSymbol,
-				ErrorSymbol,
 				Token.PunctuationSemicolon,
+				ExpressionChainSymbol,
+			),
+			listOf(
+				FunctionDeclarationSymbol,
+				ExpressionChainSymbol,
+			),
+			listOf(
+				LoopSymbol,
 				ExpressionChainSymbol,
 			),
 		)
@@ -394,8 +459,6 @@ object ExpressionSymbol: GrammarSymbol {
 		listOf(ExpressionBlockSymbol),
 	)
 }
-
-object ErrorSymbol: Terminal
 
 object EndOfProgramSymbol: Terminal
 

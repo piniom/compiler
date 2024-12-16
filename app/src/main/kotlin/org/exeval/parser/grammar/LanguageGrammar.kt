@@ -19,7 +19,6 @@ interface TerminalGroup : GrammarSymbol {
 
 object LanguageGrammar {
 	val grammar = Grammar<GrammarSymbol>(ProgramSymbol, EndOfProgramSymbol, getAllProductions(ProgramSymbol))
-	val errorSymbol = ErrorSymbol
 
 	fun getAllProductions(startSymbol: GrammarSymbol): List<Production<GrammarSymbol>> {
 		fun getSymbolProductions(

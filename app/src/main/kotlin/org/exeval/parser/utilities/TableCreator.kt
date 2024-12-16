@@ -51,7 +51,6 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
 
         for (curCC in allStates) {
             for (item in curCC.items) {
-
                 val isAtTheEndOfProduction = item.production.right.size == item.placeholder
                 val isFromStartSymbol = item.production.left == analyzedGrammar.grammar.startSymbol
                 val isLookaheadEndOfParse = item.lookahead == analyzedGrammar.grammar.endOfParse
@@ -66,10 +65,13 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
                         val oldVal = actions[placeholderSymbol to curCC]
                         val newVal = Action.Shift<S, Parser.State<S>>(nextCC)
 
-                        if (oldVal != null && oldVal != newVal) {
+                        if (oldVal != null && oldVal is Action.Reduce<*, *>) {
+                            actions[placeholderSymbol to curCC] = newVal
+                        } else if (oldVal != null && oldVal != newVal) {
                             throw TableCreationError("There is conflict in an action table. Grammar is probably ambiguous. Entry actions[${placeholderSymbol}, $curCC] have two values: $oldVal and $newVal")
+                        } else {
+                            actions[placeholderSymbol to curCC] = newVal
                         }
-                        actions[placeholderSymbol to curCC] = newVal
                     }
 
                     isAtTheEndOfProduction && isFromStartSymbol && isLookaheadEndOfParse -> {
@@ -79,10 +81,14 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
                     isAtTheEndOfProduction && isLookaheadTerminal -> {
                         val oldVal = actions[item.lookahead to curCC]
                         val newVal = Action.Reduce<S, Parser.State<S>>(item.production)
-                        if (oldVal != null && oldVal != newVal) {
+
+                        if (oldVal != null && oldVal is Action.Shift<*, *>) {
+                            continue
+                        } else if (oldVal != null && oldVal != newVal) {
                             throw TableCreationError("There is conflict in an action table. Grammar is probably ambiguous. Entry actions[${item.lookahead}, $curCC] have two values: $oldVal and $newVal")
+                        } else {
+                            actions[item.lookahead to curCC] = newVal
                         }
-                        actions[item.lookahead to curCC] = newVal
                     }
                 }
             }
