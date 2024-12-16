@@ -107,6 +107,20 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 		),
 	)
 }
+object ForeignFunctionDeclarationSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordForeign,
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.PunctuationLeftRoundBracket,
+			FunctionParamsSymbol,
+			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			Token.IdentifierType,
+		),
+	)
+}
 
 object FunctionParamsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
@@ -413,6 +427,10 @@ object FunctionsDeclarationsSymbol: GrammarSymbol {
 		listOf(
 			FunctionDeclarationSymbol,
 			FunctionsDeclarationsSymbol,
+		),
+		listOf(
+			ForeignFunctionDeclarationSymbol,
+			FunctionsDeclarationsSymbol
 		),
 	)
 }

@@ -52,7 +52,26 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             astNode = FunctionDeclaration(name!!, parameters, returnType!!, body!!)
-        } else if (symbol === FunctionParamSymbol) {
+        }
+        else if(symbol === ForeignFunctionDeclarationSymbol){
+            var name: String? = null
+            var parameters: List<Parameter> = listOf()
+            var returnType: Type? = null
+            for (child in children){
+                val childSymbol = getSymbol(child)
+
+                if(childSymbol === TokenCategories.IdentifierNontype){
+                    name = getNodeText(child, input)
+                } else if(childSymbol === FunctionParamsSymbol){
+                    parameters = unwrapList<Parameter>(child, FunctionParamSymbol, input)
+                } else if (childSymbol === TokenCategories.IdentifierType){
+                    returnType = getType(child, input)
+                }
+            }
+            TODO("Uncomment after merge")
+            // astNode = ForeignFunctionDeclaration(name!!, parameters, returnType!!)
+        }
+        else if (symbol === FunctionParamSymbol) {
             var name: String? = null
             var type: Type? = null
 
