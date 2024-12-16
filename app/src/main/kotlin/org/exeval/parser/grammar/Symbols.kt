@@ -448,6 +448,10 @@ object ExpressionBlockSymbol: GrammarSymbol {
 				LoopSymbol,
 				ExpressionChainSymbol,
 			),
+			listOf(
+				IfThenWithoutSemicolonSymbol,
+				ExpressionChainSymbol,
+			),
 		)
 	}
 }

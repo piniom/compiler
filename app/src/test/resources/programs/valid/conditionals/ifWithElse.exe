@@ -6,6 +6,6 @@ foo main() -> Int = {
     } else {
         let b: Int = 20;
         b - 5
-    };
+    }
     y
 }
