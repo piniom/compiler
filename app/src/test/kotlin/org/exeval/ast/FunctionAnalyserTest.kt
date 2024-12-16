@@ -71,6 +71,7 @@ class FunctionAnalyserTest {
     fun `test function analysis with nested function calls`() {
         // Create a program where one function calls another
         val intType: Type = mockType()
+
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -108,6 +109,8 @@ class FunctionAnalyserTest {
             )
         )
 
+        val body = (program.functions[0] as FunctionDeclaration).body as Block
+
         val astInfo = AstInfo(program, locations = emptyMap())
 
         val analyser = FunctionAnalyser()
@@ -118,13 +121,13 @@ class FunctionAnalyserTest {
         val callGraph = analysisResult.callGraph
         assertTrue(callGraph.containsKey(program.functions[0])) // "foo"
         assertTrue(!callGraph[program.functions[0]]!!.contains(program.functions[1]) == true) // "foo" does no call global "bar"
-        assertTrue(callGraph[program.functions[0]]!!.contains(((program.functions[0]!!.body as Block))!!.expressions[0]) == true) // "foo" calls local "bar" function
+        assertTrue(callGraph[program.functions[0]]!!.contains(body.expressions[0]) == true) // "foo" calls local "bar" function
         assertTrue(callGraph.containsKey(program.functions[1])) // "bar" should not call at all
 
         // Test Static Parents
         val staticParents = analysisResult.staticParents
         assertNull(staticParents[program.functions[0]]) // "foo" is global
-        assertEquals(staticParents[((program.functions[0]!!.body as Block))!!.expressions[0]], program.functions[0]) // local "bar" is defined inside "foo"
+        assertEquals(staticParents[body.expressions[0]], program.functions[0]) // local "bar" is defined inside "foo"
         assertNull(staticParents[program.functions[1]]) // "bar" is global
 
         // Test Variable Map

@@ -50,20 +50,25 @@ enum class UnaryOperator {
     NOT, MINUS
 }
 
-sealed interface AnyFunctionDeclaration : ASTNode
+sealed class AnyFunctionDeclaration() : Expr()
+{
+    abstract val name: String;
+    abstract val parameters: List<Parameter>;
+    abstract val returnType: Type
+}
 
 class FunctionDeclaration(
-    val name: String,
-    val parameters: List<Parameter>,
-    val returnType: Type,
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type,
     val body: Expr
-) : Expr(), AnyFunctionDeclaration
+) : AnyFunctionDeclaration()
 
 class ForeignFunctionDeclaration(
-    val name: String,
-    val parameters: List<Parameter>,
-    val returnType: Type
-) : Expr(), AnyFunctionDeclaration
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type
+) : AnyFunctionDeclaration()
 
 class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
