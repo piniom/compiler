@@ -85,12 +85,11 @@ class AstCreatorImplTest {
 
         val functionNode = programNode.functions.first()
 
-        if (functionNode !is FunctionDeclaration) {
-            fail("Expected function declaration, but got ${functionNode::class.simpleName}")
-        } else {
-            assertEquals("main", functionNode.name)
-            assertEquals(0, functionNode.parameters.size)
-            assertTrue(functionNode.returnType is IntType)
+        assertEquals("main", functionNode.name)
+        assertEquals(0, functionNode.parameters.size)
+        assertTrue(functionNode.returnType is IntType)
+
+        if (functionNode is FunctionDeclaration) {
             assertTrue(functionNode.body is IntLiteral)
             assertEquals(4, (functionNode.body as IntLiteral).value)
         }

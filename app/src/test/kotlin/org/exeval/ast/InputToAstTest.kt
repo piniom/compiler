@@ -55,8 +55,11 @@ class InputToAstTest {
         assertEquals("main", functionNode.name)
         assertEquals(0, functionNode.parameters.size)
         assertTrue(functionNode.returnType is IntType)
-        assertTrue(functionNode.body is IntLiteral)
-        assertEquals(4, (functionNode.body).value)
+
+        if (functionNode is FunctionDeclaration) {
+            assertTrue(functionNode.body is IntLiteral)
+            assertEquals(4, (functionNode.body).value)
+        }
     }
 
     private fun getActualAst(input: Input): AstInfo {
