@@ -452,6 +452,10 @@ object ExpressionBlockSymbol: GrammarSymbol {
 				IfThenWithoutSemicolonSymbol,
 				ExpressionChainSymbol,
 			),
+			listOf(
+				IfThenElseSymbol,
+				ExpressionChainSymbol,
+			),
 		)
 	}
 }
