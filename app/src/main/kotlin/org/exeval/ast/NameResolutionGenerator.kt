@@ -16,7 +16,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private val breakToLoop: MutableMap<Break, Loop> = mutableMapOf()
     private val argumentToParam: MutableMap<Argument, Parameter> = mutableMapOf()
-    private val functionToDecl: MutableMap<FunctionCall, FunctionDeclaration> = mutableMapOf()
+    private val functionToDecl: MutableMap<FunctionCall, AnyFunctionDeclaration> = mutableMapOf()
     private val variableToDecl: MutableMap<VariableReference, AnyVariable> = mutableMapOf()
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
 
@@ -151,7 +151,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun assignArguments(call: FunctionCall, decl: FunctionDeclaration) {
+    private fun assignArguments(call: FunctionCall, decl: AnyFunctionDeclaration) {
         var hasNamed = false
         var positionalIdx = 0
         val usedParameters = mutableSetOf<Int>()
@@ -192,10 +192,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun getFnDecl(functionCall: FunctionCall): FunctionDeclaration? {
+    private fun getFnDecl(functionCall: FunctionCall): AnyFunctionDeclaration? {
         val found = findDecl(functionCall.functionName)
 
-        if (found is FunctionDeclaration)
+        if (found is AnyFunctionDeclaration)
             return found
 
         if(found == null)
