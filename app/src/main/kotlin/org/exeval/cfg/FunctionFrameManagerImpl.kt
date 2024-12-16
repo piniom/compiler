@@ -14,10 +14,10 @@ class FunctionFrameManagerImpl(
     private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
 ) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var stackOffset: Long = 0
+    private var stackOffset = LockableBox<Long>(0)
     private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
 
-    public val label: Label
+    val label: Label
     private val calleSaveRegisters = listOf(
         PhysicalRegister.R9,
         PhysicalRegister.R10,
@@ -49,7 +49,7 @@ class FunctionFrameManagerImpl(
     override fun generate_function_call(trees: List<Tree>, result: AssignableTree?, then: CFGNode): CFGNode {
         val outTrees = mutableListOf<Tree>()
         // Put first 2 args to RCX, RDX registers
-        if (trees.size >= 1) {
+        if (trees.isNotEmpty()) {
             outTrees.add(
                 AssignmentTree(
                     RegisterTree(PhysicalRegister.RCX),
@@ -66,7 +66,7 @@ class FunctionFrameManagerImpl(
             )
         }
         // Put the rest of the args on stack
-        for (i in 2..(trees.size - 1)) {
+        for (i in 2..<trees.size) {
             outTrees.addAll(
                 pushToStack(trees[i])
             )
@@ -140,7 +140,7 @@ class FunctionFrameManagerImpl(
                 RegisterTree(PhysicalRegister.RSP),
                 BinaryOperationTree(
                     RegisterTree(PhysicalRegister.RSP),
-                    NumericalConstantTree((stackOffset * 4).toLong()),
+                    DelayedNumericalConstantTree { stackOffset.lock(); stackOffset.value * 4 },
                     BinaryTreeOperationType.ADD
                 )
             )
@@ -158,11 +158,21 @@ class FunctionFrameManagerImpl(
     }
 
     override fun alloc_frame_memory(): AssignableTree {
-        TODO()
+        val curOffset = stackOffset.value * 4
+        stackOffset.value += 1
+
+        val resTree =  MemoryTree(
+            BinaryOperationTree(
+                RegisterTree(PhysicalRegister.RBP),
+                NumericalConstantTree(curOffset),
+                BinaryTreeOperationType.ADD
+            )
+        )
+        return resTree
     }
 
     private fun backupRegisters(): List<Tree> {
-        stackOffset += calleSaveRegisters.size
+        stackOffset.value += calleSaveRegisters.size
 
         return calleSaveRegisters.map {
             AssignmentTree(
@@ -190,8 +200,8 @@ class FunctionFrameManagerImpl(
                 val memoryCell: UsableMemoryCell
 
                 if (isNested) {
-                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset * 4)
-                    stackOffset += 1
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * 4)
+                    stackOffset.value += 1
                 } else {
                     memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
                 }
@@ -279,4 +289,19 @@ class FunctionFrameManagerImpl(
 
         return result
     }
+}
+
+class LockableBox<T>(value: T) {
+    var value: T = value
+        set(newValue) {
+            if (isLocked)
+                throw RuntimeException("This box is locked, so you cannot change value")
+            field = newValue
+        }
+
+    fun lock() {
+        isLocked = true
+    }
+
+    private var isLocked = false
 }
