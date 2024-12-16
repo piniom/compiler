@@ -24,6 +24,7 @@ interface AssignableDest : OperandArgumentType
 interface ConstantOperandArgumentType : OperandArgumentType
 
 data class NumericalConstant(val value: Long) : ConstantOperandArgumentType
+data class DelayedNumericalConstant(val getValue: () -> Long) : ConstantOperandArgumentType
 
 class TemplatePattern(
     override val rootType: TreeKind,
@@ -76,7 +77,9 @@ class TemplatePattern(
         return when(tree) {
             is LabelConstantTree -> tree.label
             is NumericalConstantTree -> NumericalConstant(tree.value)
+            is DelayedNumericalConstantTree -> DelayedNumericalConstant(tree.getValue)
             is Call -> tree.label
+            is RegisterTree -> if (tree.register is PhysicalRegister) { tree.register } else { null }
             else -> null
         }
     }
