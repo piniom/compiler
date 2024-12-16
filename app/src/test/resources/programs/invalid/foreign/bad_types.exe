@@ -1,0 +1,9 @@
+foreign fun id(x: Int) -> Bool
+foreign fun add(x: Bool, y: Int) -> Int
+
+fun main() -> Int{
+    let x: Int = id(false)
+    add(3, true)
+    add(y=true, x=3)
+    id(0)
+}
