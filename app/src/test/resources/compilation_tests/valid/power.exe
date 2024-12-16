@@ -1,3 +1,7 @@
+foo boolToInt(f: Bool) -> Int {
+    if f then 0 else 1
+}
+
 foo pow(x: Int, n: Int) = {
     if n == 0 then {
         return 1;
@@ -11,5 +15,5 @@ foo pow(x: Int, n: Int) = {
 }
 
 foo main() -> Int = {
-    pow(10, 5) = 100000
+    boolToInt(pow(10, 5) == 100000)
 }

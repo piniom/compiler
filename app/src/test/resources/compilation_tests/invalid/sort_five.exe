@@ -1,11 +1,20 @@
-foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
-    let tmp: Int = 0;
+foo boolToInt(f: Bool) -> Int {
+    if f then 0 else 1
+}
+
+foo sort_five(aa: Int, bb: Int, cc: Int, dd: Int, ee: Int) -> Bool {
+    let mut tmp: Int = 0;
+    let mut a: Int = aa;
+    let mut b: Int = bb;
+    let mut c: Int = cc;
+    let mut d: Int = dd;
+    let mut e: Int = ee;
     if (a > b) then {
         tmp = a;
         a = b;
         b = tmp;
     }
-    if (b > c) then {
+    if (b < c) then {
         tmp = b;
         b = c;
         c = tmp;
@@ -16,7 +25,7 @@ foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
         d = tmp;
     }
 
-    if (d > e) then {
+    if (d < e) then {
         tmp = d;
         d = e;
         e = tmp;
@@ -40,7 +49,7 @@ foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
         d = tmp;
     }
 
-    if (a > b) then {
+    if (a < b) then {
         tmp = a;
         a = b;
         b = tmp;
@@ -52,7 +61,7 @@ foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
         c = tmp;
     }
 
-    if (a > b) then {
+    if (a < b) then {
         tmp = a;
         a = b;
         b = tmp;
@@ -62,7 +71,7 @@ foo sort_five(a: Int, b: Int, c: Int, d: Int, e: Int) -> Bool {
 }
 
 foo main() -> Int {
-    sort_five(1, 2, 3, 4, 5) &&
+    boolToInt(sort_five(1, 2, 3, 4, 5) &&
     sort_five(1, 2, 3, 5, 4) &&
     sort_five(1, 2, 4, 3, 5) &&
     sort_five(1, 2, 4, 5, 3) &&
@@ -181,5 +190,5 @@ foo main() -> Int {
     sort_five(5, 4, 2, 1, 3) &&
     sort_five(5, 4, 2, 3, 1) &&
     sort_five(5, 4, 3, 1, 2) &&
-    sort_five(5, 4, 3, 2, 1)
+    sort_five(5, 4, 3, 2, 1))
 }

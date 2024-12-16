@@ -1,3 +1,7 @@
+foo boolToInt(f: Bool) -> Int {
+    if f then 0 else 1
+}
+
 foo main() -> Int {
     let a11: Int = 0;
     let a12: Int = 1;
@@ -31,22 +35,22 @@ foo main() -> Int {
     let b42: Int = 113;
     let b43: Int = 114;
     let b44: Int = 115;
-    let c11: Int = 0;
-    let c12: Int = 0;
-    let c13: Int = 0;
-    let c14: Int = 0;
-    let c21: Int = 0;
-    let c22: Int = 0;
-    let c23: Int = 0;
-    let c24: Int = 0;
-    let c31: Int = 0;
-    let c32: Int = 0;
-    let c33: Int = 0;
-    let c34: Int = 0;
-    let c41: Int = 0;
-    let c42: Int = 0;
-    let c43: Int = 0;
-    let c44: Int = 0;
+    let mut c11: Int = 0;
+    let mut c12: Int = 0;
+    let mut c13: Int = 0;
+    let mut c14: Int = 0;
+    let mut c21: Int = 0;
+    let mut c22: Int = 0;
+    let mut c23: Int = 0;
+    let mut c24: Int = 0;
+    let mut c31: Int = 0;
+    let mut c32: Int = 0;
+    let mut c33: Int = 0;
+    let mut c34: Int = 0;
+    let mut c41: Int = 0;
+    let mut c42: Int = 0;
+    let mut c43: Int = 0;
+    let mut c44: Int = 0;
     c11 = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
     c12 = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
     c13 = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
@@ -63,7 +67,7 @@ foo main() -> Int {
     c42 = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
     c43 = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
     c44 = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
-    c11 == 656 &&
+    boolToInt(c11 == 656 &&
     c12 == 662 &&
     c13 == 668 &&
     c14 == 674 &&
@@ -78,5 +82,5 @@ foo main() -> Int {
     c41 == 5744 &&
     c42 == 5798 &&
     c43 == 5852 &&
-    c44 == 5906
+    c44 == 5906)
 }
