@@ -57,6 +57,12 @@ class FunctionDeclaration(
     val body: Expr
 ) : Expr()
 
+class ForeignFunctionDeclaration(
+    val name: String,
+    val parameters: List<Parameter>,
+    val returnType: Type
+) : Expr()
+
 class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
 class FunctionCall(

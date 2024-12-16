@@ -44,6 +44,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
             is FunctionCall -> processFnCall(astNode)
             is FunctionDeclaration -> processFnDecl(astNode)
+            is ForeignFunctionDeclaration -> processForeignFnDecl(astNode)
 
             is ConstantDeclaration -> processConstDecl(astNode)
             is MutableVariableDeclaration -> processMutDecl(astNode)
@@ -248,6 +249,17 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             popLoopStack()
         }
     }
+
+    private fun processForeignFnDecl(functionDecl: ForeignFunctionDeclaration) {
+        addDecl(functionDecl.name, functionDecl)
+
+        processAsBlock {
+            pushLoopStack()
+            processFunParameters(functionDecl.parameters)
+            popLoopStack()
+        }
+    }
+
 
     private fun processFunParameters(parameters: List<Parameter>) {
         parameters.forEach{
