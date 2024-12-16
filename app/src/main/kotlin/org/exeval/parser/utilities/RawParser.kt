@@ -16,7 +16,7 @@ class RawParser<Symbol, State>(
     private infix fun ParseTree<Symbol>.to(state: State): StackEntry = StackEntry(this, state)
 
 
-    fun run(leaves: List<ParseTree.Leaf<Symbol>>): ParseTree<Symbol> {
+    fun run(leaves: List<ParseTree.Leaf<Symbol>>): ParseTree.Branch<Symbol> {
         val stack = Stack<StackEntry>()
         stack.push(
             ParseTree.Leaf<Symbol>(
@@ -45,7 +45,10 @@ class RawParser<Symbol, State>(
                 stack.push(leaf to newState)
                 leafI += 1
             } else if (curAction is Action.Accept<Symbol, State> && leaf.symbol == endSymbol) {
-                return stack.peek().tree
+                val curPeekTree = stack.peek().tree
+                if (curPeekTree !is ParseTree.Branch<Symbol>)
+                    throw IllegalStateException("Tried to return Leaf. That can only happen, if there is production Start -> Terminal.")
+                return curPeekTree
             } else {
                 throw ParseError("Parse error at leaf %s".format(leaf), leaf.startLocation, leaf.endLocation)
             }

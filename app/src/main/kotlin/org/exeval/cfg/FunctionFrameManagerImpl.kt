@@ -157,6 +157,10 @@ class FunctionFrameManagerImpl(
         return CFGNodeImpl(null, trees)
     }
 
+    override fun alloc_frame_memory(): AssignableTree {
+        TODO()
+    }
+
     private fun backupRegisters(): List<Tree> {
         stackOffset += calleSaveRegisters.size
 

@@ -21,4 +21,5 @@ interface FunctionFrameManager {
     fun variable_to_virtual_register(x: AnyVariable): UsableMemoryCell
     fun generate_prolog(then: CFGNode): CFGNode
     fun generate_epilouge(result: Tree?): CFGNode
+    fun alloc_frame_memory(): AssignableTree
 }
