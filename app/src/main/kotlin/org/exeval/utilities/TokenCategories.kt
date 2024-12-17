@@ -36,6 +36,7 @@ enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	KeywordElse("else"),
 	KeywordLoop("loop"),
 	KeywordFoo("foo"),
+	KeywordForeign("foreign"),
 	KeywordBreak("break"),
 	KeywordReturn("return"),
 	KeywordLet("let"),
