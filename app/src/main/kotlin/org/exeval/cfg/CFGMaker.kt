@@ -43,6 +43,7 @@ class CFGMaker(
             is Break -> walkBreak(expr, then)
             is Conditional -> walkConditional(expr, then)
             is FunctionCall -> walkFunctionCall(expr, then)
+            is ForeignFunctionDeclaration -> WalkResult(then, null)
             is FunctionDeclaration -> WalkResult(then, null)
             is Literal -> walkLiteral(expr, then)
             is Loop -> walkLoop(expr, then)

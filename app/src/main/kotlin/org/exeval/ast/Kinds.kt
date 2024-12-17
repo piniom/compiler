@@ -1,6 +1,6 @@
 package org.exeval.ast
 
-class Program(val functions: List<FunctionDeclaration>) : ASTNode
+class Program(val functions: List<AnyFunctionDeclaration>) : ASTNode
 
 interface ASTNode
 
@@ -50,12 +50,25 @@ enum class UnaryOperator {
     NOT, MINUS
 }
 
+sealed class AnyFunctionDeclaration() : Expr()
+{
+    abstract val name: String;
+    abstract val parameters: List<Parameter>;
+    abstract val returnType: Type
+}
+
 class FunctionDeclaration(
-    val name: String,
-    val parameters: List<Parameter>,
-    val returnType: Type,
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type,
     val body: Expr
-) : Expr()
+) : AnyFunctionDeclaration()
+
+class ForeignFunctionDeclaration(
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type
+) : AnyFunctionDeclaration()
 
 class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
