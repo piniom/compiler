@@ -11,11 +11,11 @@ import org.exeval.instructions.interfaces.LivenessChecker
 import org.exeval.instructions.interfaces.RegisterAllocator
 import org.exeval.instructions.interfaces.SpillsHandler
 import org.exeval.instructions.linearizer.BasicBlock
+import kotlin.collections.getOrDefault
 
-class SpillHandler(val ic:InstructionCovererInterface):SpillsHandler{
-    /**set to **true** to only save defined registers to limit amount of instructions created
-     * WARNING: might affect liveness*/
-    private val saving = false
+class SpillHandler(
+    val ic:InstructionCovererInterface,
+    val swapRegisters: Set<PhysicalRegister>):SpillsHandler{
     /**main function*/
     override fun handleSpilledVariables(blocks: List<BasicBlock>,
                                         ffm: FunctionFrameManager,
@@ -32,15 +32,13 @@ class SpillHandler(val ic:InstructionCovererInterface):SpillsHandler{
     private fun handleInst(ins: Instruction,
                            spills: Set<Register>,
                            accMap: Map<VirtualRegister, vrAccess>): List<Instruction>{
-        var lSpills = getRegisters(ins).intersect(spills)
-        val getIns = lSpills.flatMap{accMap[it]!!.get}
+        val getIns = ins.usedRegisters().intersect(spills).flatMap{accMap[it]!!.get}
+        val setIns = ins.definedRegisters().intersect(spills).flatMap{accMap[it]!!.set}
+        val final = getIns + ins + setIns
 
-        if(saving){
-            lSpills = lSpills.intersect(ins.definedRegisters())
-        }
-        
-        val setIns = lSpills.flatMap{accMap[it]!!.set}
-        return getIns + ins + setIns
+        val mapping = (ins.usedRegisters() + ins.definedRegisters()).zip(swapRegisters).toMap()
+
+        return final.map{changedInstruction(it,mapping)}
     }
     /**class holding [get] and [set] instructions for Virtual Register [vr]*/
     private data class vrAccess(
@@ -55,8 +53,25 @@ class SpillHandler(val ic:InstructionCovererInterface):SpillsHandler{
 
         return vrAccess(getIns,setIns,vr)
     }
-    /**return all [Register]'s used by [ins]*/
-    private fun getRegisters(ins: Instruction): Set<Register>{
-        return (ins.usedRegisters()+ins.definedRegisters()).toSet()
+    /**[original] instruction with Registers swapped according to [mapping]*/
+    private class changedInstruction(
+        val original: Instruction,
+        val mapping: Map<Register, PhysicalRegister>
+    ): Instruction{
+        override fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
+            val newMapping = mapping.map{
+                (k,v)->Pair(mapping.getOrDefault(k,k),v)
+            }.toMap()
+            return original.toAsm(newMapping)
+        }
+        override fun usedRegisters(): List<Register> {
+            return original.usedRegisters().map{mapping.getOrDefault(it,it)}
+        }
+        override fun definedRegisters(): List<Register> {
+            return original.definedRegisters().map{mapping.getOrDefault(it,it)}
+        }
+        override fun isCopy(): Boolean {
+            return original.isCopy()
+        }
     }
 }
