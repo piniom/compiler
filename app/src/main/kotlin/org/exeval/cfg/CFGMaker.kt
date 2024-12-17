@@ -50,6 +50,9 @@ class CFGMaker(
             is UnaryOperation -> walkUnaryOperation(expr, then)
             is VariableDeclarationBase -> walkVariableDeclarationBase(expr, then)
             is VariableReference -> walkVariableReference(expr, then)
+            is ArrayAccess -> TODO()
+            is MemoryDel -> TODO()
+            is MemoryNew -> TODO()
             null -> WalkResult(then, null)
         }
     }

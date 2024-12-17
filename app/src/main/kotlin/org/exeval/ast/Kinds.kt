@@ -34,7 +34,7 @@ sealed class Literal : Expr()
 class IntLiteral(val value: Long) : Literal()
 
 class BoolLiteral(val value: Boolean) : Literal()
-object NopeLiteral : Literal()
+data object NopeLiteral : Literal()
 
 
 class VariableReference(val name: String) : Expr()
@@ -95,4 +95,18 @@ class Loop(
 class Break(
     val identifier: String?,
     val expression: Expr? = null
+) : Expr()
+
+class MemoryNew(
+    val type: Type,
+    val constructorArguments: List<Argument>
+) : Expr()
+
+class MemoryDel(
+    val pointer: Expr
+) : Expr()
+
+class ArrayAccess(
+    val array: Expr,
+    val index: Expr
 ) : Expr()
