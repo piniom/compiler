@@ -17,7 +17,7 @@ class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: 
 }
 
 
-class WalkResult(val top: CFGNode, public var tree: Tree?)
+class WalkResult(val top: CFGNode, var tree: Tree?)
 
 class CFGMaker(
     private val fm: FunctionFrameManager,
@@ -27,7 +27,7 @@ class CFGMaker(
 ) {
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
-    public fun makeCfg(ast: FunctionDeclaration): CFGNode {
+    fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
         val body = walkExpr(ast.body, node)
         val bottom = fm.generate_epilouge(body.tree)
