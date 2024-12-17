@@ -1,7 +1,7 @@
 foreign fun id(x: Int) -> Int
 foreign fun get_one() -> Int
 foreign fun add(x: Int, y: Int) -> Int
-foreign fun print() -> Nope
+foreign fun print(x: Int) -> Nope
 
 fun main() -> Int{
     print(add(get_one(), id(3)))

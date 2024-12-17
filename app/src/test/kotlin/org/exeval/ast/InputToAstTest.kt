@@ -56,6 +56,7 @@ class InputToAstTest {
         assertEquals(0, functionNode.parameters.size)
         assertTrue(functionNode.returnType is IntType)
 
+        assertTrue(functionNode is FunctionDeclaration)
         if (functionNode is FunctionDeclaration) {
             assertTrue(functionNode.body is IntLiteral)
             assertEquals(4, (functionNode.body).value)
