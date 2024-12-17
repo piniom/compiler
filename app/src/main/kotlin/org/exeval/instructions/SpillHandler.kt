@@ -13,6 +13,9 @@ import org.exeval.instructions.interfaces.SpillsHandler
 import org.exeval.instructions.linearizer.BasicBlock
 
 class SpillHandler(val ic:InstructionCovererInterface):SpillsHandler{
+    /**set to **true** to only save defined registers to limit amount of instructions created
+     * WARNING: might affect liveness*/
+    private val saving = false
     /**main function*/
     override fun handleSpilledVariables(blocks: List<BasicBlock>,
                                         ffm: FunctionFrameManager,
@@ -29,8 +32,13 @@ class SpillHandler(val ic:InstructionCovererInterface):SpillsHandler{
     private fun handleInst(ins: Instruction,
                            spills: Set<Register>,
                            accMap: Map<VirtualRegister, vrAccess>): List<Instruction>{
-        val lSpills = getRegisters(ins).intersect(spills)
+        var lSpills = getRegisters(ins).intersect(spills)
         val getIns = lSpills.flatMap{accMap[it]!!.get}
+
+        if(saving){
+            lSpills = lSpills.intersect(ins.definedRegisters())
+        }
+        
         val setIns = lSpills.flatMap{accMap[it]!!.set}
         return getIns + ins + setIns
     }
