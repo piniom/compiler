@@ -1,0 +1,5 @@
+foreign fun get_zero() -> Int = 0
+
+fun main() -> Int {
+    get_zero() 
+}
