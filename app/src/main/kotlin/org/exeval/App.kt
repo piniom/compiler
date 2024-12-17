@@ -75,11 +75,11 @@ fun main(args: Array<String>) {
 
     val functionAnalisisResult = FunctionAnalyser().analyseFunctions(astInfo)
 
-    val functions = (astInfo.root as Program).functions
+    val functions = (astInfo.root as Program).functions.filterIsInstance<FunctionDeclaration>()
 
     val frameManagers = mutableMapOf<FunctionDeclaration, FunctionFrameManager>()
     for (function in functions) {
-        frameManagers[function] = FunctionFrameManagerImpl(function, functionAnalisisResult, frameManagers)
+        frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
 
     // CFG
