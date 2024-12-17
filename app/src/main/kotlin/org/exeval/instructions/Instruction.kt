@@ -31,6 +31,9 @@ fun argToString(arg: OperandArgumentType, mapping: Map<Register, PhysicalRegiste
         is NumericalConstant -> {
             arg.value.toString()
         }
+        is DelayedNumericalConstant -> {
+            arg.getValue().toString()
+        }
         is Label -> {
             arg.name
         }
