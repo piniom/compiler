@@ -5,36 +5,37 @@ import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.Register
 import org.exeval.instructions.linearizer.BasicBlock
 
-class CodeBuilder() {
-    fun generate(
-        linearizedFunctions: List<Pair<String, List<BasicBlock>>>,
-        maxNestedFunctionDepth: Int,
-        registerMapping: Map<Register, PhysicalRegister>
-    ): List<String> {
-        val code = mutableListOf<String>()
+class CodeBuilder(val maxNestedFunctionDepth: Int) {
 
-        code.add("section .data")
-        code.addAll(generateDisplay(maxNestedFunctionDepth))
-        code.add("")
+    private val lines: MutableList<String> = mutableListOf();
 
-        code.addAll(
+    val code: String get() = lines.joinToString { "\n" }
+
+    init {
+        lines.add("section .data")
+        lines.addAll(generateDisplay(maxNestedFunctionDepth))
+        lines.add("")
+
+        lines.addAll(
             listOf(
                 "section .text",
                 "global FUNCTION_main",
                 ""
             )
         )
+    }
 
-        for ((name, blocks) in linearizedFunctions) {
-            code.add("FUNCTION_$name")
-            for (b in blocks) {
-                code.add(b.label.toAsm())
-                code.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })
-            }
-            code.add("")
+    fun addFunction(
+        name: String,
+        blocks: List<BasicBlock>,
+        registerMapping: Map<Register, PhysicalRegister>
+    ) {
+        lines.add("FUNCTION_$name")
+        for (b in blocks) {
+            lines.add(b.label.toAsm())
+            lines.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })
         }
-
-        return code
+        lines.add("")
     }
 
     private fun generateDisplay(maxDepth: Int): List<String> {

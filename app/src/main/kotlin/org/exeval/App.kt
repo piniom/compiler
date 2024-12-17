@@ -16,6 +16,7 @@ import org.exeval.input.FileInput
 import org.exeval.input.interfaces.Input
 import org.exeval.instructions.InstructionCoverer
 import org.exeval.instructions.InstructionSetCreator
+import org.exeval.instructions.LivenessCheckerImpl
 import org.exeval.instructions.RegisterAllocatorImpl
 import org.exeval.instructions.interfaces.LivenessResult
 import org.exeval.instructions.linearizer.BasicBlock
@@ -84,28 +85,21 @@ fun main(args: Array<String>) {
     // CFG
     val nodes = functionNodes(functions, functionAnalisisResult, nameResolutionOutput, frameManagers, typeCheckerOutput)
 
+    val codeBuilder = CodeBuilder(functionAnalisisResult.maxNestedFunctionDepth());
+
     // Linearization
     val instructionPatterns = InstructionSetCreator().createInstructionSet()
     val linearizer = Linearizer(InstructionCoverer(instructionPatterns))
-    val linearizedFunctions = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }
-
-
-    // Register allocation
-    val domain = registersDomain(linearizedFunctions)
-    val livenessResult = LivenessResult(mapOf(), mapOf())
-    val registerMapping = RegisterAllocatorImpl().allocate(livenessResult, domain, PhysicalRegister.range())
-
-    val code =
-        CodeBuilder().generate(
-            linearizedFunctions,
-            functionAnalisisResult.maxNestedFunctionDepth(),
-            registerMapping.mapping
-        ).joinToString("\n")
-
+    val linearizedFunctions = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }.map {
+        val domain = registersDomain(it.second)
+        val livenessResult = LivenessCheckerImpl().check(it.second)
+        val registerMapping = RegisterAllocatorImpl().allocate(livenessResult, domain, PhysicalRegister.range())
+        codeBuilder.addFunction(it.first, it.second, registerMapping.mapping)
+    }
 
     // External proccesses
     val asmFile = File("program.asm")
-    asmFile.writeText(code)
+    asmFile.writeText(codeBuilder.code)
     logger.info { "Assembly code written to ${asmFile.absolutePath}" }
 
     val nasmProcess = ProcessBuilder("nasm", "-felf64", "program.asm", "-o", "program.o")
@@ -117,7 +111,7 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
     logger.info { "NASM successfully created program.o" }
-    
+
     val gccProcess = ProcessBuilder("gcc", "program.o", "-o", "program")
         .inheritIO()
         .start()
@@ -167,17 +161,15 @@ fun buildParser(): Parser<GrammarSymbol> {
 }
 
 
-private fun registersDomain(linearizedFunctions: List<Pair<String, List<BasicBlock>>>) =
-    linearizedFunctions.asSequence().map { function ->
-        function.second.map { basicBlock ->
-            basicBlock.instructions.map { instruction ->
-                listOf(
-                    instruction.definedRegisters(),
-                    instruction.usedRegisters()
-                )
-            }
+private fun registersDomain(linearizedFunction: List<BasicBlock>) =
+    linearizedFunction.map { basicBlock ->
+        basicBlock.instructions.map { instruction ->
+            listOf(
+                instruction.definedRegisters(),
+                instruction.usedRegisters()
+            )
         }
-    }.flatten().flatten().flatten().flatten().distinct().toSet()
+    }.flatten().flatten().flatten().distinct().toSet()
 
 private fun functionNodes(
     functions: List<FunctionDeclaration>,
