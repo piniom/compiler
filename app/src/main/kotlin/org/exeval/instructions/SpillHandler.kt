@@ -6,9 +6,6 @@ import org.exeval.cfg.Register
 import org.exeval.cfg.RegisterTree
 import org.exeval.cfg.VirtualRegister
 import org.exeval.ffm.interfaces.FunctionFrameManager
-import org.exeval.instructions.interfaces.AllocationResult
-import org.exeval.instructions.interfaces.LivenessChecker
-import org.exeval.instructions.interfaces.RegisterAllocator
 import org.exeval.instructions.interfaces.SpillsHandler
 import org.exeval.instructions.linearizer.BasicBlock
 import kotlin.collections.getOrDefault
@@ -36,12 +33,19 @@ class SpillHandler(
         val setIns = ins.definedRegisters().intersect(spills).flatMap{accMap[it]!!.set}
         val final = getIns + ins + setIns
         if(final.size == 1){
+            //this means no spilled registers in instruction
             return final
         }
+        val spillRegisters = (ins.usedRegisters() + ins.definedRegisters()).intersect(spills)
 
-        val mapping = (ins.usedRegisters() + ins.definedRegisters()).zip(swapRegisters).toMap()
+        if(spillRegisters.size > swapRegisters.size){
+            throw IllegalArgumentException(
+                "amount of spill registers in single function (${spillRegisters.size}) greater than amount of swap registers (${swapRegisters.size})"
+            )
+        }
 
-        return final.map{changedInstruction(it,mapping)}
+        val mapping = spillRegisters.zip(swapRegisters).toMap()
+        return final.map{remappedInstruction(it,mapping)}
     }
     /**class holding [get] and [set] instructions for Virtual Register [vr]*/
     private data class vrAccess(
@@ -56,13 +60,13 @@ class SpillHandler(
 
         return vrAccess(getIns,setIns,vr)
     }
-    /**[original] instruction with Registers swapped according to [mapping]*/
-    private class changedInstruction(
+    /**[original] instruction with Registers remapped according to [mapping]*/
+    private class remappedInstruction(
         val original: Instruction,
         val mapping: Map<Register, PhysicalRegister>
     ): Instruction{
-        override fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
-            val newMapping = mapping.map{
+        override fun toAsm(map: Map<Register, PhysicalRegister>): String {
+            val newMapping = map.map{
                 (k,v)->Pair(mapping.getOrDefault(k,k),v)
             }.toMap()
             return original.toAsm(newMapping)
