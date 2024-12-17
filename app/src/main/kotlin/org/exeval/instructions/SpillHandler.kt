@@ -35,6 +35,9 @@ class SpillHandler(
         val getIns = ins.usedRegisters().intersect(spills).flatMap{accMap[it]!!.get}
         val setIns = ins.definedRegisters().intersect(spills).flatMap{accMap[it]!!.set}
         val final = getIns + ins + setIns
+        if(final.size == 1){
+            return final
+        }
 
         val mapping = (ins.usedRegisters() + ins.definedRegisters()).zip(swapRegisters).toMap()
 
