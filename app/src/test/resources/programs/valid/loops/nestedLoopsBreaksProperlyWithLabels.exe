@@ -1,8 +1,12 @@
 foo main() -> Int = {
-    loop {
-        loop {
-            2
+    // The value of that expression should be 3
+    loop@firstLoop {
+        loop@secondLoop {
+            loop@thirdLoop {
+                break@firstLoop 3
+            }
+            break 2
         }
-        2
+        break 1
     }
 }
