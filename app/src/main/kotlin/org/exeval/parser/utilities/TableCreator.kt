@@ -65,7 +65,7 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
                         val oldVal = actions[placeholderSymbol to curCC]
                         val newVal = Action.Shift<S, Parser.State<S>>(nextCC)
 
-                        if (oldVal != null && oldVal != newVal && oldVal is Action.Shift) {
+                        if (oldVal != null && oldVal != newVal && oldVal !is Action.Reduce) {
                             throw TableCreationError("There is conflict in an action table. Grammar is probably ambiguous. Entry actions[${placeholderSymbol}, $curCC] have two values: $oldVal and $newVal")
                         }
                         actions[placeholderSymbol to curCC] = newVal
