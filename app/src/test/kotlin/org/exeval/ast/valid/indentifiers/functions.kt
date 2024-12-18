@@ -14,7 +14,7 @@ val IDENTIFIERS_FUNCTIONS_AST = Program(
             name = "someFunction",
             parameters = listOf(),
             returnType = NopeType,
-            body = NopeLiteral
+            body = NopeLiteral()
         ),
         FunctionDeclaration(
             name = "withArguments",
@@ -38,7 +38,7 @@ val IDENTIFIERS_FUNCTIONS_AST = Program(
             name = "numbered123Name",
             parameters = listOf(),
             returnType = NopeType,
-            body = NopeLiteral
+            body = NopeLiteral()
         )
     )
 )
