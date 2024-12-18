@@ -10,6 +10,7 @@ import java.io.FileNotFoundException
 
 import org.exeval.automata.interfaces.DFA
 import org.exeval.cfg.*
+import org.exeval.cfg.ffm.interfaces.CallManager
 import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.exeval.input.CommentCutter
 import org.exeval.input.FileInput
@@ -82,8 +83,18 @@ fun main(args: Array<String>) {
         frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
 
+    val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
+    val fCallMMap: Map<ForeignFunctionDeclaration, CallManager>
+    = foreignFs.associate{it to TODO("create call manager for it")}
+
     // CFG
-    val nodes = functionNodes(functions, functionAnalisisResult, nameResolutionOutput, frameManagers, typeCheckerOutput)
+    val nodes = functionNodes(
+        functions,
+        functionAnalisisResult,
+        nameResolutionOutput,
+        frameManagers,
+        typeCheckerOutput,
+        fCallMMap)
 
     val codeBuilder = CodeBuilder(functionAnalisisResult.maxNestedFunctionDepth());
 
@@ -176,7 +187,8 @@ private fun functionNodes(
     functionAnalisisResult: FunctionAnalysisResult,
     nameResolutionOutput: OperationResult<NameResolution>,
     frameManagers: MutableMap<FunctionDeclaration, FunctionFrameManager>,
-    typeCheckerOutput: OperationResult<TypeMap>
+    typeCheckerOutput: OperationResult<TypeMap>,
+    foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
 ) = functions.map {
     val variableUsage =
         usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
@@ -184,6 +196,7 @@ private fun functionNodes(
         frameManagers[it]!!,
         nameResolutionOutput.result,
         variableUsage,
-        typeCheckerOutput.result
+        typeCheckerOutput.result,
+        frameManagers + foreignCallManagers
     ).makeCfg(it)
 }
