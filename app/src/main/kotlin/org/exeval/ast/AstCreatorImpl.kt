@@ -68,8 +68,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     returnType = getType(child, input)
                 }
             }
-            TODO("Uncomment after merge")
-            // astNode = ForeignFunctionDeclaration(name!!, parameters, returnType!!)
+            astNode = ForeignFunctionDeclaration(name!!, parameters, returnType!!)
         }
         else if (symbol === FunctionParamSymbol) {
             var name: String? = null

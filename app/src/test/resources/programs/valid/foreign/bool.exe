@@ -1,0 +1,8 @@
+foreign fun print_if_true(x: Bool, y: Int) -> Nope
+
+fun main() -> Int {
+    print_if_true(true, 1234)
+    print_if_true(false, 1234)
+    print_if_true(true, 123)
+    0
+}

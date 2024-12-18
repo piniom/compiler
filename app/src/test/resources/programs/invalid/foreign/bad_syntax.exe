@@ -1,0 +1,8 @@
+fun foreign f() -> Int
+
+fun f() -> Int = foreign
+
+fun main() -> Int {
+    foreign let x: Int;
+    ()
+}

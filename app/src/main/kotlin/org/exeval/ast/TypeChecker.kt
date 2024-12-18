@@ -38,12 +38,14 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Assignment -> getAssignmentType(astNode)
 
             is FunctionDeclaration -> getFunctionDeclarationType(astNode)
+            is ForeignFunctionDeclaration -> getForeignFunctionDeclarationType(astNode)
             is FunctionCall -> getFunctionCallType(astNode)
             else -> addDiagnostic("Failed to find expression!", astNode)
         }
 
         return typeMap[astNode]
     }
+
 
     // Private methods                                           
     private fun getConditionalType(conditional: Conditional) {
@@ -275,6 +277,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         }
 
         bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
+    }
+
+    private fun getForeignFunctionDeclarationType(functionDeclaration: ForeignFunctionDeclaration) {
+        typeMap[functionDeclaration] = functionDeclaration.returnType
     }
 
     private fun getFunctionCallType(functionCall: FunctionCall) {
