@@ -23,7 +23,7 @@ val CONDITIONALS_IF_WITHOUT_ELSE_AST = Program(
                                     variable = "x",
                                     value = IntLiteral(0)
                                 ),
-                                NopeLiteral
+                                NopeLiteral()
                             )
                         ),
                         elseBranch = null

@@ -256,7 +256,7 @@ class CFGMaker(
         return when (literal) {
             is IntLiteral -> WalkResult(then, NumericalConstantTree(literal.value))
             is BoolLiteral -> WalkResult(then, NumericalConstantTree(if (literal.value) 1 else 0))
-            NopeLiteral -> WalkResult(then, null)
+            is NopeLiteral -> WalkResult(then, null)
         }
     }
 
