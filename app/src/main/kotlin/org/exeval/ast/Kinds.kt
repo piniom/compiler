@@ -34,7 +34,7 @@ sealed class Literal : Expr()
 class IntLiteral(val value: Long) : Literal()
 
 class BoolLiteral(val value: Boolean) : Literal()
-data object NopeLiteral : Literal()
+class NopeLiteral : Literal()
 
 
 class VariableReference(val name: String) : Expr()
