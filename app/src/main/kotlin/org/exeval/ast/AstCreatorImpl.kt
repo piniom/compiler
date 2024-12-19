@@ -86,7 +86,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         } else if (symbol === TokenCategories.LiteralBoolean) {
             astNode = BoolLiteral(getNodeText(node, input) == "true")
         } else if (symbol === TokenCategories.LiteralNope) {
-            astNode = NopeLiteral
+            astNode = NopeLiteral()
         } else if (symbol === VariableDeclarationSymbol) {
             var name: String? = null
             var type: Type? = null
