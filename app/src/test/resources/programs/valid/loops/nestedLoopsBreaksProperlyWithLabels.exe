@@ -3,10 +3,10 @@ foo main() -> Int = {
     loop@firstLoop {
         loop@secondLoop {
             loop@thirdLoop {
-                break@firstLoop 3;
+                break@firstLoop 3
             }
-            break 2;
+            break 2
         }
-        break 1;
+        break 1
     }
 }

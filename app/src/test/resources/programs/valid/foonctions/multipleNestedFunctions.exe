@@ -1,10 +1,10 @@
 foo g() -> Int = {
-    var a: Int = 10;
+    let a: Int = 10;
     foo f1() -> Int = a + 1;
     foo f2() -> Int = a + 2;
     foo f3(a: Int) -> Int = a + 3;
     foo f4() -> Int = {
-        var a: Int = 1;
+        let a: Int = 1;
         a + 4
     }
     // Should return 36

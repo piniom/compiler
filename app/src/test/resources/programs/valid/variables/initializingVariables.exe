@@ -2,5 +2,5 @@ foo main() -> Int = {
     let x: Nope = ();
     let mut y: Bool = true;
     let mut z: Int;
-    z = 1337;
+    z = 1337
 }

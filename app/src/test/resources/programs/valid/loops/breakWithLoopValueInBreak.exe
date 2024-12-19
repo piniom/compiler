@@ -3,6 +3,6 @@ foo main() -> Int = {
     loop {
         break ((7 + 19) * loop {
             break 2
-        });
+        })
     }
 }
