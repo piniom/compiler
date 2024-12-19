@@ -37,6 +37,29 @@ class TypeCheckerTest {
     }
 
     @Test
+    fun `should infer type for foreign integer-returning function`() {
+        // Simple code: `foreign foo g() -> Int`
+        val functionDeclaration = ForeignFunctionDeclaration(
+            name = "g",
+            parameters = emptyList(),
+            returnType = IntType
+        )
+
+        // Set up AstInfo and NameResolution
+        val mockAstInfo = mockk<AstInfo>()
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockAstInfo.root } returns functionDeclaration
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(IntType, result.result[functionDeclaration], "Expected return type of function 'g' to be IntType")
+        assertEquals(0, result.diagnostics.size, "Expected no diagnostics for a correctly typed function")
+    }
+
+    @Test
     fun `should detect correct types in conditional expression with logical operators`() {
         // Code: `foo main() -> Int = { if true and not false then 1 else 0 }`
         val trueLiteral = BoolLiteral(true)

@@ -218,7 +218,7 @@ class NameResolutionTest {
     }
 
     @Test
-    fun `should detect if two atguments have the same name`() {
+    fun `should detect if two arguments have the same name`() {
         val ast = FunctionDeclaration(
             "main", listOf(Parameter("a", IntType), Parameter("a", IntType)),
             IntType,
@@ -267,6 +267,54 @@ class NameResolutionTest {
             1,
             result.size,
             "Expected to have one error"
+        )
+    }
+
+    @Test
+    fun `should detect if two arguments of foreign function have the same name`() {
+        val ast = ForeignFunctionDeclaration(
+            "main", listOf(Parameter("a", IntType), Parameter("a", IntType)),
+            IntType
+        )
+
+        val astInfo = AstInfo(ast, emptyMap())
+
+        val result = NameResolutionGenerator(astInfo).parse().diagnostics
+
+        assertEquals(
+            1,
+            result.size,
+            "Expected to have one error"
+        )
+    }
+
+    @Test
+    fun `should match foreign function to declarations`() {
+        val call = FunctionCall("f", emptyList())
+        val decl = ForeignFunctionDeclaration("f", emptyList(), IntType)
+
+        val program =
+            Program(listOf(
+                decl,
+                FunctionDeclaration(
+                    "main", emptyList(), IntType,
+                    Block(
+                        listOf(
+                            call
+                        )
+                    )
+                )
+            )
+        )
+
+        val astInfo = AstInfo(program, emptyMap())
+
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        assertEquals(
+            decl,
+            nameResolution.functionToDecl[call],
+            "Expected 'main' function to be matched to its declaration"
         )
     }
 

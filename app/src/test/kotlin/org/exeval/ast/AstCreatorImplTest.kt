@@ -1,7 +1,4 @@
-import org.exeval.ast.AstCreatorImpl
-import org.exeval.ast.IntLiteral
-import org.exeval.ast.IntType
-import org.exeval.ast.Program
+import org.exeval.ast.*
 import org.exeval.input.StringInput
 import org.exeval.input.interfaces.Input
 import org.exeval.parser.Production
@@ -87,10 +84,15 @@ class AstCreatorImplTest {
         assertEquals(1, programNode.functions.size)
 
         val functionNode = programNode.functions.first()
+
         assertEquals("main", functionNode.name)
         assertEquals(0, functionNode.parameters.size)
         assertTrue(functionNode.returnType is IntType)
-        assertTrue(functionNode.body is IntLiteral)
-        assertEquals(4, (functionNode.body as IntLiteral).value)
+
+        assertTrue(functionNode is FunctionDeclaration)
+        if (functionNode is FunctionDeclaration) {
+            assertTrue(functionNode.body is IntLiteral)
+            assertEquals(4, (functionNode.body as IntLiteral).value)
+        }
     }
 }
