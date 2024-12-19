@@ -1,0 +1,10 @@
+foo main() -> Int = {
+    let arr: [[Int]] = new [[Bool]] (2);
+
+    arr[0] = new [Int] (3);
+    arr[1] = new [Int] (4);
+
+    del arr[0];
+    del arr[1];
+    del arr;
+}

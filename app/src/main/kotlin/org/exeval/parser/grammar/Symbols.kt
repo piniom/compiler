@@ -10,6 +10,19 @@ object ValueSymbol: TerminalGroup {
 	)
 }
 
+object TypeSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.PunctuationLeftSquareBracket,
+			TypeSymbol,
+			Token.PunctuationRightRoundBracket,
+		),
+		listOf(
+			Token.IdentifierType
+		),
+	)
+}
+
 object VariableDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -17,14 +30,14 @@ object VariableDeclarationSymbol: GrammarSymbol {
 			Token.KeywordMut,
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
-			Token.IdentifierType,
+			TypeSymbol,
 		),
 		listOf(
 			Token.KeywordLet,
 			Token.KeywordMut,
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -37,7 +50,7 @@ object ConstantDeclarationSymbol: GrammarSymbol {
 			Token.KeywordLet,
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -63,7 +76,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			FunctionParamsSymbol,
 			Token.PunctuationRightRoundBracket,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -72,7 +85,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			Token.IdentifierEntrypoint,
 			Token.LiteralNope,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -82,7 +95,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			Token.PunctuationLeftRoundBracket,
 			Token.PunctuationRightRoundBracket,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -91,7 +104,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.LiteralNope,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -101,7 +114,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 			Token.PunctuationLeftRoundBracket,
 			Token.PunctuationRightRoundBracket,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -117,7 +130,7 @@ object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 			FunctionParamsSymbol,
 			Token.PunctuationRightRoundBracket,
 			Token.PunctuationArrow,
-			Token.IdentifierType,
+			TypeSymbol,
 		),
 	)
 }
@@ -138,7 +151,7 @@ object FunctionParamSymbol: GrammarSymbol {
 		listOf(
 			Token.IdentifierNontype,
 			Token.PunctuationColon,
-			Token.IdentifierType,
+			TypeSymbol,
 		),
 	)
 }
@@ -173,6 +186,38 @@ object FunctionCallArgumentsSymbol: GrammarSymbol {
 			ExpressionSymbol,
 			Token.PunctuationComma,
 			FunctionCallArgumentsSymbol,
+		),
+	)
+}
+
+object AllocationSymmbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordNew,
+			TypeSymbol,
+			Token.PunctuationLeftRoundBracket,
+			FunctionCallArgumentsSymbol,
+			Token.PunctuationRightRoundBracket,
+		),
+	)
+}
+
+object DeallocationSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordDel,
+			Token.IdentifierNontype,
+		),
+	)
+}
+
+object ArrayAcessSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationLeftSquareBracket,
+			ExpressionSymbol,
+			Token.PunctuationRightSquareBracket,
 		),
 	)
 }
@@ -338,6 +383,9 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(IfThenElseSymbol),
 		listOf(LoopSymbol),
 		listOf(BreakExpressionSymbol),
+		listOf(AllocationSymmbol),
+		listOf(DeallocationSymbol),
+		listOf(ArrayAcessSymbol),
 	)
 }
 
