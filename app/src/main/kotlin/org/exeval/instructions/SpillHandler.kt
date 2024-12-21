@@ -27,7 +27,7 @@ class SpillHandler(
         return nBlocks
     }
     private fun handleInst(ins: Instruction,
-                           spills: Set<Register>,
+                           spills: Set<VirtualRegister>,
                            accMap: Map<VirtualRegister, vrAccess>): List<Instruction>{
         val getIns = ins.usedRegisters().intersect(spills).flatMap{accMap[it]!!.get}
         val setIns = ins.definedRegisters().intersect(spills).flatMap{accMap[it]!!.set}
@@ -45,7 +45,7 @@ class SpillHandler(
         }
 
         val mapping = spillRegisters.zip(swapRegisters).toMap()
-        return final.map{remappedInstruction(it,mapping)}
+        return final.map{InstructionWithRemappedRegisters(it,mapping)}
     }
     /**class holding [get] and [set] instructions for Virtual Register [vr]*/
     private data class vrAccess(
@@ -61,15 +61,12 @@ class SpillHandler(
         return vrAccess(getIns,setIns,vr)
     }
     /**[original] instruction with Registers remapped according to [mapping]*/
-    private class remappedInstruction(
+    private class InstructionWithRemappedRegisters(
         val original: Instruction,
         val mapping: Map<Register, PhysicalRegister>
     ): Instruction{
-        override fun toAsm(map: Map<Register, PhysicalRegister>): String {
-            val newMapping = map.map{
-                (k,v)->Pair(mapping.getOrDefault(k,k),v)
-            }.toMap()
-            return original.toAsm(newMapping)
+        override fun toAsm(newMapping: Map<Register, PhysicalRegister>): String {
+            return original.toAsm(newMapping+mapping)
         }
         override fun usedRegisters(): List<Register> {
             return original.usedRegisters().map{mapping.getOrDefault(it,it)}
