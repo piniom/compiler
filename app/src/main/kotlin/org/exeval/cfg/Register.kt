@@ -23,6 +23,30 @@ enum class PhysicalRegister(val name_: String) : Register {
     R14("r14"),
     R15("r15");
 
+    companion object {
+        fun range(): Set<PhysicalRegister> {
+            return setOf(
+                RAX,
+                RCX,
+                RSP,
+                RBP,
+                RDX,
+                R8,
+                R9,
+                R10,
+                R11,
+                R12,
+                R13,
+                R14,
+                R15,
+
+            )
+        }
+
+    }
+
+
+
 }
 
 class VirtualRegister() : Register

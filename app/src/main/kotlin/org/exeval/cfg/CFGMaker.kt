@@ -17,7 +17,7 @@ class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: 
 }
 
 
-class WalkResult(val top: CFGNode, public var tree: Tree?)
+class WalkResult(val top: CFGNode, var tree: Tree?)
 
 class CFGMaker(
     private val fm: FunctionFrameManager,
@@ -27,7 +27,7 @@ class CFGMaker(
 ) {
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
-    public fun makeCfg(ast: FunctionDeclaration): CFGNode {
+    fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
         val body = walkExpr(ast.body, node)
         val bottom = fm.generate_epilouge(body.tree)
@@ -43,12 +43,16 @@ class CFGMaker(
             is Break -> walkBreak(expr, then)
             is Conditional -> walkConditional(expr, then)
             is FunctionCall -> walkFunctionCall(expr, then)
+            is ForeignFunctionDeclaration -> WalkResult(then, null)
             is FunctionDeclaration -> WalkResult(then, null)
             is Literal -> walkLiteral(expr, then)
             is Loop -> walkLoop(expr, then)
             is UnaryOperation -> walkUnaryOperation(expr, then)
             is VariableDeclarationBase -> walkVariableDeclarationBase(expr, then)
             is VariableReference -> walkVariableReference(expr, then)
+            is ArrayAccess -> TODO()
+            is MemoryDel -> TODO()
+            is MemoryNew -> TODO()
             null -> WalkResult(then, null)
         }
     }
@@ -252,7 +256,7 @@ class CFGMaker(
         return when (literal) {
             is IntLiteral -> WalkResult(then, NumericalConstantTree(literal.value))
             is BoolLiteral -> WalkResult(then, NumericalConstantTree(if (literal.value) 1 else 0))
-            NopeLiteral -> WalkResult(then, null)
+            is NopeLiteral -> WalkResult(then, null)
         }
     }
 

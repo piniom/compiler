@@ -1,6 +1,6 @@
 package org.exeval.ast
 
-class Program(val functions: List<FunctionDeclaration>) : ASTNode
+class Program(val functions: List<AnyFunctionDeclaration>) : ASTNode
 
 interface ASTNode
 
@@ -34,7 +34,7 @@ sealed class Literal : Expr()
 class IntLiteral(val value: Long) : Literal()
 
 class BoolLiteral(val value: Boolean) : Literal()
-object NopeLiteral : Literal()
+class NopeLiteral : Literal()
 
 
 class VariableReference(val name: String) : Expr()
@@ -50,12 +50,25 @@ enum class UnaryOperator {
     NOT, MINUS
 }
 
+sealed class AnyFunctionDeclaration() : Expr()
+{
+    abstract val name: String;
+    abstract val parameters: List<Parameter>;
+    abstract val returnType: Type
+}
+
 class FunctionDeclaration(
-    val name: String,
-    val parameters: List<Parameter>,
-    val returnType: Type,
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type,
     val body: Expr
-) : Expr()
+) : AnyFunctionDeclaration()
+
+class ForeignFunctionDeclaration(
+    override val name: String,
+    override val parameters: List<Parameter>,
+    override val returnType: Type
+) : AnyFunctionDeclaration()
 
 class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
@@ -82,4 +95,18 @@ class Loop(
 class Break(
     val identifier: String?,
     val expression: Expr? = null
+) : Expr()
+
+class MemoryNew(
+    val type: Type,
+    val constructorArguments: List<Argument>
+) : Expr()
+
+class MemoryDel(
+    val pointer: Expr
+) : Expr()
+
+class ArrayAccess(
+    val array: Expr,
+    val index: Expr
 ) : Expr()

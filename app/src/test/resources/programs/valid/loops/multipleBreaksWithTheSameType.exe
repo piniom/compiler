@@ -3,10 +3,10 @@ foo main() -> Int = {
     loop@firstLoop {
         if (true) then {
             if (false) then {
-                break 1;
+                break 1
             }
-            break 2;
+            break 2
         }
-        break 3;
+        break 3
     }
 }

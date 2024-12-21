@@ -1,0 +1,11 @@
+foreign fun print_text() -> Nope
+foreign fun print_bool(x: Bool) -> Nope
+foreign fun print_int(x: Int) -> Nope
+
+fun main() -> Int {
+    print_text()
+    print_bool(true)
+    print_bool(false)
+    print_int(1234)
+    0
+}

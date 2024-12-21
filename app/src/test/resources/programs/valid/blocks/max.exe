@@ -4,9 +4,9 @@ foo main() -> Int = {
     /**/
     let max: Int = {
         if(a>b) then {
-            a;
+            a
         } else {
-            b;
-        };
-    };
+            b
+        }
+    }
 }
