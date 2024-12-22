@@ -6,6 +6,7 @@ import org.exeval.parser.grammar.*
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.utilities.LocationRange
 import org.exeval.utilities.TokenCategories
+import org.exeval.utilities.TokenCategories as Token
 
 typealias Branch = ParseTree.Branch<GrammarSymbol>
 typealias Leaf = ParseTree.Leaf<GrammarSymbol>
@@ -167,17 +168,23 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = Conditional(conditionNode, thenNode, elseNode)
         } else if (symbol === LoopSymbol) {
             var identifier: String? = null
-            var body: Block? = null
+            var body: Expr? = null
+
             for (child in children) {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     identifier = getNodeText(child, input)
-                } else if (childSymbol === ExpressionBlockSymbol) {
-                    body = createAux(child, input) as Block
+                } else if (childSymbol === ExpressionSymbol || childSymbol === ExpressionBlockSymbol) {
+                    body = createAux(child, input) as Expr
                 }
             }
-            astNode = Loop(identifier, body!!)
+
+            if (body == null) {
+                throw IllegalStateException("Loop body is missing in $locationRange")
+            }
+
+            astNode = Loop(identifier, body)
         } else if (symbol === BreakSymbol) {
             var identifier: String? = null
             var expr: Expr? = null
@@ -192,15 +199,46 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
             astNode = Break(identifier, expr)
         } else if (symbol === ExpressionBlockSymbol) {
-            var exprs: List<Expr> = listOf()
+            val exprs = mutableListOf<Expr>()
+
             for (child in children) {
                 val childSymbol = getSymbol(child)
 
-                if (childSymbol === FunctionCallArgumentsSymbol) {
-                    exprs = unwrapList<Expr>(child, ExpressionSymbol, input)
+                if (childSymbol === ExpressionBlockSymbol.ExpressionChainSymbol) {
+                    exprs.addAll(parseExpressionChain(child, input))
+                } else if (childSymbol === SimpleExpressionSymbol || childSymbol === ExpressionSymbol) {
+                    exprs.add(createAux(child, input) as Expr)
                 }
             }
+
             astNode = Block(exprs)
+        } else if (symbol === ArithmeticExpressionSymbol) {
+            val expr: Expr
+            when {
+                children.size == 5 && getSymbol(children[0]) == Token.PunctuationLeftRoundBracket -> {
+                    val innerExpression = createAux(children[1], input) as Expr
+                    val operator = parseBinaryOperator(children[3])
+                    val right = createAux(children[4], input) as Expr
+                    expr = BinaryOperation(innerExpression, operator, right)
+                }
+                children.size == 3 && getSymbol(children[0]) == Token.PunctuationLeftRoundBracket -> {
+                    expr = createAux(children[1], input) as Expr
+                }
+                children.size == 3 -> {
+                    val left = createAux(children[0], input) as Expr
+                    val operator = parseBinaryOperator(children[1])
+                    val right = createAux(children[2], input) as Expr
+                    expr = BinaryOperation(left, operator, right)
+                }
+                children.size == 2 -> {
+                    val operator = parseUnaryOperator(children[0])
+                    val operand = createAux(children[1], input) as Expr
+                    expr = UnaryOperation(operator, operand)
+                }
+                else -> throw IllegalStateException("Invalid structure for ArithmeticExpressionSymbol: ${children.size}")
+            }
+
+            astNode = expr
         } else {
             throw IllegalStateException("${symbol} ${locationRange}")
         }
@@ -221,6 +259,72 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
         return res
     }
+
+    private fun parseBinaryOperator(node: ParseTree<GrammarSymbol>): BinaryOperator {
+        val operatorNode = when (node) {
+            is Branch -> node.children[0]
+            is Leaf -> node
+            else -> throw IllegalStateException("Invalid node type for binary operator: $node")
+        }
+
+        return when (getSymbol(operatorNode)) {
+            Token.OperatorPlus -> BinaryOperator.PLUS
+            Token.OperatorMinus -> BinaryOperator.MINUS
+            Token.OperatorStar -> BinaryOperator.MULTIPLY
+            Token.OperatorDivision -> BinaryOperator.DIVIDE
+            Token.OperatorOr -> BinaryOperator.OR
+            Token.OperatorAnd -> BinaryOperator.AND
+            Token.OperatorGreater -> BinaryOperator.GT
+            Token.OperatorLesser -> BinaryOperator.LT
+            Token.OperatorGreaterEqual -> BinaryOperator.GTE
+            Token.OperatorLesserEqual -> BinaryOperator.LTE
+            Token.OperatorEqual -> BinaryOperator.EQ
+            Token.OperatorNotEqual -> BinaryOperator.NE
+            else -> throw IllegalStateException("Unknown binary operator: ${getSymbol(operatorNode)}")
+        }
+    }
+
+
+    private fun parseUnaryOperator(node: ParseTree<GrammarSymbol>): UnaryOperator {
+        val operatorNode = when (node) {
+            is Branch -> node.children[0]
+            is Leaf -> node
+            else -> throw IllegalStateException("Invalid node type for unary operator: $node")
+        }
+
+        return when (getSymbol(operatorNode)) {
+            Token.OperatorMinus -> UnaryOperator.MINUS
+            Token.OperatorNot -> UnaryOperator.NOT
+            else -> throw IllegalStateException("Unknown unary operator: ${getSymbol(operatorNode)}")
+        }
+    }
+
+
+
+    private fun parseExpressionChain(node: ParseTree<GrammarSymbol>, input: Input): List<Expr> {
+        val expressions = mutableListOf<Expr>()
+
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
+        }
+
+        for (child in children) {
+            val childSymbol = getSymbol(child)
+
+            when (childSymbol) {
+                SimpleExpressionSymbol -> expressions.add(createAux(child, input) as Expr)
+                ExpressionBlockSymbol -> expressions.add(createAux(child, input) as Expr)
+                ExpressionBlockSymbol.ExpressionChainSymbol -> expressions.addAll(parseExpressionChain(child, input))
+                BlockFunctionDefinitionSymbol -> expressions.add(createAux(child, input) as Expr)
+                LoopSymbol -> expressions.add(createAux(child, input) as Expr)
+                IfSymbol -> expressions.add(createAux(child, input) as Expr)
+            }
+        }
+
+        return expressions
+    }
+
 
     private fun findSubTrees(head: ParseTree<GrammarSymbol>, symbol: GrammarSymbol): List<ParseTree<GrammarSymbol>> {
         val res: MutableList<ParseTree<GrammarSymbol>> = mutableListOf()
