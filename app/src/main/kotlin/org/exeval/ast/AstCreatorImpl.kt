@@ -264,7 +264,6 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         val operatorNode = when (node) {
             is Branch -> node.children[0]
             is Leaf -> node
-            else -> throw IllegalStateException("Invalid node type for binary operator: $node")
         }
 
         return when (getSymbol(operatorNode)) {
@@ -279,7 +278,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             Token.OperatorGreaterEqual -> BinaryOperator.GTE
             Token.OperatorLesserEqual -> BinaryOperator.LTE
             Token.OperatorEqual -> BinaryOperator.EQ
-            Token.OperatorNotEqual -> BinaryOperator.NE
+            Token.OperatorNotEqual -> BinaryOperator.NEQ
             else -> throw IllegalStateException("Unknown binary operator: ${getSymbol(operatorNode)}")
         }
     }
@@ -289,7 +288,6 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         val operatorNode = when (node) {
             is Branch -> node.children[0]
             is Leaf -> node
-            else -> throw IllegalStateException("Invalid node type for unary operator: $node")
         }
 
         return when (getSymbol(operatorNode)) {
@@ -313,12 +311,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             val childSymbol = getSymbol(child)
 
             when (childSymbol) {
-                SimpleExpressionSymbol -> expressions.add(createAux(child, input) as Expr)
-                ExpressionBlockSymbol -> expressions.add(createAux(child, input) as Expr)
                 ExpressionBlockSymbol.ExpressionChainSymbol -> expressions.addAll(parseExpressionChain(child, input))
-                BlockFunctionDefinitionSymbol -> expressions.add(createAux(child, input) as Expr)
-                LoopSymbol -> expressions.add(createAux(child, input) as Expr)
-                IfSymbol -> expressions.add(createAux(child, input) as Expr)
+                else -> expressions.add(createAux(child, input) as Expr)
             }
         }
 

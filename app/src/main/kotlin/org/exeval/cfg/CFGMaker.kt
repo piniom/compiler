@@ -303,7 +303,7 @@ class CFGMaker(
             BinaryOperator.GTE -> BinaryTreeOperationType.GREATER_EQUAL
             BinaryOperator.LT -> BinaryTreeOperationType.LESS
             BinaryOperator.LTE -> BinaryTreeOperationType.LESS_EQUAL
-            BinaryOperator.NE -> BinaryTreeOperationType.NE
+            BinaryOperator.NEQ -> throw NotImplementedError("Not equal (!=) operator is not implemented yet")
         }
     }
 

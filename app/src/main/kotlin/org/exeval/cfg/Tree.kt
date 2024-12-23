@@ -19,7 +19,6 @@ sealed interface Tree {
                 BinaryTreeOperationType.EQUAL -> BinaryEqualTreeKind
                 BinaryTreeOperationType.LESS -> BinaryLessTreeKind
                 BinaryTreeOperationType.LESS_EQUAL -> BinaryLessEqualTreeKind
-                BinaryTreeOperationType.NE -> BinaryEqualTreeKind //TODO: FIX
             }
             is UnaryOperationTree -> when (this.operation) {
                 UnaryTreeOperationType.NOT -> UnaryNotTreeKind
@@ -48,7 +47,7 @@ data class AssignmentTree(val destination: AssignableTree, val value: Tree) : Tr
 
 data class BinaryOperationTree(val left: Tree, val right: Tree, val operation: BinaryTreeOperationType) : Tree
 enum class BinaryTreeOperationType {
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, AND, OR, GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL, NE;
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, AND, OR, GREATER, GREATER_EQUAL, EQUAL, LESS, LESS_EQUAL;
 
     fun treeKind(): TreeKind {
         return when (this) {
@@ -63,7 +62,6 @@ enum class BinaryTreeOperationType {
             EQUAL -> BinaryEqualTreeKind
             LESS -> BinaryLessTreeKind
             LESS_EQUAL -> BinaryLessEqualTreeKind
-            NE -> BinaryEqualTreeKind // TODO: FIX
         }
     }
 }

@@ -77,7 +77,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
         val expectedType = when (binaryOperation.operator) {
             BinaryOperator.PLUS, BinaryOperator.MINUS, BinaryOperator.MULTIPLY, BinaryOperator.DIVIDE -> IntType
-            BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE, BinaryOperator.NE -> BoolType
+            BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE, BinaryOperator.NEQ -> BoolType
         }
 
         if (leftType == NopeType || rightType == NopeType) {
