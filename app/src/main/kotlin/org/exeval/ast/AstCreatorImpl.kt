@@ -6,6 +6,8 @@ import org.exeval.parser.grammar.*
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.utilities.LocationRange
 import org.exeval.utilities.TokenCategories
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 import org.exeval.utilities.TokenCategories as Token
 
 typealias Branch = ParseTree.Branch<GrammarSymbol>
@@ -30,8 +32,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
         val astNode: ASTNode
         if (symbol === ProgramSymbol) {
-            val functionsList = unwrapList<FunctionDeclaration>(children[0], SimpleFunctionDefinitionSymbol, input) +
-            unwrapList<FunctionDeclaration>(children[0], BlockFunctionDefinitionSymbol, input)
+            val functionsList = unwrapList<FunctionDeclaration>(children[0], SimpleFunctionDefinitionSymbol, input, FunctionDeclaration::class) +
+            unwrapList<FunctionDeclaration>(children[0], BlockFunctionDefinitionSymbol, input, FunctionDeclaration::class)
 
             astNode = Program(functionsList)
         } else if (symbol === SimpleFunctionDefinitionSymbol || symbol === BlockFunctionDefinitionSymbol) {
@@ -53,7 +55,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 if (childSymbol === TokenCategories.IdentifierNontype || childSymbol === TokenCategories.IdentifierEntrypoint) {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionParamsSymbol) {
-                    parameters = unwrapList<Parameter>(child, FunctionParamSymbol, input)
+                    parameters = unwrapList<Parameter>(child, FunctionParamSymbol, input, Parameter::class)
                 } else if (childSymbol === TokenCategories.IdentifierType) {
                     returnType = getType(child, input)
                 }
@@ -144,7 +146,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionCallArgumentsSymbol) {
-                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input)
+                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input, Argument::class)
                 }
             }
             astNode = FunctionCall(name!!, arguments)
@@ -157,7 +159,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionCallArgumentsSymbol) {
-                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input)
+                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input, Argument::class)
                 }
             }
             astNode = FunctionCall(name!!, arguments)
@@ -248,16 +250,16 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         return astNode
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun <T : ASTNode> unwrapList(
         head: ParseTree<GrammarSymbol>,
         correspondingSymbol: GrammarSymbol,
         input: Input,
+        wantedNodeClass: KClass<T>
     ): List<T> {
         val subTrees = findSubTrees(head, correspondingSymbol)
         val res = subTrees.map { tree ->
             val node = createAux(tree, input)
-            node as T
+            wantedNodeClass.cast(node)
         }
         return res
     }
