@@ -80,6 +80,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = createAux(children[0], input)
         } else if (symbol === SimpleExpressionSymbol) {
             astNode = createAux(children[0], input)
+        } else if (symbol === VariableReferenceSymbol) {
+            astNode = VariableReference(getNodeText(children[0], input))
         } else if (symbol === ValueSymbol) {
             astNode = createAux(children[0], input)
         } else if (symbol === TokenCategories.LiteralInteger) {
@@ -311,8 +313,12 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             val childSymbol = getSymbol(child)
 
             when (childSymbol) {
+                SimpleExpressionSymbol -> expressions.add(createAux(child, input) as Expr)
+                ExpressionBlockSymbol -> expressions.add(createAux(child, input) as Expr)
                 ExpressionBlockSymbol.ExpressionChainSymbol -> expressions.addAll(parseExpressionChain(child, input))
-                else -> expressions.add(createAux(child, input) as Expr)
+                BlockFunctionDefinitionSymbol -> expressions.add(createAux(child, input) as Expr)
+                LoopSymbol -> expressions.add(createAux(child, input) as Expr)
+                IfSymbol -> expressions.add(createAux(child, input) as Expr)
             }
         }
 
