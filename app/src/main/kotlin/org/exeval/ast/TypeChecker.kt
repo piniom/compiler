@@ -11,13 +11,13 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private var activeLoop: Type? = null
     private val activeLoopMap: MutableMap<String, Type?> = mutableMapOf()
 
-    public fun parse() : OperationResult<TypeMap> {
+    public fun parse(): OperationResult<TypeMap> {
         innerParse(astInfo.root)
 
         return OperationResult(typeMap, diagnostics)
     }
 
-    private fun innerParse(astNode: ASTNode) : Type? {
+    private fun innerParse(astNode: ASTNode): Type? {
         when (astNode) {
             is IntLiteral -> typeMap[astNode] = IntType
             is NopeLiteral -> typeMap[astNode] = NopeType
@@ -40,10 +40,55 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is FunctionDeclaration -> getFunctionDeclarationType(astNode)
             is ForeignFunctionDeclaration -> getForeignFunctionDeclarationType(astNode)
             is FunctionCall -> getFunctionCallType(astNode)
+
+            is MemoryNew -> getMemoryNewType(astNode)
+            is MemoryDel -> getMemoryDelType(astNode)
+            is ArrayAccess -> getArrayAccessType(astNode)
+
             else -> addDiagnostic("Failed to find expression!", astNode)
         }
 
         return typeMap[astNode]
+    }
+
+    private fun getMemoryNewType(memoryNew: MemoryNew) {
+        if (memoryNew.type !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed with the new keyword", memoryNew)
+        }
+        if (memoryNew.constructorArguments.isEmpty()) {
+            addDiagnostic("Missing new argument", memoryNew)
+        }
+        if (memoryNew.constructorArguments.size != 1) {
+            addDiagnostic("Only one argument to new is allowed", memoryNew)
+        }
+        val argumentType = innerParse(memoryNew.constructorArguments[0])
+        if (argumentType != IntType) {
+            addDiagnostic("Argument to new must be Int", memoryNew)
+        }
+
+        typeMap[memoryNew] = memoryNew.type
+    }
+
+    private fun getMemoryDelType(memoryDel: MemoryDel) {
+        val pointerType = innerParse(memoryDel.pointer)
+        if (pointerType !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed with the delete keyword", memoryDel)
+        }
+
+        typeMap[memoryDel] = NopeType
+    }
+
+    private fun getArrayAccessType(arrayAccess: ArrayAccess) {
+        val arrayType = innerParse(arrayAccess.array)
+        val indexType = innerParse(arrayAccess.index)
+        if (arrayType !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed on the left side of the array access operator", arrayAccess)
+        }
+        if (indexType !is IntType) {
+            addDiagnostic("Only Int is allowed as the index of the array access operator", arrayAccess)
+        }
+
+        typeMap[arrayAccess] = (arrayType as ArrayType).elementType
     }
 
 
@@ -61,8 +106,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             if (thenType != NopeType) {
                 addDiagnostic("Condition expression without else must be a Nope type", conditional.thenBranch)
             }
-        }
-        else {
+        } else {
             if (thenType != elseType) {
                 addDiagnostic("Then and else branches must have the same type", conditional)
             }
@@ -141,30 +185,27 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             if (currentActiveLoop == null) {
                 // Loop type is NopeType if there is no break
                 typeMap[loop] = NopeType
-            }
-            else {
+            } else {
                 typeMap[loop] = currentActiveLoop
             }
-        }
-        else {
+        } else {
             val currentActiveLoop = activeLoop
             val targetLoopType = activeLoopMap[loop.identifier]
-            if (currentActiveLoop == null &&  targetLoopType == null) {
+            if (currentActiveLoop == null && targetLoopType == null) {
                 // Loop type is NopeType if there is no break
                 typeMap[loop] = NopeType
-            }
-            else if (currentActiveLoop != null && targetLoopType != null) {
+            } else if (currentActiveLoop != null && targetLoopType != null) {
                 if (currentActiveLoop != targetLoopType) {
-                    addDiagnostic("Break type does not match the loop's type. Given: $currentActiveLoop, Expected: $targetLoopType", loop)
-                }
-                else {
+                    addDiagnostic(
+                        "Break type does not match the loop's type. Given: $currentActiveLoop, Expected: $targetLoopType",
+                        loop
+                    )
+                } else {
                     typeMap[loop] = targetLoopType
                 }
-            }
-            else if (currentActiveLoop != null){
+            } else if (currentActiveLoop != null) {
                 typeMap[loop] = currentActiveLoop
-            }
-            else if (targetLoopType != null){
+            } else if (targetLoopType != null) {
                 typeMap[loop] = targetLoopType
             }
         }
@@ -221,7 +262,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
         if (initializerType != null && initializerType != mutableVariableDeclaration.type) {
-            addDiagnostic("Initializer type does not match declared type", mutableVariableDeclaration.initializer ?: mutableVariableDeclaration)
+            addDiagnostic(
+                "Initializer type does not match declared type",
+                mutableVariableDeclaration.initializer ?: mutableVariableDeclaration
+            )
         }
 
         typeMap[mutableVariableDeclaration] = NopeType
@@ -249,10 +293,12 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
                 innerParse(variable)
                 variable.type
             }
+
             is MutableVariableDeclaration -> {
                 innerParse(variable)
                 variable.type
             }
+
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)
@@ -326,7 +372,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
                 SimpleDiagnostics(
                     message = message,
                     startLocation = locationRange.start,
-                    stopLocation = locationRange.end)
+                    stopLocation = locationRange.end
+                )
             )
         }
     }
