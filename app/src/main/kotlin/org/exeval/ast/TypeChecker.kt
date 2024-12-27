@@ -61,7 +61,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         if (memoryNew.constructorArguments.size != 1) {
             addDiagnostic("Only one argument to new is allowed", memoryNew)
         }
-        val argumentType = innerParse(memoryNew.constructorArguments[0])
+        val argumentType = innerParse(memoryNew.constructorArguments[0].expression)
         if (argumentType != IntType) {
             addDiagnostic("Argument to new must be Int", memoryNew)
         }
@@ -88,7 +88,9 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Only Int is allowed as the index of the array access operator", arrayAccess)
         }
 
-        typeMap[arrayAccess] = (arrayType as ArrayType).elementType
+        if (arrayType is ArrayType) {
+            typeMap[arrayAccess] = (arrayType as ArrayType).elementType
+        }
     }
 
 

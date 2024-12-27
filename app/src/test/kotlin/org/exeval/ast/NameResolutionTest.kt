@@ -42,6 +42,38 @@ class NameResolutionTest {
     }
 
     @Test
+    fun `should match variable to declarations with pointers`() {
+        val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(5))))
+        val declaration = ConstantDeclaration("pointer", ArrayType(IntType),  memoryNew)
+        val reference1 = VariableReference("pointer")
+        val arrayAccess = ArrayAccess(reference1, IntLiteral(0))
+        val reference2 = VariableReference("pointer")
+        val memoryDel = MemoryDel(reference2)
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(declaration, arrayAccess, memoryDel)
+            )
+        )
+        val astInfo = AstInfo(function, emptyMap())
+
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        assertEquals(
+            declaration,
+            nameResolution.variableToDecl[reference1],
+            "Expected 'pointer` reference to be matched to its declaration when ArrayAccess"
+        )
+
+        assertEquals(
+            declaration,
+            nameResolution.variableToDecl[reference2],
+            "Expected 'pointer` reference to be matched to its declaration when MemoryDel"
+        )
+    }
+
+
+    @Test
     fun `should match function to declarations`() {
         val call = FunctionCall("main", emptyList())
         val function = FunctionDeclaration(
