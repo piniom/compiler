@@ -1,0 +1,83 @@
+
+foo _mergeSort(arr: [Int], supportArr: [Int], left: [Int], right: [Int], s: [Int]) -> Nope = {
+
+    let mut iIt: Int = left;
+    let mut jIt: Int  = s+1;
+    let mut kIt: Int = left;
+
+    loop {
+        if (kIt > right) then {
+            break;
+        }
+        if (arr[iIt] >= arr[jIt]) then {
+            iIt = iIt + 1;
+            supportArr[kIt] = arr[iIt - 1];
+        } else {
+            supportArr[kIt] = arr[jIt];
+            jIt = jIt + 1;
+        }
+        kIt = kIt + 1;
+        if(iIt == s + 1) then {
+            break;
+        }
+        if(jIt == right + 1) then {
+            break;
+        }
+    }
+
+    loop {
+        if (iIt == s + 1) then {
+            break;
+        }
+        supportArr[kIt] = arr[iIt];
+        iIt = iIt + 1;
+        kIt = kIt + 1;
+    }
+
+    loop {
+        if (jIt == right + 1) then {
+            break;
+        }
+        supportArr[kIt] = arr[jIt];
+        jIt = jIt + 1;
+        kIt = kIt + 1;
+    }
+
+    kIt = 0;
+    loop {
+        if (kIt > right) then {
+            break;
+        }
+        arr[kIt] = supportArr[kIt];
+        kIt = kIt + 1
+    }
+}
+
+foo _mergeSort(arr: [Int], supportArr: [Int], left: [Int], right: [Int]) -> Nope = {
+    let s: Int = (l+r)/2;
+    if (r != l) then {
+        if(r-l!=1) then {
+            _mergeSort(arr, supportArr, left, s);
+            _mergeSort(arr, supportArr, s+1, right);
+        }
+        merge(arr, supportArr, left, right, s);
+    }
+}
+
+
+foo sort(arr: [Int], length: Int) -> Nope = {
+    let mut supp: [Int] = new [Int] (length);
+    _mergeSort(arr, supp, 0, length - 1)
+}
+
+// Should return 0
+foo main() -> Int = {
+    let x: [Int] = new [Int] (5);
+    x[0] = 2;
+    x[1] = 4;
+    x[2] = 3;
+    x[3] = 1;
+    x[4] = 0;
+    sort(x, 5);
+    x[0] // x should be {0, 1, 2, 3 ,4}
+}
