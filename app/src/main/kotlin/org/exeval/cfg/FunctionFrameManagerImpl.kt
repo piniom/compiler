@@ -7,6 +7,7 @@ import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
+private const val BYTES_IN_WORD = 8
 
 class FunctionFrameManagerImpl(
     override val f: FunctionDeclaration,
@@ -116,7 +117,7 @@ class FunctionFrameManagerImpl(
             val fromStack = MemoryTree(
                 BinaryOperationTree(
                     RegisterTree(PhysicalRegister.RSP),
-                    NumericalConstantTree(((i - 2) * 4).toLong()),
+                    NumericalConstantTree(((i - 2) * BYTES_IN_WORD).toLong()),
                     BinaryTreeOperationType.ADD
                 )
             )
@@ -140,7 +141,7 @@ class FunctionFrameManagerImpl(
                 RegisterTree(PhysicalRegister.RSP),
                 BinaryOperationTree(
                     RegisterTree(PhysicalRegister.RSP),
-                    DelayedNumericalConstantTree { stackOffset.lock(); stackOffset.value * 4 },
+                    DelayedNumericalConstantTree { stackOffset.lock(); stackOffset.value * BYTES_IN_WORD },
                     BinaryTreeOperationType.ADD
                 )
             )
@@ -158,7 +159,7 @@ class FunctionFrameManagerImpl(
     }
 
     override fun alloc_frame_memory(): AssignableTree {
-        val curOffset = stackOffset.value * 4
+        val curOffset = stackOffset.value * BYTES_IN_WORD
         stackOffset.value += 1
 
         val resTree =  MemoryTree(
@@ -200,7 +201,7 @@ class FunctionFrameManagerImpl(
                 val memoryCell: UsableMemoryCell
 
                 if (isNested) {
-                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * 4)
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * BYTES_IN_WORD)
                     stackOffset.value += 1
                 } else {
                     memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
@@ -272,7 +273,7 @@ class FunctionFrameManagerImpl(
         return MemoryTree(
             BinaryOperationTree(
                 LabelConstantTree(Label.DISPLAY),
-                NumericalConstantTree(idx * 8),
+                NumericalConstantTree(idx * BYTES_IN_WORD),
                 BinaryTreeOperationType.ADD
             )
         )
