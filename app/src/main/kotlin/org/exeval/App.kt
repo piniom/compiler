@@ -50,6 +50,16 @@ fun main(args: Array<String>) {
     // Input
     val sourceCode = buildInput(args[0])
 
+    var linkedLibraries = mutableListOf<String>()
+    var i=1;
+    while (i<args.size) {
+        if(args[i] == "-l") {
+            linkedLibraries.add(args[i+1])
+            i++
+        }
+        i++
+    }
+
     // Lexer
     val lexer = buildLexer()
     val lexerOutput = lexer.run(sourceCode)
