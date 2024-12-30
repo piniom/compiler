@@ -27,14 +27,14 @@ class ForeignCallManager(private val function: ForeignFunctionDeclaration) : Cal
         4 to PhysicalRegister.R8,
         5 to PhysicalRegister.R9
     )
-    private val numFromArgsGoesToStack = 6
+    private val numOfRegisterArgs = 6
 
-    val functionLabel = Label(function.name)
+    private val functionLabel = Label(function.name)
 
     override fun generate_function_call(trees: List<Tree>, result: AssignableTree?, then: CFGNode): CFGNode {
 
         val outTrees = mutableListOf<Tree>()
-        for (i in 0 until minOf(numFromArgsGoesToStack, trees.size)) {
+        for (i in 0 until minOf(numOfRegisterArgs, trees.size)) {
             outTrees.add(
                 AssignmentTree(
                     RegisterTree(argumentNumToRegister[i]!!),
@@ -44,7 +44,7 @@ class ForeignCallManager(private val function: ForeignFunctionDeclaration) : Cal
         }
 
         // Put the rest of the args on stack
-        for (i in numFromArgsGoesToStack..<trees.size) {
+        for (i in numOfRegisterArgs..<trees.size) {
             outTrees.addAll(
                 pushToStack(trees[i])
             )
