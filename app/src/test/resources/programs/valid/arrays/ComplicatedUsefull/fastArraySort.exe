@@ -9,7 +9,7 @@ foo _mergeSort(arr: [Int], supportArr: [Int], left: [Int], right: [Int], s: [Int
         if (kIt > right) then {
             break;
         }
-        if (arr[iIt] >= arr[jIt]) then {
+        if (arr[iIt] <= arr[jIt]) then {
             iIt = iIt + 1;
             supportArr[kIt] = arr[iIt - 1];
         } else {
