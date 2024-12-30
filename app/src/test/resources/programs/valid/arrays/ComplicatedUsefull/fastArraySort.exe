@@ -67,7 +67,8 @@ foo _mergeSort(arr: [Int], supportArr: [Int], left: [Int], right: [Int]) -> Nope
 
 foo sort(arr: [Int], length: Int) -> Nope = {
     let mut supp: [Int] = new [Int] (length);
-    _mergeSort(arr, supp, 0, length - 1)
+    _mergeSort(arr, supp, 0, length - 1);
+    del supp
 }
 
 // Should return 0
