@@ -84,8 +84,7 @@ fun main(args: Array<String>) {
     }
 
     val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
-    val fCallMMap: Map<ForeignFunctionDeclaration, CallManager>
-    = foreignFs.associate{it to TODO("create call manager for it")}
+    val fCallMMap = foreignFs.associate{it to ForeignCallManager(it)}
 
     // CFG
     val nodes = functionNodes(
