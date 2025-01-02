@@ -1,5 +1,5 @@
 foo main() -> Int = {
-    let arr: [[Int]] = new [[Bool]] (2);
+    let arr: [[Int]] = new [[Int]] (2);
 
     arr[0] = new [Int] (3);
     arr[1] = new [Int] (4);
