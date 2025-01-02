@@ -222,15 +222,26 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
             astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
         } else if (symbol === ArrayAcessSymbol) {
-            val arrayIndex = 1
-            val indexIndex = 3
+            var arrayExpr: Expr? = null
+            var indexExpr: Expr? = null
 
-            if (children.size != 4) {
-                throw IllegalStateException("ArrayAccessSymbol $locationRange")
+            for (child in children) {
+                val childSymbol = getSymbol(child)
+
+                if (childSymbol === ExpressionSymbol) {
+                    arrayExpr = createAux(child, input) as Expr
+                } else if (childSymbol === FunctionCallSymbol) {
+                    arrayExpr = createAux(child, input) as Expr
+                } else if (childSymbol === TokenCategories.IdentifierNontype) {
+                    arrayExpr = VariableReference(getNodeText(child, input))
+                } else if (childSymbol === ArrayIndexSymbol) {
+                    indexExpr = createAux(child, input) as Expr
+                }
             }
 
-            val arrayExpr = createAux(children[arrayIndex], input) as Expr
-            val indexExpr = createAux(children[indexIndex], input) as Expr
+            if (arrayExpr == null || indexExpr == null) {
+                throw IllegalStateException("ArrayAcessSymbol $locationRange")
+            }
 
             astNode = ArrayAccess(arrayExpr, indexExpr)
         }

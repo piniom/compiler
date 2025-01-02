@@ -232,14 +232,32 @@ object DeallocationSymbol: GrammarSymbol {
 	)
 }
 
-object ArrayAcessSymbol: GrammarSymbol {
+object ArrayIndexSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			ExpressionSymbol,
 			Token.PunctuationLeftSquareBracket,
 			ExpressionSymbol,
 			Token.PunctuationRightSquareBracket,
 		),
+	)
+}
+
+object ArrayAcessSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.IdentifierNontype,
+			ArrayIndexSymbol
+		),
+		listOf(
+			FunctionCallSymbol,
+			ArrayIndexSymbol
+		),
+		listOf(
+			Token.PunctuationLeftRoundBracket,
+			ExpressionSymbol,
+			Token.PunctuationRightSquareBracket,
+			ArrayIndexSymbol
+		)
 	)
 }
 
@@ -338,6 +356,11 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 		),
 		listOf(
 			FunctionCallSymbol,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
+		listOf(
+			ArrayAcessSymbol,
 			Operator2ArgSymbol,
 			ExpressionSymbol,
 		),
