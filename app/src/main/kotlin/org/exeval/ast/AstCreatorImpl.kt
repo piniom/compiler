@@ -53,7 +53,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionParamsSymbol) {
                     parameters = unwrapList<Parameter>(child, FunctionParamSymbol, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     returnType = getType(child, input)
                 }
             }
@@ -70,7 +70,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 }
             }
@@ -96,7 +96,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
                     expression = createAux(child, input) as Expr
@@ -112,7 +112,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
                     expression = createAux(child, input) as Expr
@@ -201,8 +201,41 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 }
             }
             astNode = Block(exprs)
-        } else {
-            throw IllegalStateException("${symbol} ${locationRange}")
+        } else if (symbol === AllocationSymmbol) {
+            val typeIndex = 1
+            val argumentsIndex = 3
+
+            if (children.size != 4) {
+                throw IllegalStateException("AllocationSymmbol $locationRange")
+            }
+
+            val type = getType(children[typeIndex], input) ?: throw IllegalStateException("AllocationSymmbol $locationRange")
+            val arguments = unwrapList<Argument>(children[argumentsIndex], ExpressionSymbol, input)
+
+            astNode = MemoryNew(type, arguments)
+        } else if (symbol === DeallocationSymbol) {
+            val exprIndex = 1
+
+            if (children.size != 2) {
+                throw IllegalStateException("DeallocationSymbol $locationRange")
+            }
+
+            astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
+        } else if (symbol === ArrayAcessSymbol) {
+            val arrayIndex = 1
+            val indexIndex = 3
+
+            if (children.size != 4) {
+                throw IllegalStateException("ArrayAccessSymbol $locationRange")
+            }
+
+            val arrayExpr = createAux(children[arrayIndex], input) as Expr
+            val indexExpr = createAux(children[indexIndex], input) as Expr
+
+            astNode = ArrayAccess(arrayExpr, indexExpr)
+        }
+        else {
+            throw IllegalStateException("$symbol $locationRange")
         }
         locationsMap.put(astNode, locationRange)
         return astNode
@@ -265,16 +298,33 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
     }
 
-    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
-        val name = getNodeText(node, input)
-
-        if (name == "Int") {
-            return IntType
-        } else if (name == "Bool") {
-            return BoolType
-        } else if (name == "Nope") {
-            return NopeType
+    private fun getArrayType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
         }
-        return null
+
+        val countOfArrayProductions = 3
+        val typeChildIndex = 1
+
+        if (children.size != countOfArrayProductions) {
+            return null
+        }
+
+        return getType(children[typeChildIndex], input)
+            ?. let { ArrayType(it) }
+    }
+
+    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+        if (getSymbol(node) != TypeSymbol) {
+            return null
+        }
+
+        return when (getNodeText(node, input)) {
+            "Int" -> IntType
+            "Bool" -> BoolType
+            "Nope" -> NopeType
+            else -> getArrayType(node, input)
+        }
     }
 }

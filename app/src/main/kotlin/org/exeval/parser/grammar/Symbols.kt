@@ -63,7 +63,15 @@ object VariableAssignmentSymbol: GrammarSymbol {
 			Token.IdentifierNontype,
 			Token.OperatorAssign,
 			ExpressionSymbol,
-		)
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationLeftSquareBracket,
+			ExpressionSymbol,
+			Token.PunctuationRightSquareBracket,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
 	)
 }
 
@@ -219,7 +227,7 @@ object DeallocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordDel,
-			Token.IdentifierNontype,
+			ExpressionSymbol,
 		),
 	)
 }
@@ -227,7 +235,7 @@ object DeallocationSymbol: GrammarSymbol {
 object ArrayAcessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			Token.IdentifierNontype,
+			ExpressionSymbol,
 			Token.PunctuationLeftSquareBracket,
 			ExpressionSymbol,
 			Token.PunctuationRightSquareBracket,
