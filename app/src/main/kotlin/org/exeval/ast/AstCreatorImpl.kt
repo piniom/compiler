@@ -32,9 +32,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
         val astNode: ASTNode
         if (symbol === ProgramSymbol) {
-            val functionsList = unwrapList<FunctionDeclaration>(children[0], SimpleFunctionDefinitionSymbol, input, FunctionDeclaration::class) +
-            unwrapList<FunctionDeclaration>(children[0], BlockFunctionDefinitionSymbol, input, FunctionDeclaration::class)
-
+            val functionsList = unwrapFunctions(children[0], input, FunctionDeclaration::class)
             astNode = Program(functionsList)
         } else if (symbol === SimpleFunctionDefinitionSymbol || symbol === BlockFunctionDefinitionSymbol) {
             var name: String? = null
@@ -249,6 +247,34 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
         return res
     }
+
+    private fun <T : ASTNode> unwrapFunctions(
+        head: ParseTree<GrammarSymbol>,
+        input: Input,
+        wantedNodeClass: KClass<T>
+    ): List<T> {
+        val res = mutableListOf<T>()
+
+        if (head is Branch && head.production.left == FunctionsDeclarationsSymbol) {
+            for (child in head.children) {
+                val childSymbol = getSymbol(child)
+
+                if (childSymbol === SimpleFunctionDefinitionSymbol ||
+                    childSymbol === BlockFunctionDefinitionSymbol ||
+                    childSymbol === ForeignFunctionDeclarationSymbol) {
+                    val node = createAux(child, input)
+                    res.add(wantedNodeClass.cast(node))
+                }
+
+                if (childSymbol === FunctionsDeclarationsSymbol) {
+                    res.addAll(unwrapFunctions(child, input, wantedNodeClass))
+                }
+            }
+        }
+
+        return res
+    }
+
 
     private fun isVariableAssignment(node: ParseTree<GrammarSymbol>): Boolean {
         if (node !is Branch) return false
