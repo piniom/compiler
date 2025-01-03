@@ -43,6 +43,14 @@ class NameResolutionTest {
 
     @Test
     fun `should match variable to declarations with pointers`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   let pointer: [Int] = new [Int] (5);
+        //   pointer[0];
+        //   del pointer
+        // }
+        // ```
         val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(5))))
         val declaration = ConstantDeclaration("pointer", ArrayType(IntType),  memoryNew)
         val reference1 = VariableReference("pointer")

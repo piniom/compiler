@@ -39,6 +39,14 @@ class TypeCheckerTest {
 
     @Test
     fun `should infer type for expressions using pointers`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   let pointer: [Int] = new [Int] (5);
+        //   pointer[0];
+        //   del pointer
+        // }
+        // ```
         val type = ArrayType(IntType)
         val memoryNew = MemoryNew(type, listOf(PositionalArgument(IntLiteral(5))))
         val declaration = ConstantDeclaration("pointer", type,  memoryNew)
@@ -74,6 +82,12 @@ class TypeCheckerTest {
 
     @Test
     fun `should only allow for pointers to arrays`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   new Int (5);
+        // }
+        // ```
         val memoryNew = MemoryNew(IntType, listOf(PositionalArgument(IntLiteral(5))))
         val function = FunctionDeclaration(
             "main", emptyList(), NopeType,
@@ -98,6 +112,12 @@ class TypeCheckerTest {
 
     @Test
     fun `should only allow IntType as argument to pointer constructor`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   new [Int] (());
+        // }
+        // ```
         val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(NopeLiteral())))
         val function = FunctionDeclaration(
             "main", emptyList(), NopeType,
@@ -122,6 +142,12 @@ class TypeCheckerTest {
 
     @Test
     fun `should only allow ArrayType as left side of ArrayAccess`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   1[2]
+        // }
+        // ```
         val arrayAccess = ArrayAccess(IntLiteral(1), IntLiteral(2))
         val function = FunctionDeclaration(
             "main", emptyList(), NopeType,
@@ -146,6 +172,12 @@ class TypeCheckerTest {
 
     @Test
     fun `should only allow ArrayType with the delete keyword`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   del 5
+        // }
+        // ```
         val memDel = MemoryDel(IntLiteral(5))
         val function = FunctionDeclaration(
             "main", emptyList(), NopeType,
@@ -170,6 +202,12 @@ class TypeCheckerTest {
 
     @Test
     fun `should only allow IntType as argument to ArrayAccess`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   (new [Int] (5))[()]
+        // }
+        // ```
         val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(1))))
         val arrayAccess = ArrayAccess(memoryNew, NopeLiteral())
         val function = FunctionDeclaration(
