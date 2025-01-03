@@ -10,7 +10,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
             returnType = IntType,
             body = Block(
                 expressions = listOf(
-                    MutableVariableDeclaration(
+                    ConstantDeclaration(
                         name = "a",
                         type = IntType,
                         initializer = IntLiteral(10)
@@ -53,7 +53,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                         returnType = IntType,
                         body = Block(
                             expressions = listOf(
-                                MutableVariableDeclaration(
+                                ConstantDeclaration(
                                     name = "a",
                                     type = IntType,
                                     initializer = IntLiteral(1)
