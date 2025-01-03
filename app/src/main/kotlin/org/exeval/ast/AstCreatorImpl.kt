@@ -146,25 +146,11 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionCallArgumentsSymbol) {
-                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input, Argument::class)
+                    arguments = parseFunctionCallArguments(child, input)
                 }
             }
-            astNode = FunctionCall(name!!, arguments)
-        } else if (symbol === FunctionCallArgumentsSymbol) {
-            var name: String? = null
-            var arguments: List<Argument> = listOf()
-            for (child in children) {
-                val childSymbol = getSymbol(child)
 
-                if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child, input)
-                } else if (childSymbol === FunctionCallArgumentsSymbol) {
-                    arguments = unwrapList<Argument>(child, ExpressionSymbol, input, Argument::class)
-                }
-            }
             astNode = FunctionCall(name!!, arguments)
-        } else if (symbol === FunctionCallArgumentsSymbol) {
-            astNode = PositionalArgument(createAux(children[0], input) as Expr)
         } else if (symbol === IfSymbol) {
             val conditionNode = createAux(children[1], input) as Expr
             val thenNode = createAux(children[3], input) as Expr
@@ -263,6 +249,52 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
         return res
     }
+
+    private fun isVariableAssignment(node: ParseTree<GrammarSymbol>): Boolean {
+        if (node !is Branch) return false
+
+        val children = node.children
+        if (children.isEmpty()) return false
+
+        val firstChildSymbol = getSymbol(children[0])
+        return when (firstChildSymbol) {
+            SimpleExpressionSymbol -> {
+                val simpleExpressionChildren = (children[0] as? Branch)?.children ?: return false
+                val secondChildSymbol = getSymbol(simpleExpressionChildren[0])
+                secondChildSymbol === VariableAssignmentSymbol
+            }
+            else -> false
+        }
+    }
+
+    private fun parseFunctionCallArguments(node: ParseTree<GrammarSymbol>, input: Input): List<Argument> {
+        val arguments = mutableListOf<Argument>()
+
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
+        }
+
+        for (child in children) {
+            val childSymbol = getSymbol(child)
+
+            when {
+                childSymbol === ExpressionSymbol && isVariableAssignment(child) -> {
+                    val variableAssignment = createAux(child, input) as Assignment
+                    arguments.add(NamedArgument(variableAssignment.variable, variableAssignment.value))
+                }
+                childSymbol === ExpressionSymbol -> {
+                    arguments.add(PositionalArgument(createAux(child, input) as Expr))
+                }
+                childSymbol === FunctionCallArgumentsSymbol -> {
+                    arguments.addAll(parseFunctionCallArguments(child, input))
+                }
+            }
+        }
+
+        return arguments
+    }
+
 
     private fun parseBinaryOperator(node: ParseTree<GrammarSymbol>): BinaryOperator {
         val operatorNode = when (node) {
