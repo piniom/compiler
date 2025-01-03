@@ -89,7 +89,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         }
 
         if (arrayType is ArrayType) {
-            typeMap[arrayAccess] = (arrayType as ArrayType).elementType
+            typeMap[arrayAccess] = arrayType.elementType
         }
     }
 
