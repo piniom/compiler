@@ -64,7 +64,7 @@ class NameResolutionTest {
     @Test
     fun `should match assignment to declarations`() {
         val decl = MutableVariableDeclaration("var", IntType, IntLiteral(1))
-        val assignment = Assignment("var", IntLiteral(3))
+        val assignment = Assignment(VariableReference("var"), IntLiteral(3))
         val function = FunctionDeclaration(
             "main", emptyList(), IntType,
             Block(

@@ -270,7 +270,7 @@ class TypeCheckerTest {
         // AST Construction
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
-        val aAssignment = Assignment(variable = "a", value = IntLiteral(42))
+        val aAssignment = Assignment(variable = aReference, value = IntLiteral(42))
         val block = Block(listOf(aDeclaration, aAssignment))
 
         // Set up AstInfo and NameResolution
@@ -317,7 +317,7 @@ class TypeCheckerTest {
         val bReference = VariableReference("b")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType)
         val bDeclaration = ConstantDeclaration(name = "b", type = BoolType, initializer = BoolLiteral(true))
-        val assignment = Assignment(variable = "a", value = bReference)
+        val assignment = Assignment(variable = aReference, value = bReference)
         val block = Block(listOf(aDeclaration, bDeclaration, assignment))
 
         // Set up AstInfo and NameResolution
@@ -361,11 +361,11 @@ class TypeCheckerTest {
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
         val increment = BinaryOperation(aReference, BinaryOperator.PLUS, IntLiteral(1))
-        val assignmentInsideLoop = Assignment(variable = "a", value = increment)
+        val assignmentInsideLoop = Assignment(variable = aReference, value = increment)
         val breakStatement = Break(null, aReference)
         val loopBody = Block(listOf(assignmentInsideLoop, breakStatement))
         val loop = Loop(null, loopBody)
-        val outerAssignment = Assignment(variable = "a", value = loop)
+        val outerAssignment = Assignment(variable = aReference, value = loop)
         val block = Block(listOf(aDeclaration, outerAssignment))
 
         // Set up AstInfo and NameResolution
@@ -517,7 +517,7 @@ class TypeCheckerTest {
         // AST Construction
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
-        val aAssignment = Assignment(variable = "a", value = IntLiteral(1))
+        val aAssignment = Assignment(variable = aReference, value = IntLiteral(1))
         val ifStatement = Conditional(
             condition = BoolLiteral(true),
             thenBranch = Block(listOf(aAssignment)),

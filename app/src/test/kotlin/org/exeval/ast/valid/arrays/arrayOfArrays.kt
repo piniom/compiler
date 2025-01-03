@@ -26,7 +26,70 @@ val ARRAY_OF_ARRAY_AST = Program(
                             ),
                         ),
                     ),
-                    /// UNABLE TO MAKE ASSIGMENT TO ARRAY VARIABLE ,
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(0),
+                        ), 
+                        MemoryNew(
+                            type = IntType,
+                            constructorArguments = listOf(
+                                PositionalArgument(IntLiteral(2))
+                            )
+                        ),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(1),
+                        ), 
+                        MemoryNew(
+                            type = IntType,
+                            constructorArguments = listOf(
+                                PositionalArgument(IntLiteral(3))
+                            )
+                        ),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = ArrayAccess(
+                                array = VariableReference("x"),
+                                index = IntLiteral(0),
+                            ),
+                            index = IntLiteral(0),
+                        ), 
+                        IntLiteral(0),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = ArrayAccess(
+                                array = VariableReference("x"),
+                                index = IntLiteral(0),
+                            ),
+                            index = IntLiteral(1),
+                        ), 
+                        IntLiteral(1),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = ArrayAccess(
+                                array = VariableReference("x"),
+                                index = IntLiteral(1),
+                            ),
+                            index = IntLiteral(0),
+                        ), 
+                        IntLiteral(2),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = ArrayAccess(
+                                array = VariableReference("x"),
+                                index = IntLiteral(1),
+                            ),
+                            index = IntLiteral(2),
+                        ), 
+                        IntLiteral(4),
+                    ),
                     BinaryOperation(
                         left = BinaryOperation(
                             left = BinaryOperation(
@@ -47,22 +110,12 @@ val ARRAY_OF_ARRAY_AST = Program(
                                 ),
                             ),
                             operator = BinaryOperator.PLUS,
-                            right = BinaryOperation(
-                                left = ArrayAccess(
-                                    array = ArrayAccess(
-                                        array = VariableReference("x"),
-                                        index = IntLiteral(1),
-                                    ),
-                                    index = IntLiteral(0),
-                                ),
-                                operator = BinaryOperator.PLUS,
-                                right = ArrayAccess(
-                                    array = ArrayAccess(
-                                        array = VariableReference("x"),
-                                        index = IntLiteral(1),
-                                    ),
+                            right = ArrayAccess(
+                                array = ArrayAccess(
+                                    array = VariableReference("x"),
                                     index = IntLiteral(1),
                                 ),
+                                index = IntLiteral(0),
                             ),
                         ),
                         operator = BinaryOperator.PLUS,
@@ -90,9 +143,8 @@ foo main() -> Int = {
     x[0][0] = 0;
     x[0][1] = 1;
     x[1][0] = 2;
-    x[1][1] = 3;
     x[1][2] = 4;
-    x[0][0] + x[0][1] + x[1][0] + x[1][1] + x[1][2]
+    x[0][0] + x[0][1] + x[1][0] + x[1][2]
 }
 
 */

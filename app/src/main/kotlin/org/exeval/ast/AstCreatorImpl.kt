@@ -131,7 +131,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     expression = createAux(child, input) as Expr
                 }
             }
-            astNode = Assignment(name!!, expression!!)
+            astNode = Assignment(VariableReference(name!!), expression!!)
         } else if (symbol === FunctionCallSymbol) {
             var name: String? = null
             var arguments: List<Argument> = listOf()

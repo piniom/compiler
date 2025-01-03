@@ -22,7 +22,13 @@ val SIMPLE_ARRAY_DEALOCATION_AST = Program(
                             ),
                         ),
                     ),
-                    /// UNABLE TO MAKE ASSIGMENT TO ARRAY VARIABLE ,
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(0),
+                        ), 
+                        IntLiteral(17),
+                    ),
                     ConstantDeclaration(
                         name = "y",
                         type = IntType,
@@ -40,17 +46,3 @@ val SIMPLE_ARRAY_DEALOCATION_AST = Program(
         )
     )
 )
-
-
-/*
-
-// Should return 17
-foo main() -> Int = {
-    let x: [Int] = new [Int] (1);
-    x[0] = 17;
-    let y: Int = x[0];
-    del x;
-    y
-}
-
-*/

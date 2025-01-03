@@ -40,7 +40,7 @@ val FOONCTIONS_NESTED_FUNTION_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "ext",
+                        variable = VariableReference("ext"),
                         value = IntLiteral(2)
                     ),
                     FunctionCall(

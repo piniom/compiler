@@ -22,7 +22,13 @@ val PASS_ARRAY_TO_FUNCTION_AST = Program(
                             ),
                         ),
                     ),
-                    /// UNABLE TO MAKE ASSIGMENT TO ARRAY VARIABLE ,
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(0),
+                        ), 
+                        IntLiteral(17),
+                    ),
                     FunctionCall(
                         functionName = "getFirst",
                         arguments = listOf(
@@ -52,16 +58,3 @@ val PASS_ARRAY_TO_FUNCTION_AST = Program(
         )
     )
 )
-
-
-/*
-foo getFirst(arr: [Int]) -> Int = { arr[0] }
-
-// Should return 17
-foo main() -> Int = {
-    let x: [Int] = new [Int] (1);
-    x[0] = 17;
-    getFirst(arr)
-}
-
-*/

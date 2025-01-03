@@ -22,7 +22,20 @@ val SIMPLE_ARRAY_DECLARATION_AST = Program(
                             ),
                         ),
                     ),
-                    /// UNABLE TO MAKE ASSIGMENT TO ARRAY VARIABLE
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(0),
+                        ), 
+                        IntLiteral(1),
+                    ),
+                    Assignment(
+                        ArrayAccess(
+                            array = VariableReference("x"),
+                            index = IntLiteral(1),
+                        ), 
+                        IntLiteral(2),
+                    ),
                     BinaryOperation(
                         left = ArrayAccess(
                             array = VariableReference("x"),
@@ -39,15 +52,3 @@ val SIMPLE_ARRAY_DECLARATION_AST = Program(
         )
     )
 )
-
-
-/*
-// Should return 3
-foo main() -> Int = {
-    let x: [Int] = new [Int] (2);
-    x[0] = 1;
-    x[1] = 2;
-    x[0] + x[1]
-}
-
-*/

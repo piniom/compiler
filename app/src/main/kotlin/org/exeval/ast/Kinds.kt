@@ -30,7 +30,7 @@ class MutableVariableDeclaration(
     override val initializer: Expr? = null
 ) : VariableDeclarationBase()
 
-class Assignment(val variable: String, val value: Expr) : Expr()
+class Assignment(val variable: AssignableExpr, val value: Expr) : Expr()
 
 sealed class Literal : Expr()
 class IntLiteral(val value: Long) : Literal()
