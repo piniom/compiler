@@ -205,7 +205,7 @@ class TypeCheckerTest {
         // Code:
         // ```
         // foo main() -> Nope = {
-        //   (new [Int] (5))[()]
+        //   (new [Int] (1))[()]
         // }
         // ```
         val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(1))))
