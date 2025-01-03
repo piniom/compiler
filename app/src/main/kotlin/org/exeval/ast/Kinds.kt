@@ -79,9 +79,9 @@ class FunctionCall(
     val arguments: List<Argument>
 ) : Expr()
 
-sealed class Argument : ASTNode
-class PositionalArgument(val expression: Expr) : Argument()
-class NamedArgument(val name: String, val expression: Expr) : Argument()
+sealed class Argument(val expression: Expr) : ASTNode
+class PositionalArgument(expression: Expr) : Argument(expression)
+class NamedArgument(val name: String, expression: Expr) : Argument(expression)
 
 class Conditional(
     val condition: Expr,
