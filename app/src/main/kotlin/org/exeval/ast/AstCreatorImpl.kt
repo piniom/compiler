@@ -264,10 +264,10 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     childSymbol === ForeignFunctionDeclarationSymbol) {
                     val node = createAux(child, input)
                     res.add(wantedNodeClass.cast(node))
-                }
-
-                if (childSymbol === FunctionsDeclarationsSymbol) {
+                } else if (childSymbol === FunctionsDeclarationsSymbol) {
                     res.addAll(unwrapFunctions(child, input, wantedNodeClass))
+                } else {
+                    break
                 }
             }
         }
