@@ -6,6 +6,8 @@ interface ASTNode
 
 sealed class Expr : ASTNode
 
+sealed class AssignableExpr : Expr()
+
 class Block(val expressions: List<Expr>) : Expr()
 
 sealed interface AnyVariable : ASTNode
@@ -37,7 +39,7 @@ class BoolLiteral(val value: Boolean) : Literal()
 class NopeLiteral : Literal()
 
 
-class VariableReference(val name: String) : Expr()
+class VariableReference(val name: String) : AssignableExpr()
 
 class BinaryOperation(val left: Expr, val operator: BinaryOperator, val right: Expr) : Expr()
 enum class BinaryOperator {
@@ -109,4 +111,4 @@ class MemoryDel(
 class ArrayAccess(
     val array: Expr,
     val index: Expr
-) : Expr()
+) : AssignableExpr()
