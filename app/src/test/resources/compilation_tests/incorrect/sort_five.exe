@@ -9,7 +9,7 @@ foo sort_five(aa: Int, bb: Int, cc: Int, dd: Int, ee: Int) -> Bool {
     let mut c: Int = cc;
     let mut d: Int = dd;
     let mut e: Int = ee;
-    if (a > b) then {
+    if (a git  b) then {
         tmp = a;
         a = b;
         b = tmp;
