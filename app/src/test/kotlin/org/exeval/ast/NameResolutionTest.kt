@@ -42,6 +42,41 @@ class NameResolutionTest {
     }
 
     @Test
+    fun `should match stdlib function call`() {
+        val mainCall = FunctionCall("main", emptyList())
+        val printCall = FunctionCall("print_int", listOf(PositionalArgument(IntLiteral(2))))
+        val scanCall = FunctionCall("scan_int", emptyList())
+        val mainFunction = FunctionDeclaration(
+            "main", emptyList(), IntType,
+            Block(
+                listOf(
+                    mainCall,
+                    printCall,
+                    scanCall
+                )
+            )
+        )
+        val astInfo = AstInfo(mainFunction, emptyMap())
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        assertEquals(
+            mainFunction,
+            nameResolution.functionToDecl[mainCall],
+            "Expected 'main' function to be matched to its declaration"
+        )
+
+        assertTrue(
+            nameResolution.functionToDecl[scanCall] is ForeignFunctionDeclaration,
+            "Expected 'scan_int' std function to be matched to its foreign declaration"
+        )
+
+        assertTrue(
+            nameResolution.functionToDecl[printCall] is ForeignFunctionDeclaration,
+            "Expected 'print_int' std function to be matched to its foreign declaration"
+        )
+    }
+
+    @Test
     fun `should match variable to declarations with pointers`() {
         // Code:
         // ```
