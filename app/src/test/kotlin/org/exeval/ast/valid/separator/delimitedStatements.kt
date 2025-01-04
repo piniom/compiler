@@ -67,7 +67,6 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                                         left = VariableReference(name = "a"),
                                         operator = BinaryOperator.OR,
                                         right = VariableReference(name = "b")
-                                        )
                                     )
                                 )
                             )
