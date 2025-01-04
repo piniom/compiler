@@ -239,6 +239,12 @@ object ArrayIndexSymbol: GrammarSymbol {
 			ExpressionSymbol,
 			Token.PunctuationRightSquareBracket,
 		),
+		listOf(
+			Token.PunctuationLeftSquareBracket,
+			ExpressionSymbol,
+			Token.PunctuationRightSquareBracket,
+			ArrayIndexSymbol
+		),
 	)
 }
 

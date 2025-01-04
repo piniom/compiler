@@ -222,28 +222,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
             astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
         } else if (symbol === ArrayAcessSymbol) {
-            var arrayExpr: Expr? = null
-            var indexExpr: Expr? = null
-
-            for (child in children) {
-                val childSymbol = getSymbol(child)
-
-                if (childSymbol === ExpressionSymbol) {
-                    arrayExpr = createAux(child, input) as Expr
-                } else if (childSymbol === FunctionCallSymbol) {
-                    arrayExpr = createAux(child, input) as Expr
-                } else if (childSymbol === TokenCategories.IdentifierNontype) {
-                    arrayExpr = VariableReference(getNodeText(child, input))
-                } else if (childSymbol === ArrayIndexSymbol) {
-                    indexExpr = createAux(child, input) as Expr
-                }
-            }
-
-            if (arrayExpr == null || indexExpr == null) {
-                throw IllegalStateException("ArrayAcessSymbol $locationRange")
-            }
-
-            astNode = ArrayAccess(arrayExpr, indexExpr)
+            astNode = processArrayAcess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
         }
         else {
             throw IllegalStateException("$symbol $locationRange")
@@ -264,6 +243,53 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             node as T
         }
         return res
+    }
+
+    private fun processArrayAcess(children: List<ParseTree<GrammarSymbol>>, input: Input): Expr? {
+        fun processNestedArray(arrayExpr: Expr, indexSymbol: ParseTree<GrammarSymbol>, input: Input) : Expr? {
+            val indexExprIndex = 1
+            val nextIndexExpr = 3
+            val sizeForNestedArrayAccess = 4
+            val sizeForSingleArrayAccess = 3
+
+            val subChildren = when (indexSymbol) {
+                is Leaf -> listOf()
+                is Branch -> indexSymbol.children
+            }
+
+            if (sizeForSingleArrayAccess != subChildren.size && sizeForNestedArrayAccess != subChildren.size) {
+                return null
+            }
+
+            val subIndexExpr = createAux(subChildren[indexExprIndex], input) as Expr
+            val acessExpr = ArrayAccess(arrayExpr, subIndexExpr)
+
+            if (sizeForSingleArrayAccess == subChildren.size) {
+                return acessExpr
+            } else if (sizeForNestedArrayAccess == subChildren.size) {
+                return processNestedArray(acessExpr, subChildren[nextIndexExpr], input)
+            }
+
+            return null
+        }
+
+        var arrayExpr: Expr? = null
+
+        for (child in children) {
+            val childSymbol = getSymbol(child)
+
+            if (childSymbol === ExpressionSymbol) {
+                arrayExpr = createAux(child, input) as Expr
+            } else if (childSymbol === FunctionCallSymbol) {
+                arrayExpr = createAux(child, input) as Expr
+            } else if (childSymbol === TokenCategories.IdentifierNontype) {
+                arrayExpr = VariableReference(getNodeText(child, input))
+            } else if (childSymbol === ArrayIndexSymbol) {
+                return arrayExpr?.let { processNestedArray(it, child, input) }
+            }
+        }
+
+        return null
     }
 
     private fun findSubTrees(head: ParseTree<GrammarSymbol>, symbol: GrammarSymbol): List<ParseTree<GrammarSymbol>> {
