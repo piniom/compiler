@@ -236,7 +236,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             val type = getType(children[typeIndex], input) ?: throw IllegalStateException("AllocationSymmbol $locationRange")
-            val arguments = unwrapList<Argument>(children[argumentsIndex], ExpressionSymbol, input)
+            val arguments = unwrapList<Argument>(children[argumentsIndex], ExpressionSymbol, input, Argument::class)
 
             astNode = MemoryNew(type, arguments)
         } else if (symbol === DeallocationSymbol) {
