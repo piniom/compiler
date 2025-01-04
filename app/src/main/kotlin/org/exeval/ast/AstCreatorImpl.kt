@@ -267,7 +267,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 } else if (childSymbol === FunctionsDeclarationsSymbol) {
                     res.addAll(unwrapFunctions(child, input, wantedNodeClass))
                 } else {
-                    break
+                    continue
                 }
             }
         }
