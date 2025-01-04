@@ -5,6 +5,7 @@ import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
+import StdlibDeclarationsCreator
 
 class NameResolutionGenerator(private val astInfo: AstInfo) {
     data class LoopStackData(var closestLoop: Loop? = null, val loopMap: MutableMap<String, Loop> = mutableMapOf())
@@ -20,6 +21,17 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private val variableToDecl: MutableMap<VariableReference, AnyVariable> = mutableMapOf()
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
 
+    init {
+        injectStdlibFunctionsDeclarations()
+    }
+
+    fun injectStdlibFunctionsDeclarations() {
+        var stdFuncsDecls = mutableMapOf<String, ASTNode>()
+        for (decl in StdlibDeclarationsCreator.getDeclarations()) {
+            stdFuncsDecls[decl.name] = decl
+        }
+        declarations.addFirst(stdFuncsDecls)
+    }
 
     fun parse(): OperationResult<NameResolution> {
         processAsBlock {
