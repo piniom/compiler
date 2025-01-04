@@ -36,7 +36,7 @@ val CONDITIONALS_CONDITIONALS_INSIDE_LOOP_AST = Program(
                                     elseBranch = Block(
                                         expressions = listOf(
                                             Assignment(
-                                                variable = "x",
+                                                variable = VariableReference("x"),
                                                 value = BinaryOperation(
                                                     left = VariableReference("x"),
                                                     operator = BinaryOperator.PLUS,
