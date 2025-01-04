@@ -19,7 +19,9 @@ val ARRAY_OF_ARRAY_AST = Program(
                         ),
                         initializer = MemoryNew(
                             type = ArrayType(
-                                elementType = IntType
+                                elementType = ArrayType(
+                                    elementType = IntType
+                                )
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2))
@@ -32,7 +34,9 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(0),
                         ), 
                         MemoryNew(
-                            type = IntType,
+                            type = ArrayType(
+                                elementType = IntType
+                            ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2))
                             )
@@ -44,7 +48,9 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(1),
                         ), 
                         MemoryNew(
-                            type = IntType,
+                            type = ArrayType(
+                                elementType = IntType
+                            ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(3))
                             )

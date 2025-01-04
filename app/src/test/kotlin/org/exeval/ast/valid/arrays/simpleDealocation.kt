@@ -16,7 +16,9 @@ val SIMPLE_ARRAY_DEALOCATION_AST = Program(
                             elementType = IntType
                         ),
                         initializer = MemoryNew(
-                            type = IntType,
+                            type = ArrayType(
+                                elementType = IntType
+                            ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(1))
                             ),

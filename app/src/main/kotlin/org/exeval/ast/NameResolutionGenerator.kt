@@ -104,7 +104,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun getAssignmentType(assignment: Assignment) {
         val variable = assignment.variable
-        var variableName = when (variable) {
+        val variableName = when (variable) {
             is VariableReference -> variable.name
             is ArrayAccess -> getNameOfArrayAccess(variable)
             else -> ""
