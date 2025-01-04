@@ -10,7 +10,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
             returnType = IntType,
             body = Block(
                 expressions = listOf(
-                    MutableVariableDeclaration(
+                    ConstantDeclaration(
                         name = "a",
                         type = IntType,
                         initializer = IntLiteral(10)
@@ -53,7 +53,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                         returnType = IntType,
                         body = Block(
                             expressions = listOf(
-                                MutableVariableDeclaration(
+                                ConstantDeclaration(
                                     name = "a",
                                     type = IntType,
                                     initializer = IntLiteral(1)
@@ -67,30 +67,30 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                         )
                     ),
                     BinaryOperation(
-                        left = BinaryOperation(
-                            left = BinaryOperation(
+                        left = FunctionCall(
+                            functionName = "f1",
+                            arguments = emptyList()
+                        ),
+                        operator = BinaryOperator.PLUS,
+                        right = BinaryOperation(
+                            left = FunctionCall(
+                                functionName = "f2",
+                                arguments = emptyList()
+                            ),
+                            operator = BinaryOperator.PLUS,
+                            right = BinaryOperation(
                                 left = FunctionCall(
-                                    functionName = "f1",
-                                    arguments = emptyList()
+                                    functionName = "f3",
+                                    arguments = listOf(
+                                        PositionalArgument(IntLiteral(5))
+                                    )
                                 ),
                                 operator = BinaryOperator.PLUS,
                                 right = FunctionCall(
-                                    functionName = "f2",
+                                    functionName = "f4",
                                     arguments = emptyList()
                                 )
-                            ),
-                            operator = BinaryOperator.PLUS,
-                            right = FunctionCall(
-                                functionName = "f3",
-                                arguments = listOf(
-                                    PositionalArgument(IntLiteral(5))
-                                )
                             )
-                        ),
-                        operator = BinaryOperator.PLUS,
-                        right = FunctionCall(
-                            functionName = "f4",
-                            arguments = emptyList()
                         )
                     )
                 )

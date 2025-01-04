@@ -10,6 +10,12 @@ object ValueSymbol: TerminalGroup {
 	)
 }
 
+object VariableReferenceSymbol : TerminalGroup {
+	override fun values() = listOf(
+		Token.IdentifierNontype,
+	)
+}
+
 object VariableDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -279,7 +285,7 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			ExpressionSymbol,
 		),
 		listOf(
-			Token.IdentifierNontype,
+			VariableReferenceSymbol,
 			Operator2ArgSymbol,
 			ExpressionSymbol,
 		),
@@ -310,7 +316,7 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 object SimpleExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(ValueSymbol),
-		listOf(Token.IdentifierNontype),
+		listOf(VariableReferenceSymbol),
 		listOf(ArithmeticExpressionSymbol),
 		listOf(VariableDeclarationSymbol),
 		listOf(ConstantDeclarationSymbol),
