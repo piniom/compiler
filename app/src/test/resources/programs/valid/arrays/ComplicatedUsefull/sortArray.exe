@@ -1,0 +1,35 @@
+
+
+foo slowSort(arr: [Int], length: Int) -> Nope = {
+    let mut kIt: Int = 0;
+    loop {
+        if (kIt >= length) then {
+            break;
+        }
+        let mut jIt: Int = 1;
+        loop {
+            if (jIt >= n) then {
+                break;
+            }
+            if (arr[jIt - 1] > arr[jIt]) then {
+                let temp: Int = arr[jIt]
+                arr[jIt] = arr[jIt - 1]
+                arr[jIt - 1] = temp
+            }
+            jIt = jIt + 1
+        }
+        kIt = kIt + 1
+    }
+}
+
+// Should return 0
+foo main() -> Int = {
+    let x: [Int] = new [Int] (5);
+    x[0] = 2;
+    x[1] = 4;
+    x[2] = 3;
+    x[3] = 1;
+    x[4] = 0;
+    slowSort(x, 5);
+    x[0] // x should be {0, 1, 2, 3, 4}
+}

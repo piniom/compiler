@@ -46,14 +46,14 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                 thenBranch = Block(
                                     expressions = listOf(
                                         Assignment(
-                                            variable = "i",
+                                            variable = VariableReference("i"),
                                             value = VariableReference("b")
                                         )
                                     )
                                 )
                             ),
                             Assignment(
-                                variable = "i",
+                                variable = VariableReference("i"),
                                 value = BinaryOperation(
                                     left = VariableReference("i"),
                                     operator = BinaryOperator.PLUS,
@@ -61,7 +61,7 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                 )
                             ),
                             Assignment(
-                                variable = "c",
+                                variable = VariableReference("c"),
                                 value = VariableReference("i")
                             ),
                             Block(
@@ -80,14 +80,14 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                         thenBranch = Block(
                                             expressions = listOf(
                                                 Assignment(
-                                                    variable = "j",
+                                                    variable = VariableReference("j"),
                                                     value = VariableReference("b")
                                                 )
                                             )
                                         )
                                     ),
                                     Assignment(
-                                        variable = "i",
+                                        variable = VariableReference("i"),
                                         value = BinaryOperation(
                                             left = VariableReference("j"),
                                             operator = BinaryOperator.PLUS,
@@ -95,7 +95,7 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                         )
                                     ),
                                     Assignment(
-                                        variable = "d",
+                                        variable = VariableReference("d"),
                                         value = VariableReference("i")
                                     )
                                 )

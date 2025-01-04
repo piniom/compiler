@@ -1,0 +1,6 @@
+// Int cannot be used as an array
+foo main() -> Int = {
+    let mut x: Int = 7;
+    del x;
+    x
+}

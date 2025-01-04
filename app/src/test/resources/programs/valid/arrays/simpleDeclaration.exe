@@ -1,0 +1,7 @@
+// Should return 3
+foo main() -> Int = {
+    let x: [Int] = new [Int] (2);
+    x[0] = 1;
+    x[1] = 2;
+    x[0] + x[1]
+}

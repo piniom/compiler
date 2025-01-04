@@ -1,0 +1,23 @@
+foo sum(arr: [Int], length: Int) -> Int = {
+    let mut sumVar: Int = 0;
+    let mut it: Int = 0;
+    loop {
+        if (it >= length) then {
+            break
+        }
+        sumVar = sumVar + arr[it];
+        it = it + 1
+    }
+    sumVar
+}
+
+// Should return 10
+foo main() -> Int = {
+    let x: [Int] = new [Int] (5);
+    x[0] = 0;
+    x[1] = 1;
+    x[2] = 2;
+    x[3] = 3;
+    x[4] = 4;
+    sum(x, 5)
+}

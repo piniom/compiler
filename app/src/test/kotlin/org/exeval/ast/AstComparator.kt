@@ -9,7 +9,7 @@ class AstComparator {
             if (node1::class != node2::class) return false
 
             // Compare the specific types of nodes
-            return when (node1) {
+            val res = when (node1) {
                 is Program -> compareProgram(node1, node2 as Program)
                 is Block -> compareBlock(node1, node2 as Block)
                 is VariableDeclarationBase -> compareVariableDeclarationBase(node1, node2 as VariableDeclarationBase)
@@ -23,8 +23,22 @@ class AstComparator {
                 is Conditional -> compareConditional(node1, node2 as Conditional)
                 is Loop -> compareLoop(node1, node2 as Loop)
                 is Break -> compareBreak(node1, node2 as Break)
-                else -> false
+                is PositionalArgument -> comparePositionalArgument(node1, node2 as PositionalArgument)
+                is NamedArgument -> compareNamedArgument(node1, node2 as NamedArgument)
+                else -> throw IllegalStateException("AstComparator does not know how to compare AstNode with this kind: ${node1::class}")
             }
+            return res
+        }
+
+        private fun compareNamedArgument(node1: NamedArgument, node2: NamedArgument): Boolean {
+            val isSameName = node1.name == node2.name
+            val isSameExpr = compareASTNodes(node1.expression, node2.expression)
+            return isSameName && isSameExpr
+        }
+
+        private fun comparePositionalArgument(node1: PositionalArgument, node2: PositionalArgument): Boolean {
+            val isSameExpr = compareASTNodes(node1.expression, node2.expression)
+            return isSameExpr
         }
 
         private fun compareProgram(node1: Program, node2: Program): Boolean {
@@ -40,7 +54,7 @@ class AstComparator {
         }
 
         private fun compareAssignment(node1: Assignment, node2: Assignment): Boolean {
-            return node1.variable == node2.variable && compareASTNodes(node1.value, node2.value)
+            return compareASTNodes(node1.variable, node2.variable) && compareASTNodes(node1.value, node2.value)
         }
 
         private fun compareLiterals(node1: Literal, node2: Literal): Boolean {

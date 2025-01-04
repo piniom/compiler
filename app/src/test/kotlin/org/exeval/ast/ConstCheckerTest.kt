@@ -9,13 +9,14 @@ import org.exeval.ast.ConstantDeclaration
 import org.exeval.ast.MutableVariableDeclaration
 import org.exeval.utilities.LocationRange
 import org.exeval.input.interfaces.Location
+import org.exeval.ast.VariableReference
 
 class ConstCheckerTest{
     @Test
     fun assignementToConst(){
         //given
         val constChecker = ConstChecker()
-        val ass1 = Assignment("a", IntLiteral(1)) 
+        val ass1 = Assignment(VariableReference("a"), IntLiteral(1)) 
         val dec1 = ConstantDeclaration("a", IntType, IntLiteral(2))
         val nameResolution = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf(Pair(ass1, dec1)))
         val loc1: Location = object : Location{ override var line = 1; override var idx = 1} 
@@ -35,7 +36,7 @@ class ConstCheckerTest{
     fun assignementToMut(){
         //given
         val constChecker = ConstChecker()
-        val ass1 = Assignment("a", IntLiteral(1)) 
+        val ass1 = Assignment(VariableReference("a"), IntLiteral(1)) 
         val dec1 = MutableVariableDeclaration("a", IntType)
         val nameResolution = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf(Pair(ass1, dec1)))
         val loc1: Location = object : Location{ override var line = 1; override var idx = 1} 

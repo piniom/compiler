@@ -1,0 +1,8 @@
+// Should return 17
+foo main() -> Int = {
+    let x: [Int] = new [Int] (1);
+    x[0] = 17;
+    let y: Int = x[0];
+    del x;
+    y
+}

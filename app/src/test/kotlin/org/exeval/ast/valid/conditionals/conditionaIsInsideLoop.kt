@@ -5,42 +5,49 @@ import org.exeval.ast.*
 val CONDITIONALS_CONDITIONALS_INSIDE_LOOP_AST = Program(
     functions = listOf(
         FunctionDeclaration(
-            name = "greaterThan",
-            parameters = listOf(
-                Parameter(name = "a", type = IntType),
-                Parameter(name = "b", type = IntType)
-            ),
-            returnType = BoolType,
-            body = Block(
-                expressions = listOf(
-                    Conditional(
-                        condition = BinaryOperation(
-                            left = VariableReference("a"),
-                            operator = BinaryOperator.GT,
-                            right = VariableReference("b")
-                        ),
-                        thenBranch = BoolLiteral(true),
-                        elseBranch = BoolLiteral(false)
-                    )
-                )
-            )
-        ),
-        FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
             returnType = IntType,
             body = Block(
                 expressions = listOf(
-                    Conditional(
-                        condition = FunctionCall(
-                            functionName = "greaterThan",
-                            arguments = listOf(
-                                PositionalArgument(IntLiteral(10)),
-                                PositionalArgument(IntLiteral(5))
+                    MutableVariableDeclaration(
+                        name = "x",
+                        type = IntType,
+                        initializer = IntLiteral(0)
+                    ),
+                    Loop(
+                        identifier = null,
+                        body = Block(
+                            expressions = listOf(
+                                Conditional(
+                                    condition = BinaryOperation(
+                                        left = VariableReference("x"),
+                                        operator = BinaryOperator.GTE,
+                                        right = IntLiteral(5)
+                                    ),
+                                    thenBranch = Block(
+                                        expressions = listOf(
+                                            Break(
+                                                identifier = null,
+                                                expression = VariableReference("x")
+                                            )
+                                        )
+                                    ),
+                                    elseBranch = Block(
+                                        expressions = listOf(
+                                            Assignment(
+                                                variable = VariableReference("x"),
+                                                value = BinaryOperation(
+                                                    left = VariableReference("x"),
+                                                    operator = BinaryOperator.PLUS,
+                                                    right = IntLiteral(1)
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
                             )
-                        ),
-                        thenBranch = IntLiteral(1),
-                        elseBranch = IntLiteral(0)
+                        )
                     )
                 )
             )
