@@ -1,0 +1,11 @@
+// Should return 6
+foo main() -> Int = {
+    let x: [[Int]] = new [[Int]] (2);
+    x[0] = new [Int] (2);
+    x[1] = new [Int] (3);
+    x[0][0] = 0;
+    x[0][1] = 1;
+    x[1][0] = 2;
+    x[1][2] = 4;
+    x[0][0] + x[0][1] + x[1][0] + x[1][2]
+}

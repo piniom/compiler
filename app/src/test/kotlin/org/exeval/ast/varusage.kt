@@ -155,29 +155,30 @@ class varusage {
     @Test
     fun complexTest(){
         val declaration = MutableVariableDeclaration("a", IntType)
+        val aVarReference = VariableReference("a")
         val ast = Block(
             listOf(
                 /*0*/declaration,
                 /*1*/
-                VariableReference("a"),
+                aVarReference,
                 /*2*/
-                Assignment("a", IntLiteral(2)),
+                Assignment(aVarReference, IntLiteral(2)),
                 /*3*/
-                Block(listOf(Assignment("a", VariableReference("a")))),
+                Block(listOf(Assignment(aVarReference, aVarReference))),
                 /*4*/
-                MutableVariableDeclaration("b", IntType, Assignment("a", VariableReference("a"))),
+                MutableVariableDeclaration("b", IntType, Assignment(aVarReference, aVarReference)),
                 /*5*/
-                BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, Assignment("a", VariableReference("a"))),
+                BinaryOperation(aVarReference, BinaryOperator.PLUS, Assignment(aVarReference, aVarReference)),
                 /*6*/
-                UnaryOperation(UnaryOperator.MINUS, Assignment("a", VariableReference("a"))),
+                UnaryOperation(UnaryOperator.MINUS, Assignment(aVarReference, aVarReference)),
                 /*7*/
-                Conditional(BoolLiteral(true), Assignment("a", VariableReference("a"))),
+                Conditional(BoolLiteral(true), Assignment(aVarReference, aVarReference)),
                 /*8*/
                 Loop(
                     "l", Block(
                         listOf(
-                            Assignment("a", VariableReference("a")),
-                            Break("l", Assignment("a", VariableReference("a")))
+                            Assignment(aVarReference, aVarReference),
+                            Break("l", Assignment(aVarReference, aVarReference))
                         )
                     )
                 ),
@@ -185,13 +186,13 @@ class varusage {
                 FunctionDeclaration(
                     "f", listOf(Parameter("b", IntType)), IntType, Block(
                         listOf(
-                            Assignment("a", VariableReference("b")),
-                            Assignment("a", VariableReference("a"))
+                            Assignment(aVarReference, VariableReference("b")),
+                            Assignment(aVarReference, aVarReference)
                         )
                     )
                 ),
                 /*10*/
-                FunctionCall("f", listOf(NamedArgument("b", Assignment("a", VariableReference("a")))))
+                FunctionCall("f", listOf(NamedArgument("b", Assignment(aVarReference, aVarReference))))
             )
         )
 

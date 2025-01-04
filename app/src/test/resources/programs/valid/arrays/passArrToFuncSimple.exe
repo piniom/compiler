@@ -1,0 +1,8 @@
+foo getFirst(arr: [Int]) -> Int = { arr[0] }
+
+// Should return 17
+foo main() -> Int = {
+    let x: [Int] = new [Int] (1);
+    x[0] = 17;
+    getFirst(arr)
+}

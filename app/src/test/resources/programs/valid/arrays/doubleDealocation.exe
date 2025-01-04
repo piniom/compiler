@@ -1,0 +1,9 @@
+// it should fail in runtime, not in compilation
+foo main() -> Int = {
+    let x: [Int] = new [Int] (2);
+    x[0] = 1;
+    x[1] = 2;
+    del x;
+    del x;
+    x[0]
+}

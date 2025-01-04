@@ -54,7 +54,7 @@ class AstComparator {
         }
 
         private fun compareAssignment(node1: Assignment, node2: Assignment): Boolean {
-            return node1.variable == node2.variable && compareASTNodes(node1.value, node2.value)
+            return compareASTNodes(node1.variable, node2.variable) && compareASTNodes(node1.value, node2.value)
         }
 
         private fun compareLiterals(node1: Literal, node2: Literal): Boolean {

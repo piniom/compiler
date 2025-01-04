@@ -107,7 +107,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun getAssignmentType(assignment: Assignment) {
-        getVarDecl(assignment, assignment.variable)?. let {
+        val variable = assignment.variable
+        val variableName = when (variable) {
+            is VariableReference -> variable.name
+            is ArrayAccess -> getNameOfArrayAccess(variable)
+            else -> ""
+        }
+        if (variableName == "") 
+            addUnknownNodeError(variable)
+
+        getVarDecl(assignment, variableName)?. let {
             assignmentToDecl[assignment] = it
         }
 
@@ -194,6 +203,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                 }
             }
         }
+    }
+
+    private fun getNameOfArrayAccess(arr: ArrayAccess): String {
+        val array = arr.array
+        if (array is VariableReference)
+            return array.name
+        if (array is ArrayAccess)
+            return getNameOfArrayAccess(array)
+        addUnknownNodeError(array)
+        return ""
     }
 
     private fun getFnDecl(functionCall: FunctionCall): AnyFunctionDeclaration? {

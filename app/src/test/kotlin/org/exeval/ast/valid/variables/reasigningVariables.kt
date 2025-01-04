@@ -41,15 +41,15 @@ val VARIABLES_REASIGNING_VARIABLES_AST = Program(
                         initializer = NopeLiteral()
                     ),
                     Assignment(
-                        variable = "x",
+                        variable = VariableReference("x"),
                         value = VariableReference(name = "kInt")
                     ),
                     Assignment(
-                        variable = "falsehood",
+                        variable = VariableReference("falsehood"),
                         value = VariableReference(name = "kBool")
                     ),
                     Assignment(
-                        variable = "nope",
+                        variable = VariableReference("nope"),
                         value = VariableReference(name = "kNope")
                     )
                 )

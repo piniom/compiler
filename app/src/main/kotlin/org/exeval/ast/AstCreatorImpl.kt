@@ -134,7 +134,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     expression = createAux(child, input) as Expr
                 }
             }
-            astNode = Assignment(name!!, expression!!)
+            astNode = Assignment(VariableReference(name!!), expression!!)
         } else if (symbol === FunctionCallSymbol) {
             var name: String? = null
             var arguments: List<Argument> = listOf()
@@ -307,7 +307,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             when {
                 childSymbol === ExpressionSymbol && isVariableAssignment(child) -> {
                     val variableAssignment = createAux(child, input) as Assignment
-                    arguments.add(NamedArgument(variableAssignment.variable, variableAssignment.value))
+                    arguments.add(NamedArgument(getNameOfVariableToAssign(variableAssignment.variable), variableAssignment.value))
                 }
                 childSymbol === ExpressionSymbol -> {
                     arguments.add(PositionalArgument(createAux(child, input) as Expr))
@@ -319,6 +319,14 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
 
         return arguments
+    }
+
+    private fun getNameOfVariableToAssign(variable: Expr): String {
+        return when (variable) {
+            is ArrayAccess -> getNameOfVariableToAssign(variable.array)
+            is VariableReference -> variable.name
+            else -> throw IllegalStateException("Trying to assign to unsupported node type: ${variable::class}")
+        }
     }
 
 
