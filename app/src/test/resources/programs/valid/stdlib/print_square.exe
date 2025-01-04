@@ -1,0 +1,8 @@
+// Program to print the square of given number
+foo main() -> Int = {
+    let mut a: Int;
+    a = scan_int();
+    a = a*a;
+    print_int(a);
+    0
+}
