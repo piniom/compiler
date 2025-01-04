@@ -10,35 +10,47 @@ val FOONCTIONS_RECURSSIVE_FUNCTION_AST = Program(
                 Parameter(name = "n", type = IntType)
             ),
             returnType = IntType,
-            body = Conditional(
-                condition = BinaryOperation(
-                    left = VariableReference("n"),
-                    operator = BinaryOperator.LT,
-                    right = IntLiteral(3)
-                ),
-                thenBranch = IntLiteral(1),
-                elseBranch = BinaryOperation(
-                    left = FunctionCall(
-                        functionName = "fib",
-                        arguments = listOf(
-                            PositionalArgument(
-                                BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(1)
-                                )
+            body = Block (
+                expressions = listOf(
+                    Conditional(
+                        condition = BinaryOperation(
+                            left = VariableReference("n"),
+                            operator = BinaryOperator.LT,
+                            right = IntLiteral(3)
+                        ),
+                        thenBranch = Block(
+                            expressions = listOf(
+                                IntLiteral(1)
                             )
-                        )
-                    ),
-                    operator = BinaryOperator.PLUS,
-                    right = FunctionCall(
-                        functionName = "fib",
-                        arguments = listOf(
-                            PositionalArgument(
+                        ),
+                        elseBranch =  Block (
+                            expressions = listOf(
                                 BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(2)
+                                    left = FunctionCall(
+                                        functionName = "fib",
+                                        arguments = listOf(
+                                            PositionalArgument(
+                                                BinaryOperation(
+                                                    left = VariableReference("n"),
+                                                    operator = BinaryOperator.MINUS,
+                                                    right = IntLiteral(1)
+                                                )
+                                            )
+                                        )
+                                    ),
+                                    operator = BinaryOperator.PLUS,
+                                    right = FunctionCall(
+                                        functionName = "fib",
+                                        arguments = listOf(
+                                            PositionalArgument(
+                                                BinaryOperation(
+                                                    left = VariableReference("n"),
+                                                    operator = BinaryOperator.MINUS,
+                                                    right = IntLiteral(2)
+                                                )
+                                            )
+                                        )
+                                    )
                                 )
                             )
                         )

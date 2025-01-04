@@ -16,12 +16,13 @@ val CONDITIONALS_NESTED_CONDITIONALS_AST = Program(
                             expressions = listOf(
                                 Conditional(
                                     condition = BoolLiteral(false),
-                                    thenBranch = IntLiteral(1),
-                                    elseBranch = IntLiteral(2)
+                                    thenBranch = Block(listOf(IntLiteral(1))),
+                                    elseBranch = Block(listOf(IntLiteral(2)))
                                 )
                             )
                         ),
-                        elseBranch = IntLiteral(3)
+                        elseBranch = Block(
+                            listOf(IntLiteral(3)))
                     )
                 )
             )

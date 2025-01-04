@@ -44,7 +44,7 @@ class VariableReference(val name: String) : AssignableExpr()
 class BinaryOperation(val left: Expr, val operator: BinaryOperator, val right: Expr) : Expr()
 enum class BinaryOperator {
     PLUS, MINUS, MULTIPLY, DIVIDE,
-    AND, OR, EQ, GT, GTE, LT, LTE
+    AND, OR, EQ, GT, GTE, LT, LTE, NEQ
 }
 
 class UnaryOperation(val operator: UnaryOperator, val operand: Expr) : Expr()
