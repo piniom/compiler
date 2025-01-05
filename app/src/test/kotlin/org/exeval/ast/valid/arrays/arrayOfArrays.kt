@@ -97,12 +97,28 @@ val ARRAY_OF_ARRAY_AST = Program(
                         IntLiteral(4),
                     ),
                     BinaryOperation(
-                        left = BinaryOperation(
-                            left = BinaryOperation(
+                        left = ArrayAccess(
+                            array = ArrayAccess(
+                                array = VariableReference("x"),
+                                index = IntLiteral(0),
+                            ),
+                            index = IntLiteral(0),
+                        ),
+                        operator = BinaryOperator.PLUS,
+                        right =  BinaryOperation(
+                            left = ArrayAccess(
+                                array = ArrayAccess(
+                                    array = VariableReference("x"),
+                                    index = IntLiteral(0),
+                                ),
+                                index = IntLiteral(1),
+                            ),
+                            operator = BinaryOperator.PLUS,
+                            right =  BinaryOperation(
                                 left = ArrayAccess(
                                     array = ArrayAccess(
                                         array = VariableReference("x"),
-                                        index = IntLiteral(0),
+                                        index = IntLiteral(1),
                                     ),
                                     index = IntLiteral(0),
                                 ),
@@ -110,27 +126,11 @@ val ARRAY_OF_ARRAY_AST = Program(
                                 right = ArrayAccess(
                                     array = ArrayAccess(
                                         array = VariableReference("x"),
-                                        index = IntLiteral(0),
+                                        index = IntLiteral(1),
                                     ),
-                                    index = IntLiteral(1),
+                                    index = IntLiteral(2),
                                 ),
-                            ),
-                            operator = BinaryOperator.PLUS,
-                            right = ArrayAccess(
-                                array = ArrayAccess(
-                                    array = VariableReference("x"),
-                                    index = IntLiteral(1),
-                                ),
-                                index = IntLiteral(0),
-                            ),
-                        ),
-                        operator = BinaryOperator.PLUS,
-                        right = ArrayAccess(
-                            array = ArrayAccess(
-                                array = VariableReference("x"),
-                                index = IntLiteral(1),
-                            ),
-                            index = IntLiteral(2),
+                            )
                         )
                     )
                 )

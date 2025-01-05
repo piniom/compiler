@@ -123,18 +123,21 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
             astNode = ConstantDeclaration(name!!, type!!, expression!!)
         } else if (symbol === VariableAssignmentSymbol) {
-            var name: String? = null
-            var expression: Expr? = null
+            var variableExpr: AssignableExpr? = null
+            var valueExpr: Expr? = null
+
             for (child in children) {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child, input)
+                    variableExpr = VariableReference(getNodeText(child, input))
                 } else if (childSymbol === ExpressionSymbol) {
-                    expression = createAux(child, input) as Expr
+                    valueExpr = createAux(child, input) as Expr
+                } else if (childSymbol === ArrayAccessSymbol) {
+                    variableExpr = createAux(child, input) as AssignableExpr
                 }
             }
-            astNode = Assignment(VariableReference(name!!), expression!!)
+            astNode = Assignment(variableExpr!!, valueExpr!!)
         } else if (symbol === FunctionCallSymbol) {
             var name: String? = null
             var arguments: List<Argument> = listOf()
@@ -230,13 +233,14 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         } else if (symbol === AllocationSymbol) {
             val typeIndex = 1
             val argumentsIndex = 3
+            val productionsCount = 5
 
-            if (children.size != 4) {
+            if (children.size != productionsCount) {
                 throw IllegalStateException("AllocationSymmbol $locationRange")
             }
 
             val type = getType(children[typeIndex], input) ?: throw IllegalStateException("AllocationSymmbol $locationRange")
-            val arguments = unwrapList<Argument>(children[argumentsIndex], ExpressionSymbol, input, Argument::class)
+            val arguments = parseFunctionCallArguments(children[argumentsIndex], input)
 
             astNode = MemoryNew(type, arguments)
         } else if (symbol === DeallocationSymbol) {
@@ -273,8 +277,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
     private fun processArrayAcess(children: List<ParseTree<GrammarSymbol>>, input: Input): Expr? {
         fun processNestedArray(arrayExpr: Expr, indexSymbol: ParseTree<GrammarSymbol>, input: Input) : Expr? {
-            val indexExprIndex = 1
             val nextIndexExpr = 3
+            val indexExprIndex = 1
             val sizeForNestedArrayAccess = 4
             val sizeForSingleArrayAccess = 3
 
@@ -283,7 +287,10 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 is Branch -> indexSymbol.children
             }
 
-            if (sizeForSingleArrayAccess != subChildren.size && sizeForNestedArrayAccess != subChildren.size) {
+            val isNestedArrayAccess = subChildren.size == sizeForNestedArrayAccess
+            val isSingleArrayAccess = subChildren.size == sizeForSingleArrayAccess
+
+            if (!isSingleArrayAccess && !isNestedArrayAccess) {
                 return null
             }
 

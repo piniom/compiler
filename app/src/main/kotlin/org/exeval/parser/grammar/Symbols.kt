@@ -71,8 +71,7 @@ object VariableAssignmentSymbol: GrammarSymbol {
 			ExpressionSymbol,
 		),
 		listOf(
-			Token.IdentifierNontype,
-			ArrayIndexSymbol,
+			ArrayAccessSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -244,10 +243,10 @@ object ArrayIndexSymbol: GrammarSymbol {
 			Token.PunctuationRightSquareBracket,
 		),
 		listOf(
-			ArrayIndexSymbol,
 			Token.PunctuationLeftSquareBracket,
 			ExpressionSymbol,
 			Token.PunctuationRightSquareBracket,
+			ArrayIndexSymbol,
 		),
 	)
 }
