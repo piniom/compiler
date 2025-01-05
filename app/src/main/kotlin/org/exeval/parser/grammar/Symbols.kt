@@ -21,7 +21,7 @@ object TypeSymbol: GrammarSymbol {
 		listOf(
 			Token.PunctuationLeftSquareBracket,
 			TypeSymbol,
-			Token.PunctuationRightRoundBracket,
+			Token.PunctuationRightSquareBracket,
 		),
 		listOf(
 			Token.IdentifierType
@@ -72,9 +72,7 @@ object VariableAssignmentSymbol: GrammarSymbol {
 		),
 		listOf(
 			Token.IdentifierNontype,
-			Token.PunctuationLeftSquareBracket,
-			ExpressionSymbol,
-			Token.PunctuationRightSquareBracket,
+			ArrayIndexSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
@@ -217,7 +215,7 @@ object FunctionCallArgumentsSymbol: GrammarSymbol {
 	)
 }
 
-object AllocationSymmbol: GrammarSymbol {
+object AllocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.KeywordNew,
@@ -246,15 +244,15 @@ object ArrayIndexSymbol: GrammarSymbol {
 			Token.PunctuationRightSquareBracket,
 		),
 		listOf(
+			ArrayIndexSymbol,
 			Token.PunctuationLeftSquareBracket,
 			ExpressionSymbol,
 			Token.PunctuationRightSquareBracket,
-			ArrayIndexSymbol
 		),
 	)
 }
 
-object ArrayAcessSymbol: GrammarSymbol {
+object ArrayAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			Token.IdentifierNontype,
@@ -372,7 +370,7 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			ExpressionSymbol,
 		),
 		listOf(
-			ArrayAcessSymbol,
+			ArrayAccessSymbol,
 			Operator2ArgSymbol,
 			ExpressionSymbol,
 		),
@@ -408,9 +406,9 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(IfSymbol),
 		listOf(LoopSymbol),
 		listOf(BreakSymbol),
-		listOf(AllocationSymmbol),
+		listOf(AllocationSymbol),
 		listOf(DeallocationSymbol),
-		listOf(ArrayAcessSymbol),
+		listOf(ArrayAccessSymbol),
 	)
 }
 
