@@ -227,7 +227,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             astNode = expr
-        } else if (symbol === AllocationSymmbol) {
+        } else if (symbol === AllocationSymbol) {
             val typeIndex = 1
             val argumentsIndex = 3
 
@@ -247,7 +247,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
-        } else if (symbol === ArrayAcessSymbol) {
+        } else if (symbol === ArrayAccessSymbol) {
             astNode = processArrayAcess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
         }
         else {
