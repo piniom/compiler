@@ -252,7 +252,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
             astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
         } else if (symbol === ArrayAccessSymbol) {
-            astNode = processArrayAcess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
+            astNode = processArrayAccess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
         }
         else {
             throw IllegalStateException("$symbol $locationRange")
@@ -275,7 +275,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         return res
     }
 
-    private fun processArrayAcess(children: List<ParseTree<GrammarSymbol>>, input: Input): Expr? {
+    private fun processArrayAccess(children: List<ParseTree<GrammarSymbol>>, input: Input): Expr? {
         fun processNestedArray(arrayExpr: Expr, indexSymbol: ParseTree<GrammarSymbol>, input: Input) : Expr? {
             val nextIndexExpr = 3
             val indexExprIndex = 1
@@ -295,12 +295,12 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             val subIndexExpr = createAux(subChildren[indexExprIndex], input) as Expr
-            val acessExpr = ArrayAccess(arrayExpr, subIndexExpr)
+            val accessExpr = ArrayAccess(arrayExpr, subIndexExpr)
 
             if (sizeForSingleArrayAccess == subChildren.size) {
-                return acessExpr
+                return accessExpr
             } else if (sizeForNestedArrayAccess == subChildren.size) {
-                return processNestedArray(acessExpr, subChildren[nextIndexExpr], input)
+                return processNestedArray(accessExpr, subChildren[nextIndexExpr], input)
             }
 
             return null

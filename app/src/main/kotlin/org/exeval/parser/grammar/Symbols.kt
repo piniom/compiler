@@ -264,7 +264,7 @@ object ArrayAccessSymbol: GrammarSymbol {
 		listOf(
 			Token.PunctuationLeftRoundBracket,
 			ExpressionSymbol,
-			Token.PunctuationRightSquareBracket,
+			Token.PunctuationRightRoundBracket,
 			ArrayIndexSymbol
 		)
 	)
