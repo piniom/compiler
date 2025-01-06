@@ -252,12 +252,13 @@ class CFGTest{
             a=2
         }
         */
+        var aVarReference = VariableReference("a")
         var ast = Block(listOf(
             MutableVariableDeclaration("a", IntType),
             Conditional(BoolLiteral(true),
-                /*if*/Assignment("a", IntLiteral(1)),
-                /*else*/Assignment("a", IntLiteral(2))),
-            VariableReference("a")
+                /*if*/Assignment(aVarReference, IntLiteral(1)),
+                /*else*/Assignment(aVarReference, IntLiteral(2))),
+                aVarReference
         ))
         assert(branch(getCFG(ast)))
                /*
@@ -268,22 +269,25 @@ class CFGTest{
             2
         }
         */
+        aVarReference = VariableReference("a")
         ast = Block(listOf(
             MutableVariableDeclaration("a", IntType),
-            Assignment("a",
+            Assignment(aVarReference,
                 Conditional(BoolLiteral(true),
                 /*if*/IntLiteral(1),
                 /*else*/IntLiteral(2))),
-            VariableReference("a")
+            aVarReference
         ))
         assert(branch(getCFG(ast)))
     }
     @Test
     fun loopTest(){
+        
+        var aVarReference = VariableReference("a")
         var ast = Block(listOf(
             MutableVariableDeclaration("a", IntType,IntLiteral(0)),
             Loop(null,Block(listOf(
-                Assignment("a", BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, IntLiteral(1)))
+                Assignment(aVarReference, BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(1)))
             )))
         ))
         assert(loop(getCFG(ast)))
@@ -292,11 +296,11 @@ class CFGTest{
             a+1
         }
         */
-
+        aVarReference = VariableReference("a")
         ast  = Block(listOf(
             MutableVariableDeclaration("a", IntType,IntLiteral(0)),
-            Assignment("a", Loop(null,Block(listOf(
-                BinaryOperation(VariableReference("a"), BinaryOperator.PLUS, IntLiteral(1))
+            Assignment(aVarReference, Loop(null,Block(listOf(
+                BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(1))
             ))))
         ))
         assert(loop(getCFG(ast)))
@@ -311,7 +315,7 @@ class CFGTest{
         //a=2*(1+1)
         ast = Block(listOf(
             MutableVariableDeclaration("a",IntType),
-            Assignment("a", BinaryOperation(
+            Assignment(VariableReference("a"), BinaryOperation(
                 IntLiteral(2),
                 BinaryOperator.MULTIPLY,
                 BinaryOperation(
@@ -333,11 +337,12 @@ class CFGTest{
     }
     @Test
     fun placeTest(){
+        val aVarReference = VariableReference("a")
         val ast = Block(listOf(
             MutableVariableDeclaration("a",IntType,IntLiteral(0)),
             Conditional(BoolLiteral(true),
-                Assignment("a", IntLiteral(1)),
-                Assignment("a", IntLiteral(2))
+                Assignment(aVarReference, IntLiteral(1)),
+                Assignment(aVarReference, IntLiteral(2))
         )))
         val value = Constant(1)
         assert(placement(getCFG(ast), value))

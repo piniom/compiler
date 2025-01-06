@@ -3,6 +3,7 @@ package org.exeval.ast
 import io.mockk.every
 import io.mockk.mockk
 import org.exeval.input.SimpleLocation
+import org.exeval.input.interfaces.Location
 import org.exeval.utilities.LocationRange
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -34,6 +35,200 @@ class TypeCheckerTest {
         assertEquals(IntType, result.result[intLiteral], "Expected IntLiteral type to be IntType")
         assertEquals(IntType, result.result[functionDeclaration], "Expected return type of function 'g' to be IntType")
         assertEquals(0, result.diagnostics.size, "Expected no diagnostics for a correctly typed function")
+    }
+
+    @Test
+    fun `should infer type for expressions using pointers`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   let pointer: [Int] = new [Int] (5);
+        //   pointer[0];
+        //   del pointer
+        // }
+        // ```
+        val type = ArrayType(IntType)
+        val memoryNew = MemoryNew(type, listOf(PositionalArgument(IntLiteral(5))))
+        val declaration = ConstantDeclaration("pointer", type,  memoryNew)
+        val reference1 = VariableReference("pointer")
+        val arrayAccess = ArrayAccess(reference1, IntLiteral(0))
+        val reference2 = VariableReference("pointer")
+        val memoryDel = MemoryDel(reference2)
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(declaration, arrayAccess, memoryDel)
+            )
+        )
+
+        val locations = mockk<Map<ASTNode, LocationRange>>()
+        every { locations[any()] } returns null
+        every { locations[memoryNew] } returns LocationRange(mockk(), mockk())
+        val astInfo = AstInfo(function, locations)
+
+
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        assertEquals(type, result.result[memoryNew], "Expected type of memoryNew to be it's inner type")
+        assertEquals(NopeType, result.result[declaration], "Expected type of declaration to be Nope")
+        assertEquals(type, result.result[reference1], "Expected type of reference to be type of it's declaration")
+        assertEquals(IntType, result.result[arrayAccess], "Expected type of ArrayAccess to be type the inner type of the Array")
+        assertEquals(type, result.result[reference2], "Expected type of reference to be type of it's declaration")
+        assertEquals(NopeType, result.result[memoryDel], "Expected type of MemoryDel to be Nope")
+        assertTrue(result.diagnostics.isEmpty(), "Expected empty diagnostics")
+    }
+
+    @Test
+    fun `should only allow for pointers to arrays`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   new Int (5);
+        // }
+        // ```
+        val memoryNew = MemoryNew(IntType, listOf(PositionalArgument(IntLiteral(5))))
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(memoryNew)
+            )
+        )
+
+        val astInfo = AstInfo(function, mapOf(memoryNew to LocationRange(SimpleLocation(0, 0), SimpleLocation(0,1))))
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        // Assertions
+        assertTrue(result.diagnostics.size == 1, "Expected at one diagnostics for pointer to non array type creation")
+        assertEquals(
+            "Only Arrays are allowed with the new keyword",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for wrong new keyword type"
+        )
+    }
+
+    @Test
+    fun `should only allow IntType as argument to pointer constructor`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   new [Int] (());
+        // }
+        // ```
+        val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(NopeLiteral())))
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(memoryNew)
+            )
+        )
+
+        val astInfo = AstInfo(function, mapOf(memoryNew to LocationRange(SimpleLocation(0, 0), SimpleLocation(0,1))))
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        // Assertions
+        assertTrue(result.diagnostics.size == 1, "Expected at one diagnostics for pointer to non array type creation")
+        assertEquals(
+            "Argument to new must be Int",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for wrong new keyword type"
+        )
+    }
+
+    @Test
+    fun `should only allow ArrayType as left side of ArrayAccess`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   1[2]
+        // }
+        // ```
+        val arrayAccess = ArrayAccess(IntLiteral(1), IntLiteral(2))
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(arrayAccess)
+            )
+        )
+
+        val astInfo = AstInfo(function, mapOf(arrayAccess to LocationRange(SimpleLocation(0, 0), SimpleLocation(0,1))))
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        // Assertions
+        assertTrue(result.diagnostics.size == 1, "Expected at one diagnostics for pointer to non array type creation")
+        assertEquals(
+            "Only Arrays are allowed on the left side of the array access operator",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for wrong new keyword type"
+        )
+    }
+
+    @Test
+    fun `should only allow ArrayType with the delete keyword`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   del 5
+        // }
+        // ```
+        val memDel = MemoryDel(IntLiteral(5))
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(memDel)
+            )
+        )
+
+        val astInfo = AstInfo(function, mapOf(memDel to LocationRange(SimpleLocation(0, 0), SimpleLocation(0,1))))
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        // Assertions
+        assertTrue(result.diagnostics.size == 1, "Expected at one diagnostics for pointer to non array type creation")
+        assertEquals(
+            "Only Arrays are allowed with the delete keyword",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for wrong new keyword type"
+        )
+    }
+
+    @Test
+    fun `should only allow IntType as argument to ArrayAccess`() {
+        // Code:
+        // ```
+        // foo main() -> Nope = {
+        //   (new [Int] (1))[()]
+        // }
+        // ```
+        val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(1))))
+        val arrayAccess = ArrayAccess(memoryNew, NopeLiteral())
+        val function = FunctionDeclaration(
+            "main", emptyList(), NopeType,
+            Block(
+                listOf(arrayAccess)
+            )
+        )
+
+        val astInfo = AstInfo(function, mapOf(arrayAccess to LocationRange(SimpleLocation(0, 0), SimpleLocation(0,1))))
+        val nameResolution = NameResolutionGenerator(astInfo).parse().result
+
+        val result = TypeChecker(astInfo, nameResolution).parse()
+
+        // Assertions
+        assertTrue(result.diagnostics.size == 1, "Expected at one diagnostics for pointer to non array type creation")
+        assertEquals(
+            "Only Int is allowed as the index of the array access operator",
+            result.diagnostics[0].message,
+            "Expected diagnostic message for wrong new keyword type"
+        )
     }
 
     @Test
@@ -270,7 +465,7 @@ class TypeCheckerTest {
         // AST Construction
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
-        val aAssignment = Assignment(variable = "a", value = IntLiteral(42))
+        val aAssignment = Assignment(variable = aReference, value = IntLiteral(42))
         val block = Block(listOf(aDeclaration, aAssignment))
 
         // Set up AstInfo and NameResolution
@@ -317,7 +512,7 @@ class TypeCheckerTest {
         val bReference = VariableReference("b")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType)
         val bDeclaration = ConstantDeclaration(name = "b", type = BoolType, initializer = BoolLiteral(true))
-        val assignment = Assignment(variable = "a", value = bReference)
+        val assignment = Assignment(variable = aReference, value = bReference)
         val block = Block(listOf(aDeclaration, bDeclaration, assignment))
 
         // Set up AstInfo and NameResolution
@@ -361,11 +556,11 @@ class TypeCheckerTest {
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
         val increment = BinaryOperation(aReference, BinaryOperator.PLUS, IntLiteral(1))
-        val assignmentInsideLoop = Assignment(variable = "a", value = increment)
+        val assignmentInsideLoop = Assignment(variable = aReference, value = increment)
         val breakStatement = Break(null, aReference)
         val loopBody = Block(listOf(assignmentInsideLoop, breakStatement))
         val loop = Loop(null, loopBody)
-        val outerAssignment = Assignment(variable = "a", value = loop)
+        val outerAssignment = Assignment(variable = aReference, value = loop)
         val block = Block(listOf(aDeclaration, outerAssignment))
 
         // Set up AstInfo and NameResolution
@@ -517,7 +712,7 @@ class TypeCheckerTest {
         // AST Construction
         val aReference = VariableReference("a")
         val aDeclaration = MutableVariableDeclaration(name = "a", type = IntType, initializer = IntLiteral(0))
-        val aAssignment = Assignment(variable = "a", value = IntLiteral(1))
+        val aAssignment = Assignment(variable = aReference, value = IntLiteral(1))
         val ifStatement = Conditional(
             condition = BoolLiteral(true),
             thenBranch = Block(listOf(aAssignment)),

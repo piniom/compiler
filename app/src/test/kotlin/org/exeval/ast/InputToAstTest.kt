@@ -16,12 +16,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@Ignore
 class InputToAstTest {
 
-    private val astCreator = AstCreatorImpl()
-    private val lexer = buildLexer()
-    private val parser = buildParser()
+    private companion object {
+        private val astCreator = AstCreatorImpl()
+        private val lexer = buildLexer()
+        private val parser = buildParser()
+
+        @JvmStatic
+        private fun filenameParameters(): List<String> = FilesToAst.MAP.keys.toList()
+    }
 
     @ParameterizedTest
     @MethodSource("filenameParameters")
@@ -40,6 +44,7 @@ class InputToAstTest {
         )
     }
 
+    @Ignore("Should unignore after fixing StringInput")
     @Test
     fun `Test from StringInput main = 4 to AST`() {
         val codeStr = """foo main() -> Int = 4"""
@@ -48,7 +53,7 @@ class InputToAstTest {
 
         assertNotNull(actualAst)
         assertTrue(actualAst.root is Program)
-        val programNode = actualAst.root
+        val programNode = actualAst.root as Program
         assertEquals(1, programNode.functions.size)
 
         val functionNode = programNode.functions.first()
@@ -57,10 +62,8 @@ class InputToAstTest {
         assertTrue(functionNode.returnType is IntType)
 
         assertTrue(functionNode is FunctionDeclaration)
-        if (functionNode is FunctionDeclaration) {
-            assertTrue(functionNode.body is IntLiteral)
-            assertEquals(4, (functionNode.body).value)
-        }
+        assertTrue(functionNode.body is IntLiteral)
+        assertEquals(4, (functionNode.body as IntLiteral).value)
     }
 
     private fun getActualAst(input: Input): AstInfo {
@@ -69,10 +72,5 @@ class InputToAstTest {
         val parseTree = parser.run(leaves)
         val actualAst = astCreator.create(parseTree, input)
         return actualAst
-    }
-
-    companion object {
-        @JvmStatic
-        private fun filenameParameters(): List<String> = FilesToAst.MAP.keys.toList()
     }
 }

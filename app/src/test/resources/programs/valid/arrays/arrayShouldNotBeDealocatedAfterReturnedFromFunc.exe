@@ -1,0 +1,11 @@
+foo getSimpleArr() -> [Int] = { 
+    let x: [Int] = new [Int] (1); 
+    x[0] = 17;
+    x
+}
+
+// Should return 17
+foo main() -> Int = {
+    let x: [Int] = getSimpleArr();
+    x[0]
+}

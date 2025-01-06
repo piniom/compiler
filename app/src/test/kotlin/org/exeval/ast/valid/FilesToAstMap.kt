@@ -25,6 +25,10 @@ import org.exeval.ast.valid.separator.SEPARATOR_INSTRUCTION_BLOCK_AST
 import org.exeval.ast.valid.separator.SEPARATOR_VALUE_OF_FUNCTIONS_AST
 import org.exeval.ast.valid.variables.VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST
 import org.exeval.ast.valid.variables.VARIABLES_REASIGNING_VARIABLES_AST
+import org.exeval.ast.valid.arrays.SIMPLE_ARRAY_DECLARATION_AST
+import org.exeval.ast.valid.arrays.SIMPLE_ARRAY_DEALOCATION_AST
+import org.exeval.ast.valid.arrays.PASS_ARRAY_TO_FUNCTION_AST
+import org.exeval.ast.valid.arrays.ARRAY_OF_ARRAY_AST
 
 class FilesToAst {
     companion object {
@@ -53,6 +57,10 @@ class FilesToAst {
             "src/test/resources/programs/valid/separator/valueOfFunctions.exe" to SEPARATOR_VALUE_OF_FUNCTIONS_AST,
             "src/test/resources/programs/valid/variables/basicOperationsOverVariables.exe" to VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST,
             "src/test/resources/programs/valid/variables/reassigningVariables.exe" to VARIABLES_REASIGNING_VARIABLES_AST,
+            "src/test/resources/programs/valid/arrays/simpleDeclaration.exe" to SIMPLE_ARRAY_DECLARATION_AST,
+            "src/test/resources/programs/valid/arrays/simpleDealocation.exe" to SIMPLE_ARRAY_DEALOCATION_AST,
+            "src/test/resources/programs/valid/arrays/passArrToFuncSimple.exe" to PASS_ARRAY_TO_FUNCTION_AST,
+            "src/test/resources/programs/valid/arrays/simpleArrOfArr.exe" to  ARRAY_OF_ARRAY_AST
         )
     }
 }

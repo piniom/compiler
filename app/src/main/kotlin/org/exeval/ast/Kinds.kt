@@ -6,6 +6,8 @@ interface ASTNode
 
 sealed class Expr : ASTNode
 
+sealed class AssignableExpr : Expr()
+
 class Block(val expressions: List<Expr>) : Expr()
 
 sealed interface AnyVariable : ASTNode
@@ -28,7 +30,7 @@ class MutableVariableDeclaration(
     override val initializer: Expr? = null
 ) : VariableDeclarationBase()
 
-class Assignment(val variable: String, val value: Expr) : Expr()
+class Assignment(val variable: AssignableExpr, val value: Expr) : Expr()
 
 sealed class Literal : Expr()
 class IntLiteral(val value: Long) : Literal()
@@ -37,12 +39,12 @@ class BoolLiteral(val value: Boolean) : Literal()
 class NopeLiteral : Literal()
 
 
-class VariableReference(val name: String) : Expr()
+class VariableReference(val name: String) : AssignableExpr()
 
 class BinaryOperation(val left: Expr, val operator: BinaryOperator, val right: Expr) : Expr()
 enum class BinaryOperator {
     PLUS, MINUS, MULTIPLY, DIVIDE,
-    AND, OR, EQ, GT, GTE, LT, LTE
+    AND, OR, EQ, GT, GTE, LT, LTE, NEQ
 }
 
 class UnaryOperation(val operator: UnaryOperator, val operand: Expr) : Expr()
@@ -77,9 +79,9 @@ class FunctionCall(
     val arguments: List<Argument>
 ) : Expr()
 
-sealed class Argument : ASTNode
-class PositionalArgument(val expression: Expr) : Argument()
-class NamedArgument(val name: String, val expression: Expr) : Argument()
+sealed class Argument(val expression: Expr) : ASTNode
+class PositionalArgument(expression: Expr) : Argument(expression)
+class NamedArgument(val name: String, expression: Expr) : Argument(expression)
 
 class Conditional(
     val condition: Expr,
@@ -109,4 +111,4 @@ class MemoryDel(
 class ArrayAccess(
     val array: Expr,
     val index: Expr
-) : Expr()
+) : AssignableExpr()

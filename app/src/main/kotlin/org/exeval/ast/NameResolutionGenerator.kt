@@ -64,6 +64,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
             is Literal -> {}
 
+            is MemoryNew -> processMemoryNew(astNode)
+            is MemoryDel -> processMemoryDel(astNode)
+            is ArrayAccess -> processArrayAccess(astNode)
+
             else -> addUnknownNodeError(astNode)
         }
     }
@@ -103,7 +107,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun getAssignmentType(assignment: Assignment) {
-        getVarDecl(assignment, assignment.variable)?. let {
+        val variable = assignment.variable
+        val variableName = when (variable) {
+            is VariableReference -> variable.name
+            is ArrayAccess -> getNameOfArrayAccess(variable)
+            else -> ""
+        }
+        if (variableName == "") 
+            addUnknownNodeError(variable)
+
+        getVarDecl(assignment, variableName)?. let {
             assignmentToDecl[assignment] = it
         }
 
@@ -190,6 +203,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                 }
             }
         }
+    }
+
+    private fun getNameOfArrayAccess(arr: ArrayAccess): String {
+        val array = arr.array
+        if (array is VariableReference)
+            return array.name
+        if (array is ArrayAccess)
+            return getNameOfArrayAccess(array)
+        addUnknownNodeError(array)
+        return ""
     }
 
     private fun getFnDecl(functionCall: FunctionCall): AnyFunctionDeclaration? {
@@ -302,6 +325,19 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         processAsBlock { processNode( loopNode.body ) }
         setClosestLoop(prevLoop)
         loopNode.identifier?.let { getLoopData().loopMap.remove(it) }
+    }
+
+    private fun processMemoryNew(memoryNew: MemoryNew) {
+        processAsBlock { memoryNew.constructorArguments.forEach { processNode(it) } }
+    }
+
+    private fun processMemoryDel(memoryDel: MemoryDel) {
+        processAsBlock { processNode(memoryDel.pointer) }
+    }
+
+    private fun processArrayAccess(arrayAccess: ArrayAccess) {
+        processAsBlock { processNode(arrayAccess.array) }
+        processAsBlock { processNode(arrayAccess.index) }
     }
 
     private fun addDecl(name: String, node: ASTNode) {

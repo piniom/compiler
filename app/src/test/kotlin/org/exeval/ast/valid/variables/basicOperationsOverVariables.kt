@@ -21,7 +21,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         initializer = IntLiteral(value = 5)
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.PLUS,
@@ -29,7 +29,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.PLUS,
@@ -37,7 +37,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.PLUS,
@@ -45,7 +45,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.MINUS,
@@ -53,7 +53,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.MINUS,
@@ -61,7 +61,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.MULTIPLY,
@@ -69,7 +69,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "a",
+                        variable = VariableReference("a"),
                         value = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.MULTIPLY,
@@ -86,7 +86,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                         )
                     ),
                     Assignment(
-                        variable = "flag",
+                        variable = VariableReference("flag"),
                         value = UnaryOperation(
                             operator = UnaryOperator.NOT,
                             operand = VariableReference(name = "flag")

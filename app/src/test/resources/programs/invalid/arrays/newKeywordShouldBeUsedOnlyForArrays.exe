@@ -1,0 +1,7 @@
+// Int cannot be used as an array
+foo main() -> Int = {
+    let mut x: Int = new [Int] (2);
+    x[0] = 1;
+    x[1] = 2;
+    x[0] + x[1]
+}

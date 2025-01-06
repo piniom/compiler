@@ -20,7 +20,7 @@ val CONDITIONALS_IF_WITHOUT_ELSE_AST = Program(
                         thenBranch = Block(
                             expressions = listOf(
                                 Assignment(
-                                    variable = "x",
+                                    variable = VariableReference("x"),
                                     value = IntLiteral(0)
                                 ),
                                 NopeLiteral()
