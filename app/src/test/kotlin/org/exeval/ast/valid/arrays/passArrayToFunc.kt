@@ -15,9 +15,13 @@ val PASS_ARRAY_TO_FUNCTION_AST = Program(
                 ),
             ),
             returnType = IntType,
-            body = ArrayAccess(
-                array = VariableReference("arr"),
-                index = IntLiteral(0),
+            body = Block(
+                expressions = listOf(
+                    ArrayAccess(
+                        array = VariableReference("arr"),
+                        index = IntLiteral(0)
+                    )
+                )
             )
         ),
         FunctionDeclaration(
