@@ -64,29 +64,32 @@ class InstructionSetCreator {
                 AssignmentTreeKind,
                 InstructionKind.EXEC,
                 1
-            ) { _, inputs, _ ->
-                if (inputs.size != 2) {
+            ) { dest, inputs, _ ->
+                if (inputs.size != 1) {
                     throw IllegalArgumentException(
                         """Assignment takes exactly two arguments:
                         [1] destination (where to assign) and
                         [2] source (what to assign)""".trimIndent()
                     )
                 }
-                if (!(inputs is Register)) { // TODO or Memory
-                    throw IllegalArgumentException(
-                        "First argument for assignment must be a register or memory location"
-                    )
-                }
-                if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
+				if (dest == null) {
+					throw IllegalArgumentException("Destination for assignment cannot be null")
+				}
+                // if (!(inputs is Register)) { // TODO or Memory
+                //     throw IllegalArgumentException(
+                //         "First argument for assignment must be a register or memory location"
+                //     )
+                // }
+                // if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
+                //     listOf(
+                //         MovInstruction(reg1, inputs[1]),
+                //         MovInstruction(inputs[0] as AssignableDest, reg1)
+                //     )
+                // } else {
                     listOf(
-                        MovInstruction(reg1, inputs[1]),
-                        MovInstruction(inputs[0] as AssignableDest, reg1)
+                        MovInstruction(dest, inputs[0])
                     )
-                } else {
-                    listOf(
-                        MovInstruction(inputs[0] as AssignableDest, inputs[1])
-                    )
-                }
+                // }
             }
         )
     }
@@ -129,7 +132,7 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(
         operation: OperationAsm,
-        dest: VirtualRegister,
+        dest: Register,
         inputs: List<OperandArgumentType>
     ): List<Instruction> {
         // NOTE Needed always, can be either register or memory
@@ -540,7 +543,7 @@ class InstructionSetCreator {
         return listOf(
             TemplatePattern(
                 ReturnTreeKind,
-                InstructionKind.VALUE,
+                InstructionKind.EXEC,
                 1
             ) { _, _, _ ->
                 listOf(

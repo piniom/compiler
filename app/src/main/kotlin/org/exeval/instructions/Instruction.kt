@@ -37,6 +37,9 @@ fun argToString(arg: OperandArgumentType, mapping: Map<Register, PhysicalRegiste
         is Label -> {
             arg.name
         }
+		is TemplatePattern.MemoryAddress -> {
+			argToString(arg.address!!, mapping)
+		}
         else -> {
             throw IllegalArgumentException("Unexpected argument type: $arg")
         }

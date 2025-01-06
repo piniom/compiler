@@ -2,7 +2,7 @@ package org.exeval.cfg
 
 import org.exeval.instructions.AssignableDest
 
-sealed interface Register : AssignableDest {
+interface Register : AssignableDest {
     companion object {
         const val SIZE: Long = 8
     }

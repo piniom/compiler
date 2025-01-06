@@ -97,6 +97,10 @@ fun main(args: Array<String>) {
         codeBuilder.addFunction(it.first, it.second, registerMapping.mapping)
     }
 
+	println("generated asm:")
+	println(codeBuilder.code)
+	return
+
     // External proccesses
     val asmFile = File("program.asm")
     asmFile.writeText(codeBuilder.code)

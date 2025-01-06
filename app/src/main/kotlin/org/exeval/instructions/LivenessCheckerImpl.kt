@@ -40,8 +40,8 @@ class LivenessCheckerImpl: LivenessChecker {
                 for (j in 0..<bb.instructions.size) {
                     val next: List<Instruction> =
                         if (i == basicBlocks.size - 1 && j == bb.instructions.size - 1) listOf()
-                        else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.first() }
-                            .toList()
+                        else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.firstOrNull() }.filter {it == null}
+                            .toList() as List<Instruction>
                         else listOf(bb.instructions[j + 1])
                     val instruction = bb.instructions[j]
 
@@ -51,7 +51,9 @@ class LivenessCheckerImpl: LivenessChecker {
                     val newLiveIn = use[instruction]!! union (oldLiveOut subtract def[instruction]!!)
                     var newLiveOut = def[instruction]!!
                     for (nextInstruction in next) {
-                        newLiveOut = newLiveOut union liveIn[nextInstruction]!!
+						if (liveIn[nextInstruction] != null) {
+							newLiveOut = newLiveOut union liveIn[nextInstruction]!!
+						}
                     }
 
                     liveIn[instruction] = newLiveIn

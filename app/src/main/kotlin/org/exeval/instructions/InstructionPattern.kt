@@ -7,7 +7,7 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
+    val createInstruction: (resultHolder : Register?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
 )
 
 interface InstructionPattern{
@@ -30,14 +30,16 @@ class TemplatePattern(
     override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
-    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : Register?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
 ) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
+		println("matching to ${parseTree}")
         if (rootType != parseTree.treeKind()) {
             return null
         }
+		var hasDest = false
         val args = when (parseTree) {
             is BinaryOperationTree -> {
                 listOf(parseTree.left, parseTree.right)
@@ -46,6 +48,7 @@ class TemplatePattern(
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {
+				hasDest = true
                 listOf(parseTree.destination, parseTree.value)
             }
             is Call -> {
@@ -61,8 +64,21 @@ class TemplatePattern(
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
+		println("returning trees to match: ${toMatch}")
         return InstructionMatchResult(toMatch, { dest, registers, label ->
-            lambdaInstruction(dest, injectConstants(constants, registers), label)
+			val combinedArgs = if (dest is VirtualRegister) {
+				injectConstants(constants, listOf(dest) + registers).toMutableList()
+			}
+			else {
+				injectConstants(constants, registers).toMutableList()
+			}
+			if (hasDest) {
+				val combinedDest = combinedArgs.removeFirst()
+				lambdaInstruction(combinedDest as Register, combinedArgs, label)
+			}
+			else {
+				lambdaInstruction(dest, combinedArgs, label)
+			}
         })
     }
 
@@ -70,7 +86,7 @@ class TemplatePattern(
         constants.clear()
         constants.addAll(args.map { extractConstant(it) })
         toMatch.clear()
-        toMatch.addAll(args.filter { !(it is ConstantTree) })
+        toMatch.addAll(args.map { if (it is MemoryTree) it.address else it }.filter { extractConstant(it) == null })
     }
 
     private fun extractConstant(tree: Tree): OperandArgumentType? {
@@ -79,7 +95,8 @@ class TemplatePattern(
             is NumericalConstantTree -> NumericalConstant(tree.value)
             is DelayedNumericalConstantTree -> DelayedNumericalConstant(tree.getValue)
             is Call -> tree.label
-            is RegisterTree -> if (tree.register is PhysicalRegister) { tree.register } else { null }
+            is RegisterTree -> tree.register
+			is MemoryTree -> MemoryAddress(extractConstant(tree.address))
             else -> null
         }
     }
@@ -92,7 +109,14 @@ class TemplatePattern(
                 args[j] = registers[i]
                 i += 1
             }
+			else if (constants[j] is MemoryAddress && (constants[j] as MemoryAddress).address == null) {
+				// args[j] = MemoryAddress(registers[i])
+				args[j] = registers[i]
+				i += 1
+			}
         }
         return args as List<OperandArgumentType>
     }
+
+	public class MemoryAddress(val address: OperandArgumentType?): OperandArgumentType, Register
 }
