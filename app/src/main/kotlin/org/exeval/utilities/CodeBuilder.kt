@@ -9,7 +9,7 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
 
     private val lines: MutableList<String> = mutableListOf();
 
-    val code: String get() = lines.joinToString { "\n" }
+    val code: String get() = lines.joinToString ( "\n" )
 
     init {
         lines.add("section .data")
