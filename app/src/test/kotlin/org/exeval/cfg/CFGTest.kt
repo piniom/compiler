@@ -63,7 +63,7 @@ class CFGTest{
         override val trees: List<Tree>
     ) : CFGNode {}
     fun getCFG(e:Expr):CFGNode{
-
+        //ASSUMPTION: NO FUNCTION CALLS
         val main = FunctionDeclaration("main",listOf(), NopeType,e)
         val info = AstInfo(main,mapOf())
         val nr = NameResolutionGenerator(info).parse().result
@@ -73,7 +73,7 @@ class CFGTest{
         val uag = usageAnalysis(ar.callGraph,nr,main)
         uag.run()
         val ua = uag.getAnalysisResult()
-        val maker = CFGMaker(fm=ffm,nameResolution=nr,varUsage=ua,typeMap=tm)
+        val maker = CFGMaker(fm=ffm,nameResolution=nr,varUsage=ua,typeMap=tm,mapOf())
 
         val node = Node(null,listOf())
 
