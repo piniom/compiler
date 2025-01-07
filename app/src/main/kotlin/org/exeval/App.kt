@@ -99,7 +99,7 @@ fun main(args: Array<String>) {
 
 	println("generated asm:")
 	println(codeBuilder.code)
-	return
+	// return
 
     // External proccesses
     val asmFile = File("program.asm")
@@ -183,7 +183,7 @@ private fun functionNodes(
     typeCheckerOutput: OperationResult<TypeMap>
 ) = functions.map {
     val variableUsage =
-        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
+        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).run()
     it.name to CFGMaker(
         frameManagers[it]!!,
         nameResolutionOutput.result,

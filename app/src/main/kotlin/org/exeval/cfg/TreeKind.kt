@@ -24,3 +24,6 @@ object UnaryMinusTreeKind : TreeKind
 
 object CallTreeKind : TreeKind
 object ReturnTreeKind : TreeKind
+
+object PushTreeKind : TreeKind
+object PopTreeKind : TreeKind

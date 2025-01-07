@@ -47,6 +47,9 @@ class InstructionSetCreator {
             + createCallPatterns()
 
             + createReturnPatterns()
+
+			+ createPushPatterns()
+			+ createPopPatterns()
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
@@ -552,6 +555,28 @@ class InstructionSetCreator {
             }
         )
     }
+
+	private fun createPushPatterns(): List<InstructionPattern> {
+		return listOf(
+			TemplatePattern(PushTreeKind, InstructionKind.VALUE, 1) { _, inputs, _ ->
+				listOf(PushInstruction(inputs[0]))
+			},
+			TemplatePattern(PushTreeKind, InstructionKind.EXEC, 1) { _, inputs, _ ->
+				listOf(PushInstruction(inputs[0]))
+			}
+		)
+	}
+
+	private fun createPopPatterns(): List<InstructionPattern> {
+		return listOf(
+			TemplatePattern(PopTreeKind, InstructionKind.VALUE, 1) { dest, _, _ ->
+				if (dest == null) {
+					throw IllegalArgumentException("dest for pop should not be null")
+				}
+				listOf(PopInstruction(dest))
+			}
+		)
+	}
 
     private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
         return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ , _-> listOf() }

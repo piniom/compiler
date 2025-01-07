@@ -27,8 +27,10 @@ class LivenessCheckerImpl: LivenessChecker {
                 }
 
                 if (instr.isCopy()){
-                    copyGraph[instr.definedRegisters().first()]!!.add(instr.usedRegisters().first())
-                    copyGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
+					if (instr.definedRegisters().size > 0 && instr.usedRegisters().size > 0) {
+						copyGraph[instr.definedRegisters().first()]!!.add(instr.usedRegisters().first())
+						copyGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
+					}
                 }
             }
         }

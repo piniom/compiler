@@ -30,7 +30,6 @@ enum class PhysicalRegister(val name_: String) : Register {
             return setOf(
                 RAX,
                 RCX,
-                RSP,
                 RBP,
                 RDX,
                 RDI,
@@ -53,5 +52,7 @@ enum class PhysicalRegister(val name_: String) : Register {
 
 }
 
-class VirtualRegister() : Register
+class VirtualRegister() : Register {
+    val trace = Thread.currentThread().stackTrace.joinToString("\n") { it.toString() }
+}
 

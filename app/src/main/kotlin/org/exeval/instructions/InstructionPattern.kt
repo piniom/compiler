@@ -35,12 +35,18 @@ class TemplatePattern(
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-		println("matching to ${parseTree}")
+		// println("matching to ${parseTree}")
         if (rootType != parseTree.treeKind()) {
             return null
         }
 		var hasDest = false
         val args = when (parseTree) {
+			is PushTree -> {
+				listOf(parseTree.child)
+			}
+			is PopTree -> {
+				listOf()
+			}
             is BinaryOperationTree -> {
                 listOf(parseTree.left, parseTree.right)
             }
@@ -64,7 +70,7 @@ class TemplatePattern(
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
-		println("returning trees to match: ${toMatch}")
+		// println("returning trees to match: ${toMatch}")
         return InstructionMatchResult(toMatch, { dest, registers, label ->
 			val combinedArgs = if (dest is VirtualRegister) {
 				injectConstants(constants, listOf(dest) + registers).toMutableList()

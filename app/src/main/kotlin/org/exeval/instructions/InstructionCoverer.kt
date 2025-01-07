@@ -17,10 +17,10 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
     }
 
     private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>, registerMap: MutableMap<Tree, VirtualRegister?>, labelTrue : Label?): List<Instruction> {
-		// println("tree: ${tree}")
-		// println("subtreeCost: ${subtreeCost[tree]}")
-		// println("pattern: ${subtreeCost[tree]!!.second}")
-		// println("match result: ${subtreeCost[tree]!!.second!!.matches(tree)}")
+		println("tree: ${tree}")
+		println("subtreeCost: ${subtreeCost[tree]}")
+		println("pattern: ${subtreeCost[tree]!!.second}")
+		println("match result: ${subtreeCost[tree]!!.second!!.matches(tree)}")
         val matchResult = subtreeCost[tree]!!.second!!.matches(tree)!!
         val register =  when (tree) {
              is Return -> {
@@ -42,12 +42,12 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
         for (childResult in childrenResults) result.addAll(childResult)
         val childRegisters = mutableListOf<VirtualRegister>()
         for(child in matchResult.children) if(registerMap[child] != null) childRegisters.add(registerMap[child]!!)
-		// println("register: ${register}")
+		println("register: ${register}")
         return result + matchResult.createInstruction(register, childRegisters, labelTrue)
     }
 
     private fun computeCost(tree: Tree, subtreeCost: MutableMap<Tree, Pair<Int, InstructionPattern?>>, instructionKind : InstructionKind) {
-		// println("computing for tree: ${tree}")
+		println("computing for tree: ${tree}")
         when (tree) {
 			is RegisterTree -> {
 				return
@@ -74,6 +74,10 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
 				return
             }
 
+			is PushTree -> {
+				computeCost(tree.child, subtreeCost, InstructionKind.VALUE)
+			}
+
             else -> {
                 // leaf
             }
@@ -87,17 +91,17 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
 				"No patterns with key (${tree.treeKind()}, ${instructionKind})"
 			)
 		}
-		// println("candidates: ${candidatePatterns}")
+		println("candidates: ${candidatePatterns}")
         for (instructionPattern in candidatePatterns) {
             val result = instructionPattern.matches(tree)
             if (result != null) {
-				// println("matched")
+				println("matched")
                 var newCost = instructionPattern.cost
-				// println("children: ${result.children}")
+				println("children: ${result.children}")
                 for (child in result.children){
 					val childCost = subtreeCost[child]
-					// println("child: ${child}")
-					// println("child cost: ${childCost}")
+					println("child: ${child}")
+					println("child cost: ${childCost}")
 					if (childCost == null) {
 						newCost = Int.MAX_VALUE
 						break
@@ -113,10 +117,10 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
                     bestInstr = instructionPattern
                 }
             }
-			// else { println("not matched") }
+			else { println("not matched") }
         }
         subtreeCost[tree] = Pair(minCost, bestInstr)
-		// println("assigning for ${tree}")
-		// println("assigned ${subtreeCost[tree]}")
+		println("assigning for ${tree}")
+		println("assigned ${subtreeCost[tree]}")
     }
 }

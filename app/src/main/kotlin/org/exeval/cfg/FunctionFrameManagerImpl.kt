@@ -136,16 +136,16 @@ class FunctionFrameManagerImpl(
     override fun generate_epilouge(result: Tree?): CFGNode {
         val trees = mutableListOf<Tree>()
 
-        trees.add(
-            AssignmentTree(
-                RegisterTree(PhysicalRegister.RSP),
-                BinaryOperationTree(
-                    RegisterTree(PhysicalRegister.RSP),
-                    DelayedNumericalConstantTree { stackOffset.lock(); stackOffset.value * BYTES_IN_WORD },
-                    BinaryTreeOperationType.ADD
-                )
-            )
-        )
+        // trees.add(
+        //     AssignmentTree(
+        //         RegisterTree(PhysicalRegister.RSP),
+        //         BinaryOperationTree(
+        //             RegisterTree(PhysicalRegister.RSP),
+        //             DelayedNumericalConstantTree { stackOffset.lock(); stackOffset.value * BYTES_IN_WORD },
+        //             BinaryTreeOperationType.ADD
+        //         )
+        //     )
+        // )
         trees.addAll(restoreDisplay())
         trees.addAll(restoreRegisters())
 
@@ -176,19 +176,19 @@ class FunctionFrameManagerImpl(
         stackOffset.value += calleSaveRegisters.size
 
         return calleSaveRegisters.map {
-            AssignmentTree(
-                MemoryTree(
-                    BinaryOperationTree(
-                        RegisterTree(PhysicalRegister.RSP),
-                        NumericalConstantTree(calleSaveRegisters.indexOf(it) * Register.SIZE),
-                        BinaryTreeOperationType.ADD
-                    )
-                ),
-                RegisterTree(it)
-            )
-        }
+			pushToStack(RegisterTree(it))
+            // AssignmentTree(
+            //     MemoryTree(
+            //         BinaryOperationTree(
+            //             RegisterTree(PhysicalRegister.RSP),
+            //             NumericalConstantTree(calleSaveRegisters.indexOf(it) * Register.SIZE),
+            //             BinaryTreeOperationType.ADD
+            //         )
+            //     ),
+            //     RegisterTree(it)
+            // )
+        }.flatten()
     }
-
 
     private fun restoreRegisters(): List<Tree> {
         return calleSaveRegisters.map { popFromStack(RegisterTree(it)) }.flatten()
@@ -245,28 +245,30 @@ class FunctionFrameManagerImpl(
     }
 
     private fun pushToStack(tree: Tree): List<Tree> {
-        return listOf(
-            BinaryOperationTree(
-                RegisterTree(PhysicalRegister.RSP),
-                NumericalConstantTree(Register.SIZE),
-                BinaryTreeOperationType.SUBTRACT
-            ),
-            AssignmentTree(MemoryTree(RegisterTree(PhysicalRegister.RSP)), tree)
-        )
+		return listOf(PushTree(tree))
+        // return listOf(
+        //     BinaryOperationTree(
+        //         RegisterTree(PhysicalRegister.RSP),
+        //         NumericalConstantTree(Register.SIZE),
+        //         BinaryTreeOperationType.SUBTRACT
+        //     ),
+        //     AssignmentTree(MemoryTree(RegisterTree(PhysicalRegister.RSP)), tree)
+        // )
     }
 
     private fun popFromStack(toAssign: AssignableTree): List<Tree> {
-        return listOf(
-            AssignmentTree(toAssign, MemoryTree(RegisterTree(PhysicalRegister.RSP))),
-            AssignmentTree(
-                RegisterTree(PhysicalRegister.RSP),
-                BinaryOperationTree(
-                    RegisterTree(PhysicalRegister.RSP),
-                    NumericalConstantTree(Register.SIZE),
-                    BinaryTreeOperationType.ADD
-                )
-            )
-        )
+		return listOf(AssignmentTree(toAssign, PopTree))
+        // return listOf(
+        //     AssignmentTree(toAssign, MemoryTree(RegisterTree(PhysicalRegister.RSP))),
+        //     AssignmentTree(
+        //         RegisterTree(PhysicalRegister.RSP),
+        //         BinaryOperationTree(
+        //             RegisterTree(PhysicalRegister.RSP),
+        //             NumericalConstantTree(Register.SIZE),
+        //             BinaryTreeOperationType.ADD
+        //         )
+        //     )
+        // )
     }
 
     private fun getDisplayMemory(idx: Long): MemoryTree {
