@@ -54,7 +54,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     name = getNodeText(child, input)
                 } else if (childSymbol === FunctionParamsSymbol) {
                     parameters = unwrapList<Parameter>(child, FunctionParamSymbol, input, Parameter::class)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     returnType = getType(child, input)
                 }
             }
@@ -71,7 +71,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 }
             }
@@ -99,7 +99,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
                     expression = createAux(child, input) as Expr
@@ -115,7 +115,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
                     name = getNodeText(child, input)
-                } else if (childSymbol === TokenCategories.IdentifierType) {
+                } else if (childSymbol === TypeSymbol) {
                     type = getType(child, input)
                 } else if (childSymbol === ExpressionSymbol) {
                     expression = createAux(child, input) as Expr
@@ -123,18 +123,21 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
             astNode = ConstantDeclaration(name!!, type!!, expression!!)
         } else if (symbol === VariableAssignmentSymbol) {
-            var name: String? = null
-            var expression: Expr? = null
+            var variableExpr: AssignableExpr? = null
+            var valueExpr: Expr? = null
+
             for (child in children) {
                 val childSymbol = getSymbol(child)
 
                 if (childSymbol === TokenCategories.IdentifierNontype) {
-                    name = getNodeText(child, input)
+                    variableExpr = VariableReference(getNodeText(child, input))
                 } else if (childSymbol === ExpressionSymbol) {
-                    expression = createAux(child, input) as Expr
+                    valueExpr = createAux(child, input) as Expr
+                } else if (childSymbol === ArrayAccessSymbol) {
+                    variableExpr = createAux(child, input) as AssignableExpr
                 }
             }
-            astNode = Assignment(VariableReference(name!!), expression!!)
+            astNode = Assignment(variableExpr!!, valueExpr!!)
         } else if (symbol === FunctionCallSymbol) {
             var name: String? = null
             var arguments: List<Argument> = listOf()
@@ -227,8 +230,32 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             }
 
             astNode = expr
-        } else {
-            throw IllegalStateException("${symbol} ${locationRange}")
+        } else if (symbol === AllocationSymbol) {
+            val typeIndex = 1
+            val argumentsIndex = 3
+            val productionsCount = 5
+
+            if (children.size != productionsCount) {
+                throw IllegalStateException("AllocationSymmbol $locationRange")
+            }
+
+            val type = getType(children[typeIndex], input) ?: throw IllegalStateException("AllocationSymmbol $locationRange")
+            val arguments = parseFunctionCallArguments(children[argumentsIndex], input)
+
+            astNode = MemoryNew(type, arguments)
+        } else if (symbol === DeallocationSymbol) {
+            val exprIndex = 1
+
+            if (children.size != 2) {
+                throw IllegalStateException("DeallocationSymbol $locationRange")
+            }
+
+            astNode = MemoryDel(createAux(children[exprIndex], input) as Expr)
+        } else if (symbol === ArrayAccessSymbol) {
+            astNode = processArrayAccess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
+        }
+        else {
+            throw IllegalStateException("$symbol $locationRange")
         }
         locationsMap.put(astNode, locationRange)
         return astNode
@@ -246,6 +273,56 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             wantedNodeClass.cast(node)
         }
         return res
+    }
+
+    private fun processArrayAccess(children: List<ParseTree<GrammarSymbol>>, input: Input): Expr? {
+        fun processNestedArray(arrayExpr: Expr, indexSymbol: ParseTree<GrammarSymbol>, input: Input) : Expr? {
+            val nextIndexExpr = 3
+            val indexExprIndex = 1
+            val sizeForNestedArrayAccess = 4
+            val sizeForSingleArrayAccess = 3
+
+            val subChildren = when (indexSymbol) {
+                is Leaf -> listOf()
+                is Branch -> indexSymbol.children
+            }
+
+            val isNestedArrayAccess = subChildren.size == sizeForNestedArrayAccess
+            val isSingleArrayAccess = subChildren.size == sizeForSingleArrayAccess
+
+            if (!isSingleArrayAccess && !isNestedArrayAccess) {
+                return null
+            }
+
+            val subIndexExpr = createAux(subChildren[indexExprIndex], input) as Expr
+            val accessExpr = ArrayAccess(arrayExpr, subIndexExpr)
+
+            if (sizeForSingleArrayAccess == subChildren.size) {
+                return accessExpr
+            } else if (sizeForNestedArrayAccess == subChildren.size) {
+                return processNestedArray(accessExpr, subChildren[nextIndexExpr], input)
+            }
+
+            return null
+        }
+
+        var arrayExpr: Expr? = null
+
+        for (child in children) {
+            val childSymbol = getSymbol(child)
+
+            if (childSymbol === ExpressionSymbol) {
+                arrayExpr = createAux(child, input) as Expr
+            } else if (childSymbol === FunctionCallSymbol) {
+                arrayExpr = createAux(child, input) as Expr
+            } else if (childSymbol === TokenCategories.IdentifierNontype) {
+                arrayExpr = VariableReference(getNodeText(child, input))
+            } else if (childSymbol === ArrayIndexSymbol) {
+                return arrayExpr?.let { processNestedArray(it, child, input) }
+            }
+        }
+
+        return null
     }
 
     private fun <T : ASTNode> unwrapFunctions(
@@ -437,16 +514,33 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
     }
 
-    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
-        val name = getNodeText(node, input)
-
-        if (name == "Int") {
-            return IntType
-        } else if (name == "Bool") {
-            return BoolType
-        } else if (name == "Nope") {
-            return NopeType
+    private fun getArrayType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
         }
-        return null
+
+        val countOfArrayProductions = 3
+        val typeChildIndex = 1
+
+        if (children.size != countOfArrayProductions) {
+            return null
+        }
+
+        return getType(children[typeChildIndex], input)
+            ?. let { ArrayType(it) }
+    }
+
+    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+        if (getSymbol(node) != TypeSymbol) {
+            return null
+        }
+
+        return when (getNodeText(node, input)) {
+            "Int" -> IntType
+            "Bool" -> BoolType
+            "Nope" -> NopeType
+            else -> getArrayType(node, input)
+        }
     }
 }

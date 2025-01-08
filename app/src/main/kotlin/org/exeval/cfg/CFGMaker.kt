@@ -7,6 +7,7 @@ import org.exeval.cfg.BinaryTreeOperationType as BinaryOpType
 import org.exeval.ast.*
 import org.exeval.ast.NameResolution
 import org.exeval.cfg.BinaryTreeOperationType
+import org.exeval.cfg.ffm.interfaces.CallManager
 import org.exeval.ffm.interfaces.FunctionFrameManager
 
 class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: List<Tree>) : CFGNode {
@@ -24,6 +25,7 @@ class CFGMaker(
     private val nameResolution: NameResolution,
     private val varUsage: VariableUsageAnalysisResult,
     private val typeMap: TypeMap,
+    private val CallManagerMap: Map<AnyFunctionDeclaration, CallManager>
 ) {
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
@@ -233,7 +235,7 @@ class CFGMaker(
         }
 
         val reg = if (typeMap[functionCall]!!.isNope()) null else newVirtualRegister()
-        val call = fm.generate_function_call(trees, reg, then)
+        val call = CallManagerMap[declaration]!!.generate_function_call(trees, reg, then)
         node.branches = Pair(call, null)
         return WalkResult(prev, reg)
     }
