@@ -35,26 +35,31 @@ class TemplatePattern(
 
     // NOTE only simple patterns supported for now
     override fun matches(parseTree: Tree): InstructionMatchResult? {
-		// println("matching to ${parseTree}")
         if (rootType != parseTree.treeKind()) {
             return null
         }
-		var hasDest = false
+        var hasDest = false
         val args = when (parseTree) {
-			is PushTree -> {
-				listOf(parseTree.child)
-			}
-			is PopTree -> {
-				listOf()
-			}
+            is StackPushTree -> {
+                listOf(parseTree.source)
+            }
+            is StackPopTree -> {
+                listOf(parseTree.destination)
+            }
             is BinaryOperationTree -> {
+                if (parseTree.left is MemoryTree && parseTree.right is MemoryTree) {
+                    return null
+                }
                 listOf(parseTree.left, parseTree.right)
             }
             is UnaryOperationTree -> {
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {
-				hasDest = true
+                if (parseTree.destination is MemoryTree && parseTree.value is MemoryTree) {
+                    return null
+                }
+                hasDest = true
                 listOf(parseTree.destination, parseTree.value)
             }
             is Call -> {
@@ -67,24 +72,24 @@ class TemplatePattern(
                 return null
             }
         }
+
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
-		// println("returning trees to match: ${toMatch}")
         return InstructionMatchResult(toMatch, { dest, registers, label ->
-			val combinedArgs = if (dest is VirtualRegister) {
-				injectConstants(constants, listOf(dest) + registers).toMutableList()
-			}
-			else {
-				injectConstants(constants, registers).toMutableList()
-			}
-			if (hasDest) {
-				val combinedDest = combinedArgs.removeFirst()
-				lambdaInstruction(combinedDest as Register, combinedArgs, label)
-			}
-			else {
-				lambdaInstruction(dest, combinedArgs, label)
-			}
+            val combinedArgs = if (dest is VirtualRegister) {
+                injectConstants(constants, listOf(dest) + registers).toMutableList()
+            }
+            else {
+                injectConstants(constants, registers).toMutableList()
+            }
+            if (hasDest) {
+                val combinedDest = combinedArgs.removeFirst()
+                lambdaInstruction(combinedDest as Register, combinedArgs, label)
+            }
+            else {
+                lambdaInstruction(dest, combinedArgs, label)
+            }
         })
     }
 
@@ -102,7 +107,7 @@ class TemplatePattern(
             is DelayedNumericalConstantTree -> DelayedNumericalConstant(tree.getValue)
             is Call -> tree.label
             is RegisterTree -> tree.register
-			is MemoryTree -> MemoryAddress(extractConstant(tree.address))
+            is MemoryTree -> MemoryHolder(extractConstant(tree.address))
             else -> null
         }
     }
@@ -111,18 +116,23 @@ class TemplatePattern(
         val args = constants.toMutableList()
         var i = 0
         for (j in constants.indices) {
-            if (constants[j] == null) {
+            val constant = constants[j]
+            if (constant == null) {
                 args[j] = registers[i]
                 i += 1
             }
-			else if (constants[j] is MemoryAddress && (constants[j] as MemoryAddress).address == null) {
-				// args[j] = MemoryAddress(registers[i])
-				args[j] = registers[i]
-				i += 1
-			}
+            else if (constant is MemoryHolder) {
+                if (constant.address == null) {
+                    args[j] = Memory(registers[i])
+                    i += 1
+                }
+                else {
+                    args[j] = Memory(constant.address)
+                }
+            }
         }
         return args as List<OperandArgumentType>
     }
 
-	public class MemoryAddress(val address: OperandArgumentType?): OperandArgumentType, Register
+    private class MemoryHolder(val address: OperandArgumentType?): OperandArgumentType
 }

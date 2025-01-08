@@ -16,7 +16,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-@Ignore
 class InputToAstTest {
 
     private companion object {

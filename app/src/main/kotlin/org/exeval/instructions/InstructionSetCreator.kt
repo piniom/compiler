@@ -48,8 +48,10 @@ class InstructionSetCreator {
 
             + createReturnPatterns()
 
-			+ createPushPatterns()
-			+ createPopPatterns()
+            + createPushPatterns()
+            + createPopPatterns()
+
+            + createMemoryReadPatterns()
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
@@ -75,24 +77,12 @@ class InstructionSetCreator {
                         [2] source (what to assign)""".trimIndent()
                     )
                 }
-				if (dest == null) {
-					throw IllegalArgumentException("Destination for assignment cannot be null")
-				}
-                // if (!(inputs is Register)) { // TODO or Memory
-                //     throw IllegalArgumentException(
-                //         "First argument for assignment must be a register or memory location"
-                //     )
-                // }
-                // if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
-                //     listOf(
-                //         MovInstruction(reg1, inputs[1]),
-                //         MovInstruction(inputs[0] as AssignableDest, reg1)
-                //     )
-                // } else {
-                    listOf(
-                        MovInstruction(dest, inputs[0])
-                    )
-                // }
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for assignment cannot be null")
+                }
+                listOf(
+                    MovInstruction(dest, inputs[0])
+                )
             }
         )
     }
@@ -556,27 +546,48 @@ class InstructionSetCreator {
         )
     }
 
-	private fun createPushPatterns(): List<InstructionPattern> {
-		return listOf(
-			TemplatePattern(PushTreeKind, InstructionKind.VALUE, 1) { _, inputs, _ ->
-				listOf(PushInstruction(inputs[0]))
-			},
-			TemplatePattern(PushTreeKind, InstructionKind.EXEC, 1) { _, inputs, _ ->
-				listOf(PushInstruction(inputs[0]))
-			}
-		)
-	}
+    private fun createPushPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(StackPushTreeKind, InstructionKind.EXEC, 1) { _, inputs, _ ->
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException(
+                        "Push to stack takes exactly one argument"
+                    )
+                }
+                listOf(PushInstruction(inputs[0]))
+            }
+        )
+    }
 
-	private fun createPopPatterns(): List<InstructionPattern> {
-		return listOf(
-			TemplatePattern(PopTreeKind, InstructionKind.VALUE, 1) { dest, _, _ ->
-				if (dest == null) {
-					throw IllegalArgumentException("dest for pop should not be null")
-				}
-				listOf(PopInstruction(dest))
-			}
-		)
-	}
+    private fun createPopPatterns(): List<InstructionPattern> {
+        return listOf(
+            // TODO why does InstructionCoverer expect an EXEC pattern here, while it's a VALUE kind?
+            TemplatePattern(StackPopTreeKind, InstructionKind.EXEC, 1) { dest, _, _ ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for pop from stack should not be null")
+                }
+                listOf(PopInstruction(dest))
+            }
+        )
+    }
+
+    private fun createMemoryReadPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(MemoryTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for read from memory should not be null"
+                    )
+                }
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException(
+                        "Read from memory takes exactly one argument"
+                    )
+                }
+                listOf(MovInstruction(dest, inputs[0]))
+            }
+        )
+    }
 
     private fun createEmptyExecPattern(rootType: TreeKind): TemplatePattern {
         return TemplatePattern(rootType, InstructionKind.EXEC, 1) { _, _ , _-> listOf() }

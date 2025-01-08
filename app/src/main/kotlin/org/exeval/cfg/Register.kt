@@ -2,7 +2,7 @@ package org.exeval.cfg
 
 import org.exeval.instructions.AssignableDest
 
-interface Register : AssignableDest {
+sealed interface Register : AssignableDest {
     companion object {
         const val SIZE: Long = 8
     }
@@ -52,7 +52,5 @@ enum class PhysicalRegister(val name_: String) : Register {
 
 }
 
-class VirtualRegister() : Register {
-    val trace = Thread.currentThread().stackTrace.joinToString("\n") { it.toString() }
-}
+class VirtualRegister() : Register
 

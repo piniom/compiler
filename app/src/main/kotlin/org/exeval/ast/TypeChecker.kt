@@ -171,8 +171,6 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             innerParse(it)
         }
 
-		println("exprs in block: ${block.expressions}")
-		println("type map: ${typeMap}")
         val lastExpressionType = typeMap[block.expressions.last()]
         lastExpressionType?.let { typeMap[block] = lastExpressionType }
     }

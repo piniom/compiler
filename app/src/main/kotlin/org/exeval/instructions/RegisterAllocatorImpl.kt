@@ -16,7 +16,6 @@ class RegisterAllocatorImpl : RegisterAllocator {
         domain: Set<Register>,
         range: Set<PhysicalRegister>
     ): AllocationResult {
-		println("registers allowed for allocation: ${range}")
 
         val mapping: MutableMap<Register, PhysicalRegister> = mutableMapOf()
         val spills: MutableSet<VirtualRegister> = mutableSetOf()
@@ -60,14 +59,6 @@ class RegisterAllocatorImpl : RegisterAllocator {
             }
         }
 
-        for (m in mapping) {
-            println("reg ${m.key} is mapped to ${m.value}")
-            /*
-            if (m.key is VirtualRegister) {
-                println("reg stack: ${(m.key as VirtualRegister).trace}")
-            }
-             */
-        }
         return AllocationResult(mapping, spills)
     }
 }

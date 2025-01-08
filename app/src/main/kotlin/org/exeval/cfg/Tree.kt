@@ -26,8 +26,8 @@ sealed interface Tree {
             }
             is Call -> CallTreeKind
             Return -> ReturnTreeKind
-			is PushTree -> PushTreeKind
-			PopTree -> PopTreeKind
+            is StackPushTree -> StackPushTreeKind
+            is StackPopTree -> StackPopTreeKind
         }
     }
 }
@@ -86,6 +86,6 @@ data class Call(val label: Label) : Tree
 
 data object Return : Tree
 
-data class PushTree(val child: Tree) : Tree
-data object PopTree : Tree
+data class StackPushTree(val source: Tree) : Tree
+data class StackPopTree(val destination: AssignableTree) : Tree
 
