@@ -21,7 +21,8 @@ class varusage {
             mapOf(),//arg-param
             mapOf(),//function-decl
             mapOf(ref_b to decl_b),//variable-decl
-            mapOf()//assignment-decl
+            mapOf(),//assignment-decl
+            mapOf()//type-name-decl
         )
         val cg: CallGraph = mapOf()
         val a = usageAnalysis(cg, nr, ast)
@@ -67,7 +68,8 @@ class varusage {
                 b_ref to b_decl,
                 a_ref to param
             ),//variable-decl
-            mapOf()//assignment-decl
+            mapOf(),//assignment-decl
+            mapOf()//type-name-decl
         )
         val cg: CallGraph = mapOf(f_decl to setOf())
         val a = usageAnalysis(cg, nr, main)
@@ -142,7 +144,8 @@ class varusage {
                 b_ref to b_param,
                 c_ref to c_decl
             ),//variable-decl
-            mapOf()//assignment-decl
+            mapOf(),//assignment-decl
+            mapOf()//type-name-decl
         )
         val cg: CallGraph = mapOf(
             f_decl to setOf(g_decl),
