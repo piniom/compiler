@@ -33,7 +33,8 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             argumentToParam,
             functionToDecl,
             variableToDecl,
-            assignmentToDecl
+            assignmentToDecl,
+            emptyMap(), // TODO as task Structs #3
         ), diagnostics)
     }
 
