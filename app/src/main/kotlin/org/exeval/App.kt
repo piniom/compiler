@@ -135,6 +135,7 @@ fun main(args: Array<String>) {
 }
 
 fun buildLexer(): Lexer {
+    println("buildLexer")
     val tokens = TokenCategories.entries.toTypedArray()
     val regexParser = RegexParserImpl()
     val dfas = tokens.associateBy({ regexToDfa(regexParser, it.regex) }, { it })
@@ -164,9 +165,12 @@ fun buildInput(fileName: String): Input {
 }
 
 fun buildParser(): Parser<GrammarSymbol> {
+    println("buiilding parser")
     val grammarAnalyser = GrammarAnalyser()
     val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
+    println("Finishing Gramar analizys")
     val parser = Parser(analyzedGrammar)
+    println("finish")
     return parser
 }
 

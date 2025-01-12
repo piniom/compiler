@@ -1,6 +1,6 @@
 package org.exeval.ast
 
-class Program(val functions: List<AnyFunctionDeclaration>) : ASTNode
+class Program(val functions: List<AnyFunctionDeclaration>, val structures: List<StructTypeDeclaration> = listOf()) : ASTNode
 
 interface ASTNode
 

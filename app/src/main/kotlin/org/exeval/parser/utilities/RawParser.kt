@@ -27,6 +27,7 @@ class RawParser<Symbol, State>(
 
         while (true) {
             val state: State = stack.peek().state
+            println(state)
             val leaf: ParseTree.Leaf<Symbol> = leaves[leafI]
 
             val curAction = tables.actions[leaf.symbol to state]

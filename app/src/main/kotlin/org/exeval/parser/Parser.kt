@@ -23,6 +23,7 @@ class Parser<S>(analyzedGrammar: AnalyzedGrammar<S>) {
         val startLocation = leaves.first().startLocation
         val endLocation = leaves.last().endLocation
 
+        println("runinn parser")
         val treeWithoutStart = rawParser.run(leaves)
         val resTree = ParseTree.Branch<S>(
             startProduction,
