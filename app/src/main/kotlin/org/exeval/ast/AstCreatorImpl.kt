@@ -18,7 +18,6 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
     private var locationsMap: MutableMap<ASTNode, LocationRange> = mutableMapOf()
 
     override fun create(parseTree: ParseTree<GrammarSymbol>, input: Input): AstInfo {
-        println("start ast build")
         return AstInfo(createAux(parseTree, input), locationsMap)
     }
 

@@ -36,10 +36,8 @@ class GrammarAnalyser {
         grammar.productions.forEach {
             transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
         }
-        println("getting nullable")
         val nullable = NullableGrammarCreator().getNullable(transitions)
 
-        println("getting first set")
         return AnalyzedGrammar(
             nullable, 
             FirstSetGrammarCreator().createFirstSet(grammar, nullable),

@@ -17,28 +17,16 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
     val tables: Tables<S, Parser.State<S>>
 
     init {
-        println("TableCrateor start")
         val startingState = getStartingState()
-
-        println("TableCrateor start 1")
         val statesGotoPair = getAllStatesAndOldGoto(startingState)
         
-        println("TableCrateor start 2")
         val allStates: Set<Parser.State<S>> = statesGotoPair.first
         val oldGoto: Map<Pair<S, Parser.State<S>>, Parser.State<S>> = statesGotoPair.second
 
-        
-        println("TableCrateor start 3")
         val actions = getActions(allStates, oldGoto)
-        
-        println("TableCrateor start 4")
         val tableGoto = getTableGoto(allStates, oldGoto)
 
-        
-        println("TableCrateor start 5")
-
         tables = Tables<S, Parser.State<S>>(startingState, actions, tableGoto)
-        println("table creator finish")
     }
 
     private fun getTableGoto(
