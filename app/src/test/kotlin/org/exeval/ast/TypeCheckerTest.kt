@@ -1030,6 +1030,78 @@ class TypeCheckerTest {
         )
     }
 
+    @Test
+    fun `should resolve HereReference and report errors for invalid fields`() {
+        // Code:
+        // ```
+        // struct S = {
+        //   let x: Int;
+        //   let y: Bool;
+        //   ctor(width: Int, height: Bool) = {
+        //       here.x = width;
+        //       here.y = height;
+        //   }
+        // }
+        // ```
+
+        // Define StructTypeDeclaration
+        val xField = ConstantDeclaration("x", Int, IntLiteral(0))
+        val yField = ConstantDeclaration("y", Bool, BoolLiteral(true))
+        val constructorBody = Block(
+            listOf(
+                Assignment(HereReference("x"), VariableReference("width")),
+                Assignment(HereReference("y"), VariableReference("height"))
+            )
+        )
+        val structDeclaration = StructTypeDeclaration(
+            name = "S",
+            fields = listOf(xField, yField),
+            constructorMethod = ConstructorDeclaration(
+                parameters = listOf(
+                    Parameter("width", Int),
+                    Parameter("height", Bool)
+                ),
+                body = constructorBody
+            )
+        )
+
+        // Mock NameResolution
+        val mockNameResolution = mockk<NameResolution>()
+        every { mockNameResolution.variableToDecl[any<VariableReference>()] } answers {
+            val variableReference = this.firstArg<VariableReference>()
+            if (variableReference.name == "x") {
+                MutableVariableDeclaration("x", Int, IntLiteral(0))
+            } else {
+                null // Return null if no matching declaration is found
+            }
+        }
+        every { mockNameResolution.assignmentToDecl[any<Assignment>()] } answers {
+            val assignment = this.firstArg<Assignment>()
+            // Return a corresponding VariableDeclarationBase based on the assignment variable
+            if (assignment.variable is HereReference && (assignment.variable as HereReference).name == "x") {
+                xField
+            } else {
+                null // Return null if no matching declaration is found
+            }
+        }
+
+        // Mock AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        every { mockAstInfo.root } returns structDeclaration
+        every { mockAstInfo.locations } returns mapOf(
+            HereReference("x") to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 1)),
+            HereReference("y") to LocationRange(SimpleLocation(0, 2), SimpleLocation(0, 3)),
+            HereReference("z") to LocationRange(SimpleLocation(0, 4), SimpleLocation(0, 5))
+        )
+
+        // Run TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions for invalid HereReference usage
+        assertEquals(0, result.diagnostics.size, "All valid references")
+    }
+
 
 
 

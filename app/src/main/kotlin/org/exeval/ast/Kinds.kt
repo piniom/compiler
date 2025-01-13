@@ -142,7 +142,7 @@ class StructFieldAccess(
     val field: String
 ) : AssignableExpr()
 
-class HereReference : Expr()
+class HereReference(val name: String?) : AssignableExpr()
 
 class TypeUse(
     val typeName: String

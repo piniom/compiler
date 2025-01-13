@@ -11,6 +11,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private var activeLoop: Type? = null
     private val activeLoopMap: MutableMap<String, Type?> = mutableMapOf()
 
+    private var activeStruct: StructType? = null
+
     public fun parse(): OperationResult<TypeMap> {
         innerParse(astInfo.root)
 
@@ -45,6 +47,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is MemoryDel -> getMemoryDelType(astNode)
             is ArrayAccess -> getArrayAccessType(astNode)
 
+            is HereReference -> getHereReference(astNode)
+            is ConstructorDeclaration -> getConstructorDeclarationType(astNode)
             is StructTypeDeclaration -> getStructTypeDeclarationType(astNode)
             is StructFieldAccess -> getStructFieldAccessType(astNode)
 
@@ -114,15 +118,50 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         typeMap[fieldAccess] = field.type
     }
 
-    private fun getStructTypeDeclarationType(structDeclaration: StructTypeDeclaration) {
-        structDeclaration.fields.forEach { field ->
-            innerParse(field)
+    private fun getHereReference(hereReference: HereReference) {
+        if (activeStruct == null) {
+            addDiagnostic("'here' keyword used outside of a struct context", hereReference)
+            typeMap[hereReference] = NopeType
+            return
         }
 
-        val constructor = structDeclaration.constructorMethod
+        val field = activeStruct!!.fields[hereReference.name]
+        if (field == null) {
+            addDiagnostic("Struct does not contain field" + hereReference.name, hereReference)
+            typeMap[hereReference] = NopeType
+            return
+        }
 
-        typeMap[constructor] = NopeType
-        typeMap[structDeclaration] = NopeType
+        typeMap[hereReference] = field.type
+    }
+
+
+    private fun getConstructorDeclarationType(constructorDeclaration: ConstructorDeclaration) {
+        innerParse(constructorDeclaration.body)
+
+        typeMap[constructorDeclaration] = NopeType
+    }
+
+    private fun getStructTypeDeclarationType(structDeclaration: StructTypeDeclaration) {
+        val fields = structDeclaration.fields.withIndex().associate { (index, field) ->
+            val resolvedType = innerParse(field) ?: NopeType
+
+            field.name to Field(
+                type = resolvedType,
+                offset = calculateFieldOffset(index)
+            )
+        }
+
+        val structType = StructType(fields = fields, size = calculateStructSize(fields))
+
+        // Subtree has to know about current struct for here/self reference
+        activeStruct = structType
+
+        innerParse(structDeclaration.constructorMethod)
+
+        activeStruct = null
+
+        typeMap[structDeclaration] = structType
     }
 
 
