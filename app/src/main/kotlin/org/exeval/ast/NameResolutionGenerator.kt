@@ -6,10 +6,16 @@ import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
 /*
-* Notes:
-* Constructor has no body
-* */
+WARNING: the current solution to the HereRef() problem in Assignment is a hotfix to ensure this generator works
+If no connection is required, then it will work, but consider making HereReference a struct-specific AnyVariable
+*/
+
 class NameResolutionGenerator(private val astInfo: AstInfo) {
+
+    class consts {companion object{
+        public val hereRef = ":here"
+    }}
+
     data class LoopStackData(var closestLoop: Loop? = null, val loopMap: MutableMap<String, Loop> = mutableMapOf())
 
     private var loopStack = ArrayDeque<LoopStackData>()
@@ -145,21 +151,20 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun getAssignmentType(assignment: Assignment) {
-        if(assignment.variable is StructFieldAccess){
-            processAsBlock { processNode(assignment.value) }
-            return
-        }
         val variable = assignment.variable
         val variableName = when (variable) {
             is VariableReference -> variable.name
             is ArrayAccess -> getNameOfArrayAccess(variable)
+            is StructFieldAccess -> getStructName(variable)
             else -> ""
         }
         if (variableName == "")
             addUnknownNodeError(variable)
 
-        getVarDecl(assignment, variableName)?. let {
-            assignmentToDecl[assignment] = it
+        if(variableName != consts.hereRef) {
+            getVarDecl(assignment, variableName)?.let {
+                assignmentToDecl[assignment] = it
+            }
         }
 
         processAsBlock { processNode(assignment.value) }
@@ -265,6 +270,21 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         if (array is ArrayAccess)
             return getNameOfArrayAccess(array)
         addUnknownNodeError(array)
+        return ""
+    }
+
+    private fun getStructName(str: StructFieldAccess): String {
+        val struct = str.structObject
+        if (struct is HereReference){
+            return consts.hereRef
+        }
+        if (struct is VariableReference){
+            return struct.name
+        }
+        if (struct is ArrayAccess){
+            return getNameOfArrayAccess(struct)
+        }
+        addUnknownNodeError(str)
         return ""
     }
 
