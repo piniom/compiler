@@ -44,6 +44,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is MemoryNew -> getMemoryNewType(astNode)
             is MemoryDel -> getMemoryDelType(astNode)
             is ArrayAccess -> getArrayAccessType(astNode)
+
+            is StructTypeDeclaration -> getStructTypeDeclarationType(astNode)
             is StructFieldAccess -> getStructFieldAccessType(astNode)
 
             else -> addDiagnostic("Failed to find expression!", astNode)
@@ -78,6 +80,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             return NopeType
         }
 
+        innerParse(structDeclaration)
+
         val fields = mutableMapOf<String, Field>()
         structDeclaration.fields.withIndex().forEach { (index, field) ->
             fields[field.name] = Field(
@@ -109,6 +113,18 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
         typeMap[fieldAccess] = field.type
     }
+
+    private fun getStructTypeDeclarationType(structDeclaration: StructTypeDeclaration) {
+        structDeclaration.fields.forEach { field ->
+            innerParse(field)
+        }
+
+        val constructor = structDeclaration.constructorMethod
+
+        typeMap[constructor] = NopeType
+        typeMap[structDeclaration] = NopeType
+    }
+
 
 
     private fun getMemoryNewType(memoryNew: MemoryNew) {
