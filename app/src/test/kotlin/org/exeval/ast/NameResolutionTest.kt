@@ -358,4 +358,82 @@ class NameResolutionTest {
         )
     }
 
+    @Test
+    fun `should connect struct usages and declarations`(){
+        /*
+        struct A{}
+        a: A
+        */
+        val decl = StructTypeDeclaration(
+            "A",
+            listOf(
+                MutableVariableDeclaration("a", IntType),
+                MutableVariableDeclaration("a", IntType)
+            ),
+            ConstructorDeclaration(listOf(),Block(listOf()))
+        )
+        val use = TypeUse("a")
+        val ast = Block(listOf(
+            decl,
+            MutableVariableDeclaration("a",use)
+        ))
+        val result = NameResolutionGenerator(AstInfo(ast,mapOf())).parse()
+        assert(result.result.typeNameToDecl[use]!==decl)
+    }
+
+    @Test
+    fun `should handle constructor`(){
+        val b_decl = MutableVariableDeclaration("b",IntType)
+        val b_ref = VariableReference("b")
+        val c_param = Parameter("c",IntType)
+        val c_ref = VariableReference("c")
+        val decl = StructTypeDeclaration(
+            "A",
+            listOf(
+                MutableVariableDeclaration("a", IntType)
+            ),
+            ConstructorDeclaration(listOf(c_param),Block(listOf(
+                Assignment(StructFieldAccess(HereReference(),"a"), b_ref),
+                Assignment(StructFieldAccess(HereReference(),"a"), c_ref)
+            )))
+        )
+        val ast = Block(listOf(b_decl,decl))
+        val result = NameResolutionGenerator(AstInfo(ast,mapOf())).parse()
+        assert(result.diagnostics.size==0)
+        assert(result.result.variableToDecl[b_ref]!! == b_decl)
+        assert(result.result.variableToDecl[c_ref]!! == c_param)
+    }
+
+    @Test
+    fun `should detect duplicates`(){
+        /*
+        struct A{
+            int a;
+            int a;
+        }
+        struct A{
+            int a;
+        }
+        */
+        val ast = Block(listOf(
+            StructTypeDeclaration(
+                "A",
+                listOf(
+                    MutableVariableDeclaration("a", IntType),
+                    MutableVariableDeclaration("a", IntType)
+                ),
+                ConstructorDeclaration(listOf(),Block(listOf()))
+            ),
+            StructTypeDeclaration(
+                "A",
+                listOf(
+                    MutableVariableDeclaration("a", IntType)
+                ),
+                ConstructorDeclaration(listOf(),Block(listOf()))
+            )
+        ))
+        val result = NameResolutionGenerator(AstInfo(ast,mapOf())).parse()
+        //expect 2 errors - duplicate member and definition
+        assert(result.diagnostics.size == 2)
+    }
 }
