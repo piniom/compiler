@@ -449,7 +449,14 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getFunctionCallType(functionCall: FunctionCall) {
         val functionDecl = nameResolutionResult.functionToDecl[functionCall]
 
-        val functionType = functionDecl?.let { innerParse(it) }
+        if (functionDecl == null) {
+            addDiagnostic("Function not found", functionCall)
+            typeMap[functionCall] = NopeType
+            return
+        }
+
+        val returnType = convertTypeNodeToType(functionDecl.returnType)
+        typeMap[functionCall] = returnType
 
         if (functionCall.arguments.all { it is PositionalArgument }) {
             functionCall.arguments.forEachIndexed { index, argument ->
@@ -475,8 +482,6 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
                 }
             }
         }
-
-        functionType?.let { typeMap[functionCall] = functionType }
     }
 
     // Additional private methods

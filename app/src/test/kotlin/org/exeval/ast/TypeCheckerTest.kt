@@ -1102,7 +1102,54 @@ class TypeCheckerTest {
         assertEquals(0, result.diagnostics.size, "All valid references")
     }
 
+    @Test
+    fun `should handle recursive function call without stack overflow`() {
+        // Define the Fibonacci function
+        val fibFunction = FunctionDeclaration(
+            name = "fib",
+            parameters = listOf(Parameter("n", Int)),
+            returnType = Int,
+            body = Conditional(
+                condition = BinaryOperation(VariableReference("n"), BinaryOperator.LTE, IntLiteral(1)),
+                thenBranch = VariableReference("n"),
+                elseBranch = BinaryOperation(
+                    FunctionCall("fib", listOf(PositionalArgument(BinaryOperation(VariableReference("n"), BinaryOperator.MINUS, IntLiteral(1))))),
+                    BinaryOperator.PLUS,
+                    FunctionCall("fib", listOf(PositionalArgument(BinaryOperation(VariableReference("n"), BinaryOperator.MINUS, IntLiteral(2)))))
+                )
+            )
+        )
 
+        // Mock NameResolution
+        val mockNameResolution = mockk<NameResolution>()
+        val variableMap = mutableMapOf<VariableReference, VariableDeclarationBase>()
+        every { mockNameResolution.variableToDecl } returns variableMap
+        every { mockNameResolution.variableToDecl[any<VariableReference>()] } answers {
+            val variableReference = this.firstArg<VariableReference>()
+            if (variableReference.name == "n") Parameter("n", Int) else null
+        }
+        val functionMap = mutableMapOf<FunctionCall, FunctionDeclaration>()
+        every { mockNameResolution.functionToDecl } returns functionMap
+        every { mockNameResolution.functionToDecl[any<FunctionCall>()] } answers {
+            val functionCall = this.firstArg<FunctionCall>()
+            if (functionCall.functionName == "fib") fibFunction else null
+        }
+
+        // Mock AstInfo
+        val mockAstInfo = mockk<AstInfo>()
+        every { mockAstInfo.root } returns Program(listOf(fibFunction))
+        every { mockAstInfo.locations } returns mapOf(
+            fibFunction.body to LocationRange(SimpleLocation(0, 0), SimpleLocation(0, 1))
+        )
+
+        // Run the TypeChecker
+        val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
+        val result = typeChecker.parse()
+
+        // Assertions
+        assertEquals(IntType, result.result[fibFunction], "Expected 'fib' to resolve to IntType")
+        assertTrue(result.diagnostics.isEmpty(), "Expected no diagnostics for valid recursive function")
+    }
 
 
 }
