@@ -55,8 +55,8 @@ class CFGMaker(
             is ArrayAccess -> TODO()
             is MemoryDel -> TODO()
             is MemoryNew -> TODO()
-            is StructFieldAccess -> TODO("scheduled in task Structs #1")
-            is ConstructorDeclaration -> TODO("scheduled in task Structs #1")
+            is StructFieldAccess -> walkStructFieldAccess(expr, then)
+            is ConstructorDeclaration -> WalkResult(then, null)
             is HereReference -> TODO("scheduled in task Structs #1")
             is StructTypeDeclaration -> TODO("scheduled in task Structs #1")
             null -> WalkResult(then, null)
@@ -295,6 +295,27 @@ class CFGMaker(
 
     private fun newVirtualRegister(): AssignableTree {
         return RegisterTree(VirtualRegister())
+    }
+
+    private fun walkStructFieldAccess(expr: StructFieldAccess, then: CFGNode): WalkResult {
+        if(typeMap[expr.structObject] == null) throw Exception("No type for expression: " + expr.toString())
+        val type = typeMap[expr.structObject]
+        if(type is StructType) {
+            val offset = type.fields[expr.field]?.offset
+            ?: throw Exception("Field " + expr.field + " is not a member of this struct!")
+            val objectReference = walkExpr(expr.structObject, then)
+            return WalkResult(
+                objectReference.top,
+                MemoryTree(
+                    BinaryOp(
+                        objectReference.tree!!,
+                        NumericalConstantTree(offset),
+                        BinaryTreeOperationType.ADD
+                    )
+                )
+
+            )
+        } else throw Exception("Accessing a field of non structure!")
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {
