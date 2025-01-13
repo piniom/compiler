@@ -8,7 +8,7 @@ class varusage {
     @Test
     fun upwardPropagationTest() {
         //upwards propagation
-        val decl_b = MutableVariableDeclaration("b", IntType)
+        val decl_b = MutableVariableDeclaration("b", Int)
         val ref_b = VariableReference("b")
         val ast = Block(
             listOf(
@@ -40,16 +40,16 @@ class varusage {
         b:int
         f(b)
         */
-        val param = Parameter("a", IntType)
+        val param = Parameter("a", Int)
         val a_ref = VariableReference("a")
         val f_decl = FunctionDeclaration(
-            "f", listOf(param), IntType, Block(
+            "f", listOf(param), Int, Block(
                 listOf(
                     a_ref
                 )
             )
         )
-        val b_decl = MutableVariableDeclaration("b", IntType)
+        val b_decl = MutableVariableDeclaration("b", Int)
         val b_ref = VariableReference("b")
         val arg = PositionalArgument(b_ref)
         val call = FunctionCall("f", listOf(arg))
@@ -92,30 +92,30 @@ class varusage {
         f(c)
         */
 
-        val a_param = Parameter("a", IntType)
+        val a_param = Parameter("a", Int)
         val a_ref = VariableReference("a")
         val a_arg = PositionalArgument(a_ref)
         val g_call = FunctionCall("g", listOf(a_arg))
         val f_decl = FunctionDeclaration(
-            "f", listOf(a_param), IntType, Block(
+            "f", listOf(a_param), Int, Block(
                 listOf(
                     a_ref,
                     g_call
                 )
             )
         )
-        val b_param = Parameter("b", IntType)
+        val b_param = Parameter("b", Int)
         val b_ref = VariableReference("b")
         val b_arg = PositionalArgument(b_ref)
         val f_call = FunctionCall("f", listOf(b_arg))
         val g_decl = FunctionDeclaration(
-            "f", listOf(b_param), IntType, Block(
+            "f", listOf(b_param), Int, Block(
                 listOf(
                     f_call
                 )
             )
         )
-        val c_decl = MutableVariableDeclaration("c", IntType)
+        val c_decl = MutableVariableDeclaration("c", Int)
         val c_ref = VariableReference("c")
         val c_arg = PositionalArgument(c_ref)
         val f_call_main = FunctionCall("f", listOf(c_arg))
@@ -157,7 +157,7 @@ class varusage {
     }
     @Test
     fun complexTest(){
-        val declaration = MutableVariableDeclaration("a", IntType)
+        val declaration = MutableVariableDeclaration("a", Int)
         val aVarReference = VariableReference("a")
         val ast = Block(
             listOf(
@@ -169,7 +169,7 @@ class varusage {
                 /*3*/
                 Block(listOf(Assignment(aVarReference, aVarReference))),
                 /*4*/
-                MutableVariableDeclaration("b", IntType, Assignment(aVarReference, aVarReference)),
+                MutableVariableDeclaration("b", Int, Assignment(aVarReference, aVarReference)),
                 /*5*/
                 BinaryOperation(aVarReference, BinaryOperator.PLUS, Assignment(aVarReference, aVarReference)),
                 /*6*/
@@ -187,7 +187,7 @@ class varusage {
                 ),
                 /*9*/
                 FunctionDeclaration(
-                    "f", listOf(Parameter("b", IntType)), IntType, Block(
+                    "f", listOf(Parameter("b", Int)), Int, Block(
                         listOf(
                             Assignment(aVarReference, VariableReference("b")),
                             Assignment(aVarReference, aVarReference)
@@ -203,7 +203,7 @@ class varusage {
         val nr: NameResolution
         val cg: CallGraph
         run {
-            val program = Program(listOf(FunctionDeclaration("main", listOf(), IntType, ast)))
+            val program = Program(listOf(FunctionDeclaration("main", listOf(), Int, ast)))
             val astInfo = AstInfo(program, locations = emptyMap())
             val analyser = FunctionAnalyser()
             cg = analyser.analyseFunctions(astInfo).callGraph

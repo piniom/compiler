@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Assertions.*
 class FunctionAnalyserTest {
 
     // Helper function to create mock Type objects
-    private fun mockType(): Type = mockk()
+    private fun mockType(): TypeNode = mockk()
 
     @Test
     fun `test function analysis with simple functions`() {
         // Create a simple AST with two functions
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -70,7 +70,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with nested function calls`() {
         // Create a program where one function calls another
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
 
         val program = Program(
             functions = listOf(
@@ -156,7 +156,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with a function having no calls`() {
         // A program with a function that doesn't call anything
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val fooDeclaration = FunctionDeclaration(
                 name = "foo",
                 parameters = listOf(Parameter("x", intType)),
@@ -188,7 +188,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with function calling itself (recursion)`() {
         // A function calling itself (recursion)
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -232,7 +232,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with loop and function calls`() {
         // A function that contains a loop, which calls another function inside the loop
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -275,7 +275,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with break statement inside loop`() {
         // A function with a loop and a break statement inside
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -319,7 +319,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with conditional and multiple branches`() {
         // A function with a conditional statement that has multiple branches
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -373,7 +373,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with unused variables`() {
         // A function with a declared variable that is not used in the body
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val variable = MutableVariableDeclaration(name = "unusedVar", type = intType)
         val program = Program(
             functions = listOf(
@@ -406,7 +406,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with complex nested structures`() {
         // A function with deeply nested expressions
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -460,7 +460,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with nested function declarations`() {
         // A function with a nested function declaration
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val innerFunc = FunctionDeclaration(
             name = "innerFunction",
             parameters = listOf(),
@@ -501,7 +501,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with recursive function call`() {
         // A recursive function that calls itself
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -547,7 +547,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with multiple nested recursive calls`() {
         // A function that calls itself indirectly via another function
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -600,7 +600,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with nested recursive calls and variable usage`() {
         // Recursive function with nested calls and variable usage
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -653,7 +653,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with deeply nested function declarations`() {
         // A deeply nested function that has another function inside it
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val innerFunc = FunctionDeclaration(
             name = "innerFunction",
             parameters = listOf(),

@@ -1,20 +1,21 @@
 package org.exeval.ast.valid.separator
 
 import org.exeval.ast.*
+import org.exeval.ast.Int
 
 val SEPARATOR_VALUE_OF_FUNCTIONS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = IntType,
+            returnType = Int,
             body = Block(
                 expressions = listOf(
                     Conditional(
                         condition = FunctionDeclaration(
                             name = "f",
                             parameters = listOf(),
-                            returnType = BoolType,
+                            returnType = Bool,
                             body = BoolLiteral(value = true)
                         ),
                         thenBranch = IntLiteral(value = 1),

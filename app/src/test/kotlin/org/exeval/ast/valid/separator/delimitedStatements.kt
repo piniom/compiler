@@ -1,22 +1,23 @@
 package org.exeval.ast.valid.separator
 
 import org.exeval.ast.*
+import org.exeval.ast.Int
 
 val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = IntType,
+            returnType = Int,
             body = Block(
                 expressions = listOf(
                     FunctionDeclaration(
                         name = "function",
                         parameters = listOf(
-                            Parameter(name = "a", type = BoolType),
-                            Parameter(name = "b", type = BoolType)
+                            Parameter(name = "a", type = Bool),
+                            Parameter(name = "b", type = Bool)
                         ),
-                        returnType = BoolType,
+                        returnType = Bool,
                         body = Block(
                             expressions = listOf(
                                 BinaryOperation(
@@ -30,10 +31,10 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                     FunctionDeclaration(
                         name = "function2",
                         parameters = listOf(
-                            Parameter(name = "a", type = BoolType),
-                            Parameter(name = "b", type = BoolType)
+                            Parameter(name = "a", type = Bool),
+                            Parameter(name = "b", type = Bool)
                         ),
-                        returnType = BoolType,
+                        returnType = Bool,
                         body = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.OR,
@@ -42,12 +43,12 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                     ),
                     ConstantDeclaration(
                         name = "a",
-                        type = BoolType,
+                        type = Bool,
                         initializer = BoolLiteral(value = true)
                     ),
                     ConstantDeclaration(
                         name = "b",
-                        type = BoolType,
+                        type = Bool,
                         initializer = BoolLiteral(value = false)
                     ),
                     Block(

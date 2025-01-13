@@ -7,19 +7,19 @@ class NameResolutionTest {
 
     @Test
     fun `should match variable to declarations`() {
-        val firstDecl = ConstantDeclaration("first_var", IntType, IntLiteral(1))
-        val secondDecl = MutableVariableDeclaration("second_var", IntType, IntLiteral(2))
+        val firstDecl = ConstantDeclaration("first_var", Int, IntLiteral(1))
+        val secondDecl = MutableVariableDeclaration("second_var", Int, IntLiteral(2))
         val variableRef = VariableReference("first_var")
         val secondRef = VariableReference("second_var")
         val function = FunctionDeclaration(
-            "main", emptyList(), IntType,
+            "main", emptyList(), Int,
             Block(
                 listOf(
                     firstDecl,
                     secondDecl,
                     ConstantDeclaration(
                         "third_var",
-                        IntType,
+                        Int,
                         BinaryOperation(variableRef, BinaryOperator.PLUS, secondRef)
                     )
                 )
@@ -51,14 +51,14 @@ class NameResolutionTest {
         //   del pointer
         // }
         // ```
-        val memoryNew = MemoryNew(ArrayType(IntType), listOf(PositionalArgument(IntLiteral(5))))
-        val declaration = ConstantDeclaration("pointer", ArrayType(IntType),  memoryNew)
+        val memoryNew = MemoryNew(Array(Int), listOf(PositionalArgument(IntLiteral(5))))
+        val declaration = ConstantDeclaration("pointer", Array(Int),  memoryNew)
         val reference1 = VariableReference("pointer")
         val arrayAccess = ArrayAccess(reference1, IntLiteral(0))
         val reference2 = VariableReference("pointer")
         val memoryDel = MemoryDel(reference2)
         val function = FunctionDeclaration(
-            "main", emptyList(), NopeType,
+            "main", emptyList(), Nope,
             Block(
                 listOf(declaration, arrayAccess, memoryDel)
             )
@@ -85,7 +85,7 @@ class NameResolutionTest {
     fun `should match function to declarations`() {
         val call = FunctionCall("main", emptyList())
         val function = FunctionDeclaration(
-            "main", emptyList(), IntType,
+            "main", emptyList(), Int,
             Block(
                 listOf(call)
             )
@@ -103,10 +103,10 @@ class NameResolutionTest {
 
     @Test
     fun `should match assignment to declarations`() {
-        val decl = MutableVariableDeclaration("var", IntType, IntLiteral(1))
+        val decl = MutableVariableDeclaration("var", Int, IntLiteral(1))
         val assignment = Assignment(VariableReference("var"), IntLiteral(3))
         val function = FunctionDeclaration(
-            "main", emptyList(), IntType,
+            "main", emptyList(), Int,
             Block(
                 listOf(
                     decl,
@@ -126,13 +126,13 @@ class NameResolutionTest {
 
     @Test
     fun `should match parameter to arguments`() {
-        val aParam = Parameter("a", IntType)
-        val bParam = Parameter("b", IntType)
-        val cParam = Parameter("c", IntType)
-        val dParam = Parameter("d", IntType)
+        val aParam = Parameter("a", Int)
+        val bParam = Parameter("b", Int)
+        val cParam = Parameter("c", Int)
+        val dParam = Parameter("d", Int)
 
         val function = FunctionDeclaration(
-            "main", listOf(aParam, bParam, cParam, dParam), IntType,
+            "main", listOf(aParam, bParam, cParam, dParam), Int,
             Block(
                 emptyList()
             )
@@ -144,7 +144,7 @@ class NameResolutionTest {
         val dArg = NamedArgument("d", IntLiteral(4))
 
         val anotherFunction = FunctionDeclaration(
-            "another", listOf(), IntType,
+            "another", listOf(), Int,
             Block(
                 listOf(
                     FunctionCall("main", listOf(
@@ -233,8 +233,8 @@ class NameResolutionTest {
 
     @Test
     fun `should get shadowed variable`() {
-        val outerDecl = ConstantDeclaration("var", IntType, IntLiteral(1))
-        val innerDecl = MutableVariableDeclaration("var", IntType, IntLiteral(2))
+        val outerDecl = ConstantDeclaration("var", Int, IntLiteral(1))
+        val innerDecl = MutableVariableDeclaration("var", Int, IntLiteral(2))
         val innerRef = VariableReference("var")
         val outerRef = VariableReference("var")
 
@@ -260,8 +260,8 @@ class NameResolutionTest {
     @Test
     fun `should detect if two arguments have the same name`() {
         val ast = FunctionDeclaration(
-            "main", listOf(Parameter("a", IntType), Parameter("a", IntType)),
-            IntType,
+            "main", listOf(Parameter("a", Int), Parameter("a", Int)),
+            Int,
             Block(emptyList())
         )
 
@@ -280,8 +280,8 @@ class NameResolutionTest {
     fun `should detect if two variables have the same name`() {
         val ast = Block(
             listOf(
-                MutableVariableDeclaration("a", IntType, IntLiteral(1)),
-                MutableVariableDeclaration("a", IntType, IntLiteral(2))
+                MutableVariableDeclaration("a", Int, IntLiteral(1)),
+                MutableVariableDeclaration("a", Int, IntLiteral(2))
             )
         )
 
@@ -313,8 +313,8 @@ class NameResolutionTest {
     @Test
     fun `should detect if two arguments of foreign function have the same name`() {
         val ast = ForeignFunctionDeclaration(
-            "main", listOf(Parameter("a", IntType), Parameter("a", IntType)),
-            IntType
+            "main", listOf(Parameter("a", Int), Parameter("a", Int)),
+            Int
         )
 
         val astInfo = AstInfo(ast, emptyMap())
@@ -331,13 +331,13 @@ class NameResolutionTest {
     @Test
     fun `should match foreign function to declarations`() {
         val call = FunctionCall("f", emptyList())
-        val decl = ForeignFunctionDeclaration("f", emptyList(), IntType)
+        val decl = ForeignFunctionDeclaration("f", emptyList(), Int)
 
         val program =
             Program(listOf(
                 decl,
                 FunctionDeclaration(
-                    "main", emptyList(), IntType,
+                    "main", emptyList(), Int,
                     Block(
                         listOf(
                             call

@@ -1,40 +1,41 @@
 package org.exeval.ast.valid.blocks
 
 import org.exeval.ast.*
+import org.exeval.ast.Int
 
 val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = Int,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "a",
-                        type = IntType,
+                        type = Int,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "b",
-                        type = IntType,
+                        type = Int,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "c",
-                        type = IntType,
+                        type = Int,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "d",
-                        type = IntType,
+                        type = Int,
                         initializer = null
                     ),
                     Block(
                         expressions = listOf(
                             MutableVariableDeclaration(
                                 name = "i",
-                                type = IntType,
+                                type = Int,
                                 initializer = VariableReference("a")
                             ),
                             Conditional(
@@ -68,7 +69,7 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                 expressions = listOf(
                                     MutableVariableDeclaration(
                                         name = "j",
-                                        type = IntType,
+                                        type = Int,
                                         initializer = VariableReference("a")
                                     ),
                                     Conditional(

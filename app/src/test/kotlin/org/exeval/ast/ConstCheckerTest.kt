@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.Test
 import org.exeval.ast.ConstChecker
 import org.exeval.ast.NameResolution
-import org.exeval.ast.IntType
+import org.exeval.ast.Int
 import org.exeval.ast.AstInfo
 import org.exeval.ast.Assignment
 import org.exeval.ast.IntLiteral
@@ -17,7 +17,7 @@ class ConstCheckerTest{
         //given
         val constChecker = ConstChecker()
         val ass1 = Assignment(VariableReference("a"), IntLiteral(1)) 
-        val dec1 = ConstantDeclaration("a", IntType, IntLiteral(2))
+        val dec1 = ConstantDeclaration("a", Int, IntLiteral(2))
         val nameResolution = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf(Pair(ass1, dec1)), mapOf())
         val loc1: Location = object : Location{ override var line = 1; override var idx = 1} 
         val loc2: Location = object : Location{ override var line = 2; override var idx = 1} 
@@ -37,7 +37,7 @@ class ConstCheckerTest{
         //given
         val constChecker = ConstChecker()
         val ass1 = Assignment(VariableReference("a"), IntLiteral(1)) 
-        val dec1 = MutableVariableDeclaration("a", IntType)
+        val dec1 = MutableVariableDeclaration("a", Int)
         val nameResolution = NameResolution(mapOf(), mapOf(), mapOf(), mapOf(), mapOf(Pair(ass1, dec1)), mapOf())
         val loc1: Location = object : Location{ override var line = 1; override var idx = 1} 
         val loc2: Location = object : Location{ override var line = 2; override var idx = 1} 

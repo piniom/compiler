@@ -1,26 +1,27 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
+import org.exeval.ast.Int
 
 val ARRAY_OF_ARRAY_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = Int,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
-                        type = ArrayType(
-                            elementType = ArrayType(
-                                elementType = IntType
+                        type = Array(
+                            elementType = Array(
+                                elementType = Int
                             )
                         ),
                         initializer = MemoryNew(
-                            type = ArrayType(
-                                elementType = ArrayType(
-                                    elementType = IntType
+                            type = Array(
+                                elementType = Array(
+                                    elementType = Int
                                 )
                             ),
                             constructorArguments = listOf(
@@ -34,8 +35,8 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(0),
                         ), 
                         MemoryNew(
-                            type = ArrayType(
-                                elementType = IntType
+                            type = Array(
+                                elementType = Int
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2))
@@ -48,8 +49,8 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(1),
                         ), 
                         MemoryNew(
-                            type = ArrayType(
-                                elementType = IntType
+                            type = Array(
+                                elementType = Int
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(3))

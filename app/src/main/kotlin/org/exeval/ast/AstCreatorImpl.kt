@@ -37,7 +37,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         } else if (symbol === SimpleFunctionDefinitionSymbol || symbol === BlockFunctionDefinitionSymbol) {
             var name: String? = null
             var parameters: List<Parameter> = listOf()
-            var returnType: Type? = null
+            var returnType: TypeNode? = null
             var body: Expr? = null
 
             var functionDeclaration: ParseTree<GrammarSymbol> = children[0]
@@ -64,7 +64,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = FunctionDeclaration(name!!, parameters, returnType!!, body)
         } else if (symbol === FunctionParamSymbol) {
             var name: String? = null
-            var type: Type? = null
+            var type: TypeNode? = null
 
             for (child in children) {
                 val childSymbol = getSymbol(child)
@@ -92,7 +92,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = NopeLiteral()
         } else if (symbol === VariableDeclarationSymbol) {
             var name: String? = null
-            var type: Type? = null
+            var type: TypeNode? = null
             var expression: Expr? = null
             for (child in children) {
                 val childSymbol = getSymbol(child)
@@ -108,7 +108,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = MutableVariableDeclaration(name!!, type!!, expression)
         } else if (symbol === ConstantDeclarationSymbol) {
             var name: String? = null
-            var type: Type? = null
+            var type: TypeNode? = null
             var expression: Expr? = null
             for (child in children) {
                 val childSymbol = getSymbol(child)
@@ -514,7 +514,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
     }
 
-    private fun getArrayType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+    private fun getArrayType(node: ParseTree<GrammarSymbol>, input: Input): TypeNode? {
         val children = when (node) {
             is Leaf -> listOf()
             is Branch -> node.children
@@ -528,18 +528,18 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
 
         return getType(children[typeChildIndex], input)
-            ?. let { ArrayType(it) }
+            ?. let { Array(it) }
     }
 
-    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): Type? {
+    private fun getType(node: ParseTree<GrammarSymbol>, input: Input): TypeNode? {
         if (getSymbol(node) != TypeSymbol) {
             return null
         }
 
         return when (getNodeText(node, input)) {
-            "Int" -> IntType
-            "Bool" -> BoolType
-            "Nope" -> NopeType
+            "Int" -> Int
+            "Bool" -> Bool
+            "Nope" -> Nope
             else -> getArrayType(node, input)
         }
     }

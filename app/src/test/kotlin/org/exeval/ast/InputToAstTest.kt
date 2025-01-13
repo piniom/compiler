@@ -59,7 +59,7 @@ class InputToAstTest {
         val functionNode = programNode.functions.first()
         assertEquals("main", functionNode.name)
         assertEquals(0, functionNode.parameters.size)
-        assertTrue(functionNode.returnType is IntType)
+        assertTrue(functionNode.returnType is Int)
 
         assertTrue(functionNode is FunctionDeclaration)
         assertTrue(functionNode.body is IntLiteral)

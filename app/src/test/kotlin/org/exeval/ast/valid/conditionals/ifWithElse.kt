@@ -1,18 +1,19 @@
 package org.exeval.ast.valid.conditionals
 
 import org.exeval.ast.*
+import org.exeval.ast.Int
 
 val CONDITIONALS_IF_WITH_ELSE_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = Int,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "y",
-                        type = IntType,
+                        type = Int,
                         initializer = Conditional(
                             condition = BinaryOperation(
                                 left = IntLiteral(5),
@@ -23,7 +24,7 @@ val CONDITIONALS_IF_WITH_ELSE_AST = Program(
                                 expressions = listOf(
                                     ConstantDeclaration(
                                         name = "a",
-                                        type = IntType,
+                                        type = Int,
                                         initializer = IntLiteral(10)
                                     ),
                                     BinaryOperation(
@@ -37,7 +38,7 @@ val CONDITIONALS_IF_WITH_ELSE_AST = Program(
                                 expressions = listOf(
                                     ConstantDeclaration(
                                         name = "b",
-                                        type = IntType,
+                                        type = Int,
                                         initializer = IntLiteral(20)
                                     ),
                                     BinaryOperation(

@@ -44,6 +44,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is MemoryNew -> getMemoryNewType(astNode)
             is MemoryDel -> getMemoryDelType(astNode)
             is ArrayAccess -> getArrayAccessType(astNode)
+            is StructFieldAccess -> getStructFieldAccessType(astNode)
 
             else -> addDiagnostic("Failed to find expression!", astNode)
         }
@@ -51,8 +52,67 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         return typeMap[astNode]
     }
 
+    private fun calculateFieldOffset(index: kotlin.Int): Long {
+        return 8L * index
+    }
+
+    private fun calculateStructSize(fields: Map<String, Field>): Long {
+        return 8L * fields.size
+    }
+
+    private fun convertTypeNodeToType(typeNode: org.exeval.ast.TypeNode): Type {
+        return when (typeNode) {
+            is Int -> IntType
+            is Bool -> BoolType
+            is Nope -> NopeType
+            is TypeUse -> getTypeUseType(typeNode)
+            else -> {NothingType}
+        }
+    }
+
+    private fun getTypeUseType(typeUse: TypeUse): Type {
+        val structDeclaration = nameResolutionResult.typeNameToDecl[typeUse]
+
+        if (structDeclaration == null) {
+            addDiagnostic("Unknown type", typeUse)
+            return NopeType
+        }
+
+        val fields = mutableMapOf<String, Field>()
+        structDeclaration.fields.withIndex().forEach { (index, field) ->
+            fields[field.name] = Field(
+                type = convertTypeNodeToType(field.type),
+                offset = calculateFieldOffset(index)
+            )
+        }
+
+        val size = calculateStructSize(fields)
+        return StructType(fields = fields, size = size)
+    }
+
+
+    private fun getStructFieldAccessType(fieldAccess: StructFieldAccess) {
+        val structType = innerParse(fieldAccess.structObject)
+
+        if (structType !is StructType) {
+            addDiagnostic("Cannot access field", fieldAccess.structObject)
+            typeMap[fieldAccess] = NopeType
+            return
+        }
+
+        val field = structType.fields[fieldAccess.field]
+        if (field == null) {
+            addDiagnostic("Struct type does not contain field", fieldAccess)
+            typeMap[fieldAccess] = NopeType
+            return
+        }
+
+        typeMap[fieldAccess] = field.type
+    }
+
+
     private fun getMemoryNewType(memoryNew: MemoryNew) {
-        if (memoryNew.type !is ArrayType) {
+        if (memoryNew.type !is Array) {
             addDiagnostic("Only Arrays are allowed with the new keyword", memoryNew)
         }
         if (memoryNew.constructorArguments.isEmpty()) {
@@ -66,7 +126,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Argument to new must be Int", memoryNew)
         }
 
-        typeMap[memoryNew] = memoryNew.type
+        typeMap[memoryNew] = convertTypeNodeToType(memoryNew.type)
     }
 
     private fun getMemoryDelType(memoryDel: MemoryDel) {
@@ -281,11 +341,11 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable declaration type", variableReference)
-                NopeType
+                Nope
             }
         }
 
-        typeMap[variableReference] = variableType
+        typeMap[variableReference] = convertTypeNodeToType(variableType)
     }
 
     private fun getAssignmentType(assignment: Assignment) {
@@ -304,13 +364,13 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)
-                NopeType
+                Nope
             }
         }
 
         val valueType = innerParse(assignment.value)
 
-        if (valueType != variableType) {
+        if (valueType != convertTypeNodeToType(variableType)) {
             addDiagnostic("Assignment type does not match variable type", assignment.value)
         }
 
@@ -324,11 +384,11 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
-        bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
+        bodyType?.let { typeMap[functionDeclaration] = convertTypeNodeToType(functionDeclaration.returnType) }
     }
 
     private fun getForeignFunctionDeclarationType(functionDeclaration: ForeignFunctionDeclaration) {
-        typeMap[functionDeclaration] = functionDeclaration.returnType
+        typeMap[functionDeclaration] = convertTypeNodeToType(functionDeclaration.returnType)
     }
 
     private fun getFunctionCallType(functionCall: FunctionCall) {
