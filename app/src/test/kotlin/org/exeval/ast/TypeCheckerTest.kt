@@ -32,7 +32,7 @@ class TypeCheckerTest {
         val result = typeChecker.parse()
 
         // Assertions
-        assertEquals(Int, result.result[intLiteral], "Expected IntLiteral type to be IntType")
+        assertEquals(IntType, result.result[intLiteral], "Expected IntLiteral type to be IntType")
         assertEquals(IntType, result.result[functionDeclaration], "Expected return type of function 'g' to be IntType")
         assertEquals(0, result.diagnostics.size, "Expected no diagnostics for a correctly typed function")
     }
@@ -71,11 +71,11 @@ class TypeCheckerTest {
 
         val result = TypeChecker(astInfo, nameResolution).parse()
 
-        assertEquals(type, result.result[memoryNew], "Expected type of memoryNew to be it's inner type")
+        assertEquals(ArrayType(IntType), result.result[memoryNew], "Expected type of memoryNew to be it's inner type")
         assertEquals(NopeType, result.result[declaration], "Expected type of declaration to be Nope")
-        assertEquals(type, result.result[reference1], "Expected type of reference to be type of it's declaration")
+        assertEquals(ArrayType(IntType), result.result[reference1], "Expected type of reference to be type of it's declaration")
         assertEquals(IntType, result.result[arrayAccess], "Expected type of ArrayAccess to be type the inner type of the Array")
-        assertEquals(type, result.result[reference2], "Expected type of reference to be type of it's declaration")
+        assertEquals(ArrayType(IntType), result.result[reference2], "Expected type of reference to be type of it's declaration")
         assertEquals(NopeType, result.result[memoryDel], "Expected type of MemoryDel to be Nope")
         assertTrue(result.diagnostics.isEmpty(), "Expected empty diagnostics")
     }

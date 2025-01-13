@@ -65,8 +65,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Int -> IntType
             is Bool -> BoolType
             is Nope -> NopeType
+            is Array -> ArrayType(convertTypeNodeToType(typeNode.elementType))
             is TypeUse -> getTypeUseType(typeNode)
-            else -> {NothingType}
         }
     }
 
@@ -313,7 +313,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getConstantDeclarationType(constantDeclaration: ConstantDeclaration) {
         val initializerType = innerParse(constantDeclaration.initializer)
 
-        if (initializerType != constantDeclaration.type) {
+        if (initializerType != convertTypeNodeToType(constantDeclaration.type)) {
             addDiagnostic("Initializer type does not match declared type", constantDeclaration.initializer)
         }
 
@@ -323,7 +323,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getMutableVariableDeclarationType(mutableVariableDeclaration: MutableVariableDeclaration) {
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
-        if (initializerType != null && initializerType != mutableVariableDeclaration.type) {
+        if (initializerType != null && initializerType != convertTypeNodeToType(mutableVariableDeclaration.type)) {
             addDiagnostic(
                 "Initializer type does not match declared type",
                 mutableVariableDeclaration.initializer ?: mutableVariableDeclaration
@@ -380,7 +380,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {
         val bodyType = innerParse(functionDeclaration.body)
 
-        if (bodyType != functionDeclaration.returnType) {
+        if (bodyType != convertTypeNodeToType(functionDeclaration.returnType)) {
             addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
