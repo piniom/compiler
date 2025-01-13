@@ -295,19 +295,9 @@ object ArrayIndexSymbol: GrammarSymbol {
 object ArrayAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			Token.IdentifierNontype,
-			ArrayIndexSymbol
-		),
-		listOf(
-			FunctionCallSymbol,
-			ArrayIndexSymbol
-		),
-		listOf(
-			Token.PunctuationLeftRoundBracket,
 			ExpressionSymbol,
-			Token.PunctuationRightRoundBracket,
 			ArrayIndexSymbol
-		)
+		),
 	)
 }
 
@@ -451,7 +441,6 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(VariableDeclarationSymbol),
 		listOf(ConstantDeclarationSymbol),
 		listOf(VariableAssignmentSymbol),
-		listOf(SimpleFunctionDefinitionSymbol),
 		listOf(FunctionCallSymbol),
 		listOf(IfSymbol),
 		listOf(LoopSymbol),
@@ -476,9 +465,15 @@ object ExpressionBlockSymbol: GrammarSymbol {
 	object ExpressionChainSymbol: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(SimpleExpressionSymbol),
+			listOf(SimpleFunctionDefinitionSymbol),
 			listOf(ExpressionBlockSymbol),
 			listOf(
 				SimpleExpressionSymbol,
+				Token.PunctuationSemicolon,
+				ExpressionChainSymbol,
+			),
+			listOf(
+				SimpleFunctionDefinitionSymbol,
 				Token.PunctuationSemicolon,
 				ExpressionChainSymbol,
 			),
@@ -506,6 +501,10 @@ object ExpressionBlockSymbol: GrammarSymbol {
 object ExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(SimpleExpressionSymbol),
+		listOf(
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationSemicolon,
+		),
 		listOf(ExpressionBlockSymbol),
 	)
 }
@@ -528,17 +527,7 @@ object HereAccess: GrammarSymbol {
 		listOf(
 			Token.KeywordHere,
 			Token.PunctuationDot,
-			StructAccessSymbol
-		),
-		listOf(
-			Token.KeywordHere,
-			Token.PunctuationDot,
 			Token.IdentifierNontype,
-		),
-		listOf(
-			Token.KeywordHere,
-			Token.PunctuationDot,
-			ArrayAccessSymbol
 		),
 	)
 }
@@ -546,75 +535,11 @@ object HereAccess: GrammarSymbol {
 object StructAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			StructAccessByArraySymbol
-		),
-		listOf(
-			StructAccessByFunctionCallSymbol
-		),
-		listOf(
-			StructAccessByIdentyfierNonTypeSymbol
+			ExpressionSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
 		),
 	)
-
-	object StructAccessByArraySymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-		)
-	}
-
-	object StructAccessByIdentyfierNonTypeSymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-		)
-	}
-
-	object StructAccessByFunctionCallSymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-		)
-	}
 }
 
 object StructDefinitionSymbol: GrammarSymbol {
@@ -688,20 +613,11 @@ object TopLevelStatementsDeclarationsSymbol: GrammarSymbol {
 			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
-			StructDefinitionBodyPropertySymbol,
+			StructDefinitionSymbol,
 			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
-			StructDefinitionBodyPropertySymbol,
-			Token.PunctuationSemicolon,
-			TopLevelStatementsDeclarationsSymbol,
-		),
-		listOf(
-			StructDefinitionBodyPropertySymbol,
-		),
-		listOf(
-			StructDefinitionBodyPropertySymbol,
-			Token.PunctuationSemicolon,
+			StructDefinitionSymbol,
 		),
 	)
 }
