@@ -38,6 +38,7 @@ import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 import org.exeval.utilities.interfaces.OperationResult
 import java.io.File
+import java.nio.file.Paths
 import java.io.IOException
 
 private val logger = KotlinLogging.logger {}
@@ -53,6 +54,16 @@ fun main(args: Array<String>) {
 
     val linkedLibraries = mutableListOf<String>()
     val linkedLibrariesDirs = mutableListOf<String>()
+    // Add stdlib .so files
+    val cwd = Paths.get("").toAbsolutePath().toString()
+    // For now assumes that cwd = .../compiler/app and includes from .../compiler/stdlib
+    val stdlibDir = File(cwd.replaceAfterLast("/", "stdlib"))
+    val stdlibs = stdlibDir.walk().filter { it.name.endsWith((".so")) }
+    linkedLibrariesDirs.add(stdlibDir.absolutePath)
+    for(file in stdlibs) {
+        linkedLibraries.add(file.name)
+    }
+
     var i=1;
     while (i<args.size-1) {
         if(args[i] == "-l") {
