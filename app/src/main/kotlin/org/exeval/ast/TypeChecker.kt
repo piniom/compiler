@@ -325,6 +325,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         }
 
         bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
+        typeMap[functionDeclaration] = functionDeclaration.returnType
     }
 
     private fun getForeignFunctionDeclarationType(functionDeclaration: ForeignFunctionDeclaration) {

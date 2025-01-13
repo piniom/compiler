@@ -38,6 +38,7 @@ class usageAnalysis{
         return nameResolution.assignmentToDecl[v]!!
     }
     private fun generateUsageAnalysis(node:Expr){
+        println("Analyzing usage in $node")
         if(!analysis.containsKey(node)){
             analysis[node] = Pair(mutableSetOf(),mutableSetOf())
         }

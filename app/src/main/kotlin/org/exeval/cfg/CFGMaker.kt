@@ -79,6 +79,12 @@ class CFGMaker(
         if (bin.operator == BinaryOperator.AND || bin.operator == BinaryOperator.OR) {
             return walkLogicalExpressionShortCircuit(bin, then)
         }
+        if (varUsage[bin.left] == null) {
+            println("problematic expression (left): ${bin.left}, ${bin.operator}")
+        }
+        if (varUsage[bin.left] == null) {
+            println("problematic expression (right): ${bin.right}, ${bin.operator}")
+        }
         val leftUsage = varUsage[bin.left]!!
         val rightUsage = varUsage[bin.right]!!
         if (leftUsage.conflicts(rightUsage)) {
@@ -136,11 +142,19 @@ class CFGMaker(
 
         val saveElse = Node(then)
         val elseBranch = walkExpr(conditional.elseBranch, saveElse)
-        saveElse.trees = listOf(CFGAssignment(reg, elseBranch.tree!!))
+        saveElse.trees = if (elseBranch.tree != null) {
+            listOf(CFGAssignment(reg, elseBranch.tree!!))
+        } else {
+            listOf()
+        }
 
         val saveThen = Node(then)
         val thenBranch = walkExpr(conditional.thenBranch, saveThen)
-        saveThen.trees = listOf(CFGAssignment(reg, thenBranch.tree!!))
+        saveElse.trees = if (thenBranch.tree != null) { // TODO: watch out - this is null when branch only contains break - check if this is intended
+            listOf(CFGAssignment(reg, thenBranch.tree!!))
+        } else {
+            listOf()
+        }
 
         return WalkResult(
             walkShortCircuit(conditional.condition, thenBranch.top, elseBranch.top),
