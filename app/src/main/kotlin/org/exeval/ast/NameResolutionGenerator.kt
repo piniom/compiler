@@ -6,8 +6,13 @@ import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
 /*
-WARNING: the current solution to the HereRef() problem in Assignment is a hotfix to ensure this generator works
-If no connection is required, then it will work, but consider making HereReference a struct-specific AnyVariable
+WARNING: there is no AnyVariable to Associate a HereReference to in Assignment.
+This means that AssignmentToDeclaration will not contain Assignments to HereReference, as well as its StructFieldAccess
+If this is fine, then nothing needs to be done. If you want then associated, you need to:
+1. add AnyVariable `Here` to StructTypeDeclaration
+2. remove `if(variableName != consts.hereRef) {` in getAssignmentType
+3. add `addDecl(consts.hereRef,{Struct's `Here` AnyVariable})` before `processNode(struct.constructorMethod)`
+note that consts.hereRef contains an illegal symbol, therefore there should be no conflicts
 */
 
 class NameResolutionGenerator(private val astInfo: AstInfo) {
@@ -99,7 +104,6 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             addDuplicateMemberError(struct)
             return
         }
-        addDecl(struct.name,struct)
         processAsBlock{
             struct.fields.forEach{
                 processNode(it)
@@ -507,13 +511,13 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         addDiagnostic("Cannot use the same identifier in nessted loop.", loop)
     }
     private fun addDuplicateMemberError(struct: StructTypeDeclaration){
-        addDiagnostic("Member names have to be unique",struct)
+        addDiagnostic("Member names have to be unique.",struct)
     }
     private fun addStructRedefinitionError(struct: StructTypeDeclaration){
-        addDiagnostic("struct of this name already exists in scope",struct)
+        addDiagnostic("struct of this name already exists in scope.",struct)
     }
     private fun addUnknownStructError(using: ASTNode){
-        addDiagnostic("name of referenced type unknown",using)
+        addDiagnostic("Name of referenced type unknown.",using)
     }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {

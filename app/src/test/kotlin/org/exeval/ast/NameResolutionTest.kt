@@ -387,14 +387,18 @@ class NameResolutionTest {
         val b_ref = VariableReference("b")
         val c_param = Parameter("c",IntType)
         val c_ref = VariableReference("c")
+        val a_decl = MutableVariableDeclaration("a", IntType)
+        val a_mem_ref = VariableReference("a")
+        val a_ass = Assignment(a_mem_ref,b_ref)
         val decl = StructTypeDeclaration(
             "A",
             listOf(
-                MutableVariableDeclaration("a", IntType)
+                a_decl
             ),
             ConstructorDeclaration(listOf(c_param),Block(listOf(
                 Assignment(StructFieldAccess(HereReference(),"a"), b_ref),
-                Assignment(StructFieldAccess(HereReference(),"a"), c_ref)
+                Assignment(StructFieldAccess(HereReference(),"a"), c_ref),
+                a_ass
             )))
         )
         val ast = Block(listOf(b_decl,decl))
@@ -402,6 +406,7 @@ class NameResolutionTest {
         assert(result.diagnostics.size==0)
         assert(result.result.variableToDecl[b_ref]!! == b_decl)
         assert(result.result.variableToDecl[c_ref]!! == c_param)
+        assert(result.result.assignmentToDecl[a_ass]!! == a_decl)
     }
 
     @Test
@@ -436,4 +441,5 @@ class NameResolutionTest {
         //expect 2 errors - duplicate member and definition
         assert(result.diagnostics.size == 2)
     }
+
 }
