@@ -1,6 +1,6 @@
-foreign fun add(x: Int, y: Int, z: Int) -> Int
+foreign foo add(x: Int, y: Int, z: Int) -> Int
 
-fun main() -> Int{
+foo main() -> Int{
     add(1, 2)
     add(1, 2, 3, 4)
     add(a=1, b=2, c=3)

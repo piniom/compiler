@@ -65,7 +65,7 @@ class StepDefs {
     fun prepareAndRunLexerAndParser() {
         prepareAndRunLexer()
 
-        if (lexerOutput.diagnostics.isNotEmpty()) {
+        if (!::lexerOutput.isInitialized || lexerOutput.diagnostics.isNotEmpty()) {
             return
         }
 
@@ -83,6 +83,7 @@ class StepDefs {
 
     @When("source code is passed through name resolution")
     fun prepareAndRunNameResolution() {
+        prepareAndRunLexerAndParser()
         if (!::astInfo.isInitialized || parserOutput.diagnostics.isNotEmpty()) {
             return
         }
@@ -93,7 +94,7 @@ class StepDefs {
     @When("source code is passed through const checker")
     fun prepareAndRunConstChecker() {
         prepareAndRunNameResolution()
-        if (nameResolutionOutput.diagnostics.isNotEmpty()) {
+        if (!::nameResolutionOutput.isInitialized || nameResolutionOutput.diagnostics.isNotEmpty()) {
             return
         }
 
@@ -103,7 +104,7 @@ class StepDefs {
     @When("source code is passed through type checker")
     fun prepareAndRunTypeChecker() {
         prepareAndRunConstChecker()
-        if (nameResolutionOutput.diagnostics.isNotEmpty() || constCheckerOutput.isNotEmpty()) {
+        if (!::constCheckerOutput.isInitialized || nameResolutionOutput.diagnostics.isNotEmpty() || constCheckerOutput.isNotEmpty()) {
             return
         }
 
@@ -113,7 +114,7 @@ class StepDefs {
     @When("source code is compiled to asm")
     fun prepareAndRunCodeGenerator() {
         prepareAndRunTypeChecker()
-        if (typeCheckerOutput.diagnostics.isNotEmpty()) {
+        if (!::typeCheckerOutput.isInitialized || typeCheckerOutput.diagnostics.isNotEmpty()) {
             return
         }
 

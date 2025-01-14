@@ -1,6 +1,6 @@
-foreign fun get_zero() -> Int
-foreign fun get_zero() -> Int
+foreign foo get_zero() -> Int
+foreign foo get_zero() -> Int
 
-fun main() -> Int {
+foo main() -> Int {
     get_zero() 
 }
