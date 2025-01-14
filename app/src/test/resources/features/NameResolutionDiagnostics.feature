@@ -46,13 +46,6 @@ Feature: Name Resolution diagnostics
       | invalid/foonctions/assigningToFunction.exe                | "Trying to use something that is not a variable in a variable use context." | 3    | 5      | 3       | 11        |
       | invalid/foonctions/passingFunctionToAnotherFunction.exe   | "Trying to use something that is not a variable in a variable use context." | 3    | 7      | 3       | 8         |
 
-
-    #TODO: there is no test and check for two arguments that has same name:
-    # foo f(a: Int, a: Int)
-
-    #TODO: there is no check of using unitililized variable
-
-
   @loops
   Scenario Outline: Invalid loops do cause name resolution errors
     Given ExEval source code file "<sourceFile>"
@@ -63,9 +56,3 @@ Feature: Name Resolution diagnostics
       | invalid/loops/BreakLoopOutsideOfLoop.exe  | "Break statement must be inside a loop."               | 2    | 5      | 2       | 13        |
       | invalid/loops/BreakLoopOutsideOfRange.exe | "Break use not existing loop identifier (firstLoop)."  | 8    | 9      | 8       | 27        |
       | invalid/loops/UnknownLoopLabel.exe        | "Break use not existing loop identifier (secondLoop)." | 3    | 9      | 3       | 28        |
-
-
-# TODO: MultipleLoopsWithSameLabel - should that be an error??
-# TODO: RedefiningVariable - there is no check
-
-

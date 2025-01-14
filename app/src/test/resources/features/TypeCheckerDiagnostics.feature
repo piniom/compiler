@@ -24,8 +24,6 @@ Feature: Type Checker diagnostics
       | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe   | "Then and else branches must have the same type" | 2    | 5      | 2       | 27        |
       | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe   | "Condition expression must be Bool"              | 4    | 8      | 4       | 18         |
 
-    #TODO: there is no check if "if" without "else" is returning Nope
-
   @conditionals
   Scenario: Invalid conditionals using various features do cause type checker errors
     Given ExEval source code file "invalid/conditionals/mismachedTypesInNestedConditionals.exe"
@@ -75,8 +73,6 @@ Feature: Type Checker diagnostics
       | Operand is NopeType!                                 | 6    | 5      | 6       | 9         |
       | Operator and operand must both be the same type      | 7    | 5      | 7       | 7         |
 
-
-    #TODO: InconsistientBreakLoopType.exe - there is no check for that
 
   @separator
   Scenario Outline: Invalid separator do cause type checker errors

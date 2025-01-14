@@ -10,7 +10,6 @@ Feature: Parser without errors on invalid programs
     Examples:
       | sourceFile                    |
       | invalid/blocks/outofscope.exe |
-     # | invalid/blocks/unclosed_braces.exe |
       | invalid/blocks/wrong_type.exe |
 
   @comments
@@ -34,8 +33,6 @@ Feature: Parser without errors on invalid programs
       | invalid/conditionals/conditionNotBoolType.exe                  |
       | invalid/conditionals/ifWithoutElseEvaluateToInt.exe            |
       | invalid/conditionals/incorrectVariableScopeInThenBlock.exe     |
-    #  | invalid/conditionals/lackingConditionalExpression.exe          |
-     # | invalid/conditionals/lackingThen.exe                           |
       | invalid/conditionals/mismachedTypesInNestedConditionals.exe    |
       | invalid/conditionals/mismachedTypesUsingNestedConditionals.exe |
       | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe   |
@@ -53,22 +50,9 @@ Feature: Parser without errors on invalid programs
       | invalid/foonctions/badNumberOfArguments.exe               |
       | invalid/foonctions/duplicatedNamedArgument.exe            |
       | invalid/foonctions/duplicatedNamedArgumentTooManyArgs.exe |
-      #| invalid/foonctions/functionNoBrackets.exe                 |
       | invalid/foonctions/incompatibleReturnType.exe             |
-      #| invalid/foonctions/noReturnType.exe                       |
       | invalid/foonctions/undefFunctionCall.exe                  |
       | invalid/foonctions/variableAndFunctionSameNames.exe       |
-#
-#  @identifiers
-#  Scenario Outline: Invalid identifiers do not cause parser errors
-#    Given ExEval source code file "<sourceFile>"
-#    When source code is passed through parser
-#    Then no errors are returned
-#    Examples:
-#      | sourceFile |
-#      #| invalid/identifiers/functions.exe |
-#     # | invalid/identifiers/variables.exe |
-#     # | invalid/identifiers/types.exe     |
 
   @loops
   Scenario Outline: Invalid loops do not cause parser errors
@@ -103,13 +87,8 @@ Feature: Parser without errors on invalid programs
     Examples:
       | sourceFile                                       |
       | invalid/variables/ChangingConstant.exe           |
-      #| invalid/variables/NotInitializingConstant.exe    |
-      #| invalid/variables/NoTypeInferenceForNow.exe      |
-     # | invalid/variables/NoVariableKeyword.exe          |
-      #| invalid/variables/NoVariableName.exe             |
       | invalid/variables/RedefiningConstantVariable.exe |
       | invalid/variables/RedefiningMutableVariable.exe  |
-      #| invalid/variables/WrongKeywordsForVariables.exe  |
 
   @various
   Scenario Outline: Invalid programs using various features do not cause parser errors
@@ -120,7 +99,3 @@ Feature: Parser without errors on invalid programs
       | sourceFile                            |
       | invalid/various/FooToLet.exe          |
       | invalid/various/KnownReturnedType.exe |
-      #| invalid/various/Parantheses.exe             |
-      #| invalid/various/Random.exe                  |
-      #| invalid/various/Reserved.exe                |
-      #| invalid/various/ReservedLoopIdentifiers.exe |

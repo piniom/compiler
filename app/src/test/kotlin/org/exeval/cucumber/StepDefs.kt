@@ -83,7 +83,7 @@ class StepDefs {
 
     @When("source code is passed through name resolution")
     fun prepareAndRunNameResolution() {
-        if (!::astInfo.isInitialized) {
+        if (!::astInfo.isInitialized || parserOutput.diagnostics.isNotEmpty()) {
             return
         }
 
@@ -93,7 +93,7 @@ class StepDefs {
     @When("source code is passed through const checker")
     fun prepareAndRunConstChecker() {
         prepareAndRunNameResolution()
-        if (!::nameResolutionOutput.isInitialized) {
+        if (nameResolutionOutput.diagnostics.isNotEmpty()) {
             return
         }
 
@@ -103,7 +103,7 @@ class StepDefs {
     @When("source code is passed through type checker")
     fun prepareAndRunTypeChecker() {
         prepareAndRunConstChecker()
-        if (!::nameResolutionOutput.isInitialized || constCheckerOutput.isNotEmpty()) {
+        if (nameResolutionOutput.diagnostics.isNotEmpty() || constCheckerOutput.isNotEmpty()) {
             return
         }
 
@@ -113,7 +113,7 @@ class StepDefs {
     @When("source code is compiled to asm")
     fun prepareAndRunCodeGenerator() {
         prepareAndRunTypeChecker()
-        if (!::typeCheckerOutput.isInitialized) {
+        if (typeCheckerOutput.diagnostics.isNotEmpty()) {
             return
         }
 
@@ -210,6 +210,16 @@ class StepDefs {
         if (::parserOutput.isInitialized) {
             result.addAll(parserOutput.diagnostics)
         }
+        if (::nameResolutionOutput.isInitialized) {
+            result.addAll(nameResolutionOutput.diagnostics)
+        }
+        if (::constCheckerOutput.isInitialized) {
+            result.addAll(constCheckerOutput)
+        }
+        if (::typeCheckerOutput.isInitialized) {
+            result.addAll(typeCheckerOutput.diagnostics)
+        }
+
         return result
     }
 
@@ -288,6 +298,5 @@ class StepDefs {
             frameManagers + foreignCallManagers
         ).makeCfg(it)
     }
-
 
 }
