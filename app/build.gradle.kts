@@ -55,19 +55,19 @@ application {
     mainClass = "org.exeval.AppKt"
 }
 
-//tasks.named<Test>("test") {
-//    // Use JUnit Platform for unit tests.
-//    useJUnitPlatform()
-//
-//    testLogging {
-//        if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
-//            events("passed", "failed", "skipped")
-//        }
-//        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-//    }
-//
-//    finalizedBy("cucumberTest")
-//}
+tasks.named<Test>("test") {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+
+    testLogging {
+        if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
+            events("passed", "failed", "skipped")
+        }
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
+    finalizedBy("cucumberTest")
+}
 
 sourceSets["main"].java {
     srcDir("build/generated/out/kotlin")
@@ -78,9 +78,9 @@ configurations.register("cucumberRuntime") {
 }
 
 tasks.register<Test>("cucumberTest") {
-//    onlyIf {
-//        tasks.named("test").get().state.failure == null
-//    }
+    onlyIf {
+        tasks.named("test").get().state.failure == null
+    }
     group = "verification"
     description = "Runs compiler flow tests on example programs."
     dependsOn("assemble", "testClasses")
