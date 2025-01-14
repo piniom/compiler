@@ -37,8 +37,8 @@ Feature: Compiler without errors
 		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
-			| sourceFile                              |
-			| valid/comments/mixingComments.exe      |
+			| sourceFile                            |
+			| valid/comments/mixingComments.exe     |
 			| valid/comments/multiLineComments.exe  |
 			| valid/comments/singleLineComments.exe |
 

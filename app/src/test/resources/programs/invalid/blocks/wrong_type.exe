@@ -5,4 +5,5 @@ foo main() -> Int = {
     let m: Int = {
         a>b;
     };
+    0
 }

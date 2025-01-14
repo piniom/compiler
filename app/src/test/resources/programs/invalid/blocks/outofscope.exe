@@ -13,4 +13,5 @@ foo main() -> Int = {
         c=i;
     };
     d=i+1;
+    0
 }

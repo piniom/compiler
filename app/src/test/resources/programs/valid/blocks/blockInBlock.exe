@@ -20,4 +20,5 @@ foo main() -> Int = {
             d=i
         }
     }
+    0
 }

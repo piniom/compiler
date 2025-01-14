@@ -9,4 +9,5 @@ foo main() -> Int = {
             b
         }
     }
+    0
 }

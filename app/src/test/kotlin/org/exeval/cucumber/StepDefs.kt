@@ -40,7 +40,7 @@ private val logger = KotlinLogging.logger {}
 class StepDefs {
     private lateinit var sourceCode: Input
     private lateinit var lexerOutput: OperationResult<List<LexerToken>>
-    private lateinit var parserOutput: OperationResult<ParseTree<GrammarSymbol>?>
+    private lateinit var parserDiagnostic: Diagnostics
     private lateinit var astInfo: AstInfo
     private lateinit var nameResolutionOutput: OperationResult<NameResolution>
     private lateinit var typeCheckerOutput: OperationResult<TypeMap>
@@ -72,11 +72,9 @@ class StepDefs {
         try {
             val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
             val output = buildParser().run(leaves)
-            parserOutput = OperationResult(output, listOf())
             astInfo = AstCreatorImpl().create(output, sourceCode)
         } catch (e: ParseError) {
-            val diagnostics = SimpleDiagnostics(e.message, e.startErrorLocation, e.endErrorLocation)
-            parserOutput = OperationResult(null, listOf(diagnostics))
+            parserDiagnostic = SimpleDiagnostics(e.message, e.startErrorLocation, e.endErrorLocation)
         }
 
     }
@@ -84,7 +82,7 @@ class StepDefs {
     @When("source code is passed through name resolution")
     fun prepareAndRunNameResolution() {
         prepareAndRunLexerAndParser()
-        if (!::astInfo.isInitialized || parserOutput.diagnostics.isNotEmpty()) {
+        if (!::astInfo.isInitialized || ::parserDiagnostic.isInitialized ) {
             return
         }
 
@@ -208,8 +206,8 @@ class StepDefs {
         if (::lexerOutput.isInitialized) {
             result.addAll(lexerOutput.diagnostics)
         }
-        if (::parserOutput.isInitialized) {
-            result.addAll(parserOutput.diagnostics)
+        if (::parserDiagnostic.isInitialized) {
+            result.add(parserDiagnostic)
         }
         if (::nameResolutionOutput.isInitialized) {
             result.addAll(nameResolutionOutput.diagnostics)
