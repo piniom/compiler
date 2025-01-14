@@ -985,7 +985,7 @@ class TypeCheckerTest {
         val structDeclaration = StructTypeDeclaration(
             name = "S",
             fields = listOf(xField, yField),
-            constructorMethod = ConstructorDeclaration(emptyList(), Block(emptyList()))
+            constructorMethod = ConstructorDeclaration(emptyList(), Block(listOf(IntLiteral(2))))
         )
 
         // Mock NameResolution
