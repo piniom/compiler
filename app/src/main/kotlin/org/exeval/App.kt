@@ -19,7 +19,6 @@ import org.exeval.instructions.InstructionCoverer
 import org.exeval.instructions.InstructionSetCreator
 import org.exeval.instructions.LivenessCheckerImpl
 import org.exeval.instructions.RegisterAllocatorImpl
-import org.exeval.instructions.interfaces.LivenessResult
 import org.exeval.instructions.linearizer.BasicBlock
 import org.exeval.instructions.linearizer.Linearizer
 import org.exeval.lexer.DFAmin
@@ -29,7 +28,7 @@ import org.exeval.lexer.NFAParserImpl
 import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
-import org.exeval.parser.Parser
+import org.exeval.parser.parser.Parser
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.parser.utilities.GrammarAnalyser
@@ -38,7 +37,6 @@ import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 import org.exeval.utilities.interfaces.OperationResult
 import java.io.File
-import java.io.IOException
 
 private val logger = KotlinLogging.logger {}
 

@@ -2,6 +2,8 @@ package org.exeval.parser
 
 import org.exeval.input.interfaces.Location
 import org.exeval.parser.interfaces.ParseTree
+import org.exeval.parser.parser.ParseError
+import org.exeval.parser.parser.Parser
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals

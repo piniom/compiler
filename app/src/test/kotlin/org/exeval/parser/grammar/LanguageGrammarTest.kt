@@ -1,11 +1,7 @@
 package org.exeval.parser.grammar
 
-import org.exeval.parser.Parser
+import org.exeval.parser.parser.Parser
 import org.exeval.parser.Production
-import org.exeval.parser.grammar.GrammarSymbol
-import org.exeval.parser.grammar.LanguageGrammar
-import org.exeval.parser.grammar.Terminal
-import org.exeval.parser.grammar.TerminalGroup
 import org.exeval.parser.utilities.GrammarAnalyser
 
 import org.junit.jupiter.api.Assertions.*
@@ -17,7 +13,7 @@ class LanguageGrammarTest {
 	}
 
 	object TestGroup: TerminalGroup {
-		override fun values() = TestTerminals.values().toList()
+		override fun values() = TestTerminals.entries
 	}
 
 	object SymbolA: GrammarSymbol {
@@ -146,6 +142,6 @@ class LanguageGrammarTest {
 		val grammar = LanguageGrammar.grammar
 		val analyzedGrammar = GrammarAnalyser().analyseGrammar(grammar)
 
-		assertDoesNotThrow({ Parser(analyzedGrammar) })
+		assertDoesNotThrow{ Parser(analyzedGrammar) }
 	}
 }

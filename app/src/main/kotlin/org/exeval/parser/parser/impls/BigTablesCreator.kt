@@ -1,38 +1,37 @@
-package org.exeval.parser.utilities
+package org.exeval.parser.parser.impls
 
 import org.exeval.parser.AnalyzedGrammar
-import org.exeval.parser.Parser
-import org.exeval.parser.Parser.Action
-import org.exeval.parser.Parser.Tables
 import org.exeval.parser.Production
-import java.util.LinkedList
-import java.util.Queue
+import org.exeval.parser.parser.TablesCreator
+import org.exeval.parser.parser.TablesCreator.Action
+import org.exeval.parser.parser.TablesCreator.Tables
+import java.util.*
 
-class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
+class BigTablesCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) : TablesCreator<S, RealState<S>> {
     private val productionMap: Map<S, Set<Production<S>>> = analyzedGrammar.grammar.productions.groupBy { prod ->
         prod.left
     }.mapValues { (_, productions) ->
         productions.toSet()
     }
-    val tables: Tables<S, Parser.State<S>>
+    override val tables: Tables<S, RealState<S>>
 
     init {
         val startingState = getStartingState()
 
         val statesGotoPair = getAllStatesAndOldGoto(startingState)
-        val allStates: Set<Parser.State<S>> = statesGotoPair.first
-        val oldGoto: Map<Pair<S, Parser.State<S>>, Parser.State<S>> = statesGotoPair.second
+        val allStates: Set<RealState<S>> = statesGotoPair.first
+        val oldGoto: Map<Pair<S, RealState<S>>, RealState<S>> = statesGotoPair.second
 
         val actions = getActions(allStates, oldGoto)
         val tableGoto = getTableGoto(allStates, oldGoto)
 
-        tables = Tables<S, Parser.State<S>>(startingState, actions, tableGoto)
+        tables = Tables(startingState, actions, tableGoto)
     }
 
     private fun getTableGoto(
-        allStates: Set<Parser.State<S>>, oldGoto: Map<Pair<S, Parser.State<S>>, Parser.State<S>>
-    ): Map<Pair<S, Parser.State<S>>, Parser.State<S>> {
-        val tableGoto = mutableMapOf<Pair<S, Parser.State<S>>, Parser.State<S>>()
+        allStates: Set<RealState<S>>, oldGoto: Map<Pair<S, RealState<S>>, RealState<S>>
+    ): Map<Pair<S, RealState<S>>, RealState<S>> {
+        val tableGoto = mutableMapOf<Pair<S, RealState<S>>, RealState<S>>()
         for (curCC in allStates) {
             for (nonTerminal in productionMap.keys) {
                 val oldGotoState = oldGoto[nonTerminal to curCC] ?: continue
@@ -45,9 +44,9 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
     }
 
     private fun getActions(
-        allStates: Set<Parser.State<S>>, oldGoto: Map<Pair<S, Parser.State<S>>, Parser.State<S>>
-    ): Map<Pair<S, Parser.State<S>>, Action<S, Parser.State<S>>> {
-        val actions = mutableMapOf<Pair<S, Parser.State<S>>, Action<S, Parser.State<S>>>()
+        allStates: Set<RealState<S>>, oldGoto: Map<Pair<S, RealState<S>>, RealState<S>>
+    ): Map<Pair<S, RealState<S>>, Action<S, RealState<S>>> {
+        val actions = mutableMapOf<Pair<S, RealState<S>>, Action<S, RealState<S>>>()
 
         for (curCC in allStates) {
             for (item in curCC.items) {
@@ -63,7 +62,7 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
 
                         val nextCC = oldGoto[placeholderSymbol to curCC]!!
                         val oldVal = actions[placeholderSymbol to curCC]
-                        val newVal = Action.Shift<S, Parser.State<S>>(nextCC)
+                        val newVal = Action.Shift<S, RealState<S>>(nextCC)
 
                         if (oldVal != null && oldVal != newVal && oldVal !is Action.Reduce) {
                             throw TableCreationError("There is conflict in an action table. Grammar is probably ambiguous. Entry actions[${placeholderSymbol}, $curCC] have two values: $oldVal and $newVal")
@@ -72,12 +71,12 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
                     }
 
                     isAtTheEndOfProduction && isFromStartSymbol && isLookaheadEndOfParse -> {
-                        actions[item.lookahead to curCC] = Action.Accept<S, Parser.State<S>>()
+                        actions[item.lookahead to curCC] = Action.Accept()
                     }
 
                     isAtTheEndOfProduction && isLookaheadTerminal -> {
                         val oldVal = actions[item.lookahead to curCC]
-                        val newVal = Action.Reduce<S, Parser.State<S>>(item.production)
+                        val newVal = Action.Reduce<S, RealState<S>>(item.production)
 
                         if (oldVal != null && oldVal is Action.Shift<*, *>) {
                             continue
@@ -93,22 +92,22 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
         return actions
     }
 
-    private fun getStartingState(): Parser.State<S> {
+    private fun getStartingState(): RealState<S> {
         val allStartingProductions = productionMap[analyzedGrammar.grammar.startSymbol]
             ?: throw IllegalStateException("No productions for start symbol")
 
         val startingState =
-            allStartingProductions.map { prod -> Parser.LR1Item<S>(prod, 0, analyzedGrammar.grammar.endOfParse) }
-                .toSet().let { Parser.State(it) }.getClosure()
+            allStartingProductions.map { prod -> RealState.LR1Item(prod, 0, analyzedGrammar.grammar.endOfParse) }
+                .toSet().let { RealState(it) }.getClosure()
 
         return startingState
     }
 
-    private fun getAllStatesAndOldGoto(startingState: Parser.State<S>): Pair<Set<Parser.State<S>>, Map<Pair<S, Parser.State<S>>, Parser.State<S>>> {
-        val allStates: MutableSet<Parser.State<S>> = mutableSetOf()
-        val oldGoto = mutableMapOf<Pair<S, Parser.State<S>>, Parser.State<S>>()
+    private fun getAllStatesAndOldGoto(startingState: RealState<S>): Pair<Set<RealState<S>>, Map<Pair<S, RealState<S>>, RealState<S>>> {
+        val allStates: MutableSet<RealState<S>> = mutableSetOf()
+        val oldGoto = mutableMapOf<Pair<S, RealState<S>>, RealState<S>>()
 
-        val queue: Queue<Parser.State<S>> = LinkedList()
+        val queue: Queue<RealState<S>> = LinkedList()
         allStates.add(startingState)
         queue.add(startingState)
 
@@ -142,9 +141,9 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
         return ans
     }
 
-    private fun Parser.State<S>.getClosure(
-    ): Parser.State<S> {
-        val queue: Queue<Parser.LR1Item<S>> = LinkedList(this.items.toList())
+    private fun RealState<S>.getClosure(
+    ): RealState<S> {
+        val queue: Queue<RealState.LR1Item<S>> = LinkedList(this.items.toList())
         val resItems = this.items.toMutableSet()
         while (queue.isNotEmpty()) {
             val item = queue.remove()
@@ -162,20 +161,20 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
             for (production in productionsForSymbol) {
                 for (terminal in lookaheadString.getFIRST()) {
                     if (resItems.add(
-                            Parser.LR1Item<S>(
+                            RealState.LR1Item(
                                 production, 0, terminal
                             )
                         )
-                    ) queue.add(Parser.LR1Item<S>(production, 0, terminal))
+                    ) queue.add(RealState.LR1Item(production, 0, terminal))
                 }
             }
         }
 
-        return Parser.State(resItems)
+        return RealState(resItems)
     }
 
-    private fun getGoto(state: Parser.State<S>, symbol: S): Parser.State<S> {
-        val res = mutableSetOf<Parser.LR1Item<S>>()
+    private fun getGoto(state: RealState<S>, symbol: S): RealState<S> {
+        val res = mutableSetOf<RealState.LR1Item<S>>()
         for (item in state.items) {
             // checking if we have wrong symbol or are at the end of production
             if (item.production.right.getOrNull(item.placeholder) != symbol) continue
@@ -183,7 +182,7 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
             res.add(item.copy(placeholder = item.placeholder + 1))
         }
 
-        return Parser.State(res).getClosure()
+        return RealState(res).getClosure()
     }
 }
 
