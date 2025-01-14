@@ -6,6 +6,6 @@ foo main() -> Int = {
             x = x + 1
         }
         else
-            break x;
+            break x
     }
 }

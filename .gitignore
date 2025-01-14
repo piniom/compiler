@@ -9,3 +9,7 @@ build
 
 # Ignore vscode local data
 .vscode
+
+kls_database.db
+
+app/bin

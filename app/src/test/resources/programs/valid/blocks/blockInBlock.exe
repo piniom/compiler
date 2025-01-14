@@ -7,17 +7,17 @@ foo main() -> Int = {
     {
         let mut i: Int = a;
         if(b>i)then{
-            i=b;
+            i=b
         }
         i=i+1;
         c=i;      
         {
             let mut j: Int = a;
             if(b>j)then{
-                j=b;
+                j=b
             }
             i=j+1;
-            d=i;
-        };
-    };
+            d=i
+        }
+    }
 }

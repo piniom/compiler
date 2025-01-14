@@ -24,6 +24,7 @@ dependencies {
 
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.junit.jupiter.params)
 
     // MockK for mocking
     testImplementation(libs.io.mockk)
@@ -45,7 +46,7 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(22)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 
@@ -57,6 +58,14 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+
+    testLogging {
+        if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
+            events("passed", "failed", "skipped")
+        }
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
     finalizedBy("cucumberTest")
 }
 
@@ -68,23 +77,74 @@ configurations.register("cucumberRuntime") {
     extendsFrom(configurations["testImplementation"])
 }
 
-tasks.register("cucumberTest") {
+tasks.register<Test>("cucumberTest") {
+    onlyIf {
+        tasks.named("test").get().state.failure == null
+    }
     group = "verification"
     description = "Runs compiler flow tests on example programs."
     dependsOn("assemble", "testClasses")
-    var tags = "not @notImplemented"
-    if (project.hasProperty("cucumberTags")) {
-        tags = project.property("cucumberTags") as String
-    }
+    val tagsProperty = PropertyCucumberTags(project)
+    val tags = if (tagsProperty.isSet) tagsProperty.value else "not @notImplemented"
     doLast {
         javaexec {
             mainClass = "io.cucumber.core.cli.Main"
             classpath = configurations["cucumberRuntime"] + sourceSets["main"].output + sourceSets["test"].output
             args = listOf(
-                "--plugin", "pretty",
+                "--plugin",
+                if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
+                    "pretty"
+                }
+                else {
+                    "summary"
+                },
                 "--plugin", "html:build/reports/cucumber-report.html",
                 "--tags", tags
             )
         }
+    }
+}
+
+/* Their value can be specified on the command line with
+ * -P<propertyName>="<property_value>"
+ */
+sealed class AdditionalProperies<ValueType>(
+     val project: Project,
+     val propertyName: String
+ ) {
+     val isSet: Boolean = project.hasProperty(propertyName)
+
+     abstract val value: ValueType
+}
+
+class PropertyCucumberTags(project: Project)
+: AdditionalProperies<String>(project, "cucumberTags") {
+    override val value: String
+
+    init {
+        value = if (isSet) project.property(propertyName) as String else ""
+    }
+}
+
+class PropertyTestOutput(project: Project)
+: AdditionalProperies<PropertyTestOutput.AllowedValues>(project, "testOutput") {
+    override val value: AllowedValues
+    val default = AllowedValues.FAILURES
+
+    init {
+        value = if (isSet) {
+            val propValue = project.property(propertyName) as String
+            val converted = AllowedValues.values().firstOrNull{ it.value == propValue }
+            if (converted == null) {
+                val allowed = AllowedValues.values().map{ it.value }.joinToString(separator = ", ")
+                project.logger.warn("[WARNING] Unknown value '${propValue}' of property '${propertyName}'. Allowed values: [${allowed}]. Using default '${default.value}'")
+                default
+            } else converted
+        } else default
+    }
+
+
+    enum class AllowedValues(val value: String) {
+        FULL("full"), FAILURES("failures")
     }
 }

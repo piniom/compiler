@@ -5,4 +5,25 @@ data class FunctionAnalysisResult(
     val staticParents: Map<FunctionDeclaration, FunctionDeclaration?>,
     val variableMap: Map<AnyVariable, FunctionDeclaration>,
     val isUsedInNested: Map<AnyVariable, Boolean>
-)
+) {
+    fun maxNestedFunctionDepth(): Int {
+        val depths = mutableMapOf<FunctionDeclaration, Int>()
+        for (function in staticParents.keys) {
+            calculateFunctionDepth(function, depths)
+        }
+        return depths.maxOf { it.value }
+    }
+
+    private fun calculateFunctionDepth(function: FunctionDeclaration, depths: MutableMap<FunctionDeclaration, Int>) {
+        if (depths[function] != null) {
+            return
+        }
+        val parent = staticParents[function]
+        if (parent == null) {
+            depths[function] = 0
+        } else {
+            calculateFunctionDepth(parent, depths)
+            depths[function] = depths[parent]!! + 1
+        }
+    }
+}

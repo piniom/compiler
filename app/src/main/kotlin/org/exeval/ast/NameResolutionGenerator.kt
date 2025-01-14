@@ -1,5 +1,7 @@
 package org.exeval.ast
 
+import org.exeval.input.SimpleLocation
+import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
@@ -14,7 +16,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private val breakToLoop: MutableMap<Break, Loop> = mutableMapOf()
     private val argumentToParam: MutableMap<Argument, Parameter> = mutableMapOf()
-    private val functionToDecl: MutableMap<FunctionCall, FunctionDeclaration> = mutableMapOf()
+    private val functionToDecl: MutableMap<FunctionCall, AnyFunctionDeclaration> = mutableMapOf()
     private val variableToDecl: MutableMap<VariableReference, AnyVariable> = mutableMapOf()
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
 
@@ -31,7 +33,8 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             argumentToParam,
             functionToDecl,
             variableToDecl,
-            assignmentToDecl
+            assignmentToDecl,
+            emptyMap(), // TODO as task Structs #3
         ), diagnostics)
     }
 
@@ -42,6 +45,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
             is FunctionCall -> processFnCall(astNode)
             is FunctionDeclaration -> processFnDecl(astNode)
+            is ForeignFunctionDeclaration -> processForeignFnDecl(astNode)
 
             is ConstantDeclaration -> processConstDecl(astNode)
             is MutableVariableDeclaration -> processMutDecl(astNode)
@@ -60,6 +64,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is PositionalArgument -> processPositionalArgument(astNode)
 
             is Literal -> {}
+
+            is MemoryNew -> processMemoryNew(astNode)
+            is MemoryDel -> processMemoryDel(astNode)
+            is ArrayAccess -> processArrayAccess(astNode)
 
             else -> addUnknownNodeError(astNode)
         }
@@ -100,7 +108,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun getAssignmentType(assignment: Assignment) {
-        getVarDecl(assignment, assignment.variable)?. let {
+        val variable = assignment.variable
+        val variableName = when (variable) {
+            is VariableReference -> variable.name
+            is ArrayAccess -> getNameOfArrayAccess(variable)
+            else -> ""
+        }
+        if (variableName == "") 
+            addUnknownNodeError(variable)
+
+        getVarDecl(assignment, variableName)?. let {
             assignmentToDecl[assignment] = it
         }
 
@@ -114,13 +131,21 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun processConstDecl(constDecl: ConstantDeclaration) {
-        addDecl(constDecl.name, constDecl)
-        processAsBlock { processNode(constDecl.initializer) }
+        processVarDecl(constDecl, constDecl.name, constDecl.initializer)
     }
 
     private fun processMutDecl(mutDecl: MutableVariableDeclaration) {
-        addDecl(mutDecl.name, mutDecl)
-        mutDecl.initializer?.let {
+        processVarDecl(mutDecl, mutDecl.name, mutDecl.initializer)
+    }
+
+    private fun processVarDecl(varDecl: AnyVariable, name: String, inializer: ASTNode?) {
+        if (hasSameVarAlreadyInScope(name)) {
+            addSameVariableNameError(varDecl)
+            return
+        }
+
+        addDecl(name, varDecl)
+        inializer?.let {
             processAsBlock { processNode(it) }
         }
     }
@@ -140,7 +165,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun assignArguments(call: FunctionCall, decl: FunctionDeclaration) {
+    private fun assignArguments(call: FunctionCall, decl: AnyFunctionDeclaration) {
         var hasNamed = false
         var positionalIdx = 0
         val usedParameters = mutableSetOf<Int>()
@@ -181,10 +206,20 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun getFnDecl(functionCall: FunctionCall): FunctionDeclaration? {
+    private fun getNameOfArrayAccess(arr: ArrayAccess): String {
+        val array = arr.array
+        if (array is VariableReference)
+            return array.name
+        if (array is ArrayAccess)
+            return getNameOfArrayAccess(array)
+        addUnknownNodeError(array)
+        return ""
+    }
+
+    private fun getFnDecl(functionCall: FunctionCall): AnyFunctionDeclaration? {
         val found = findDecl(functionCall.functionName)
 
-        if (found is FunctionDeclaration)
+        if (found is AnyFunctionDeclaration)
             return found
 
         if(found == null)
@@ -209,6 +244,18 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         return null
     }
 
+    private fun hasSameVarAlreadyInScope(name: String): Boolean {
+        if (declarations.isEmpty())
+            return false
+
+        val scope = declarations.last()
+        return scope.containsKey(name)
+    }
+
+    private fun hasSameLoopIdentifierInScope(name: String): Boolean {
+        return loopStack.any { it.loopMap.containsKey(name) }
+    }
+
     private fun findDecl(name: String): ASTNode? {
         for (declInSingleBlock in declarations.reversed())
             declInSingleBlock[name]?.let { return it }
@@ -221,9 +268,29 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
         processAsBlock {
             pushLoopStack()
-            functionDecl.parameters.forEach{ processNode(it) }
+            processFunParameters(functionDecl.parameters)
             processNode(functionDecl.body)
             popLoopStack()
+        }
+    }
+
+    private fun processForeignFnDecl(functionDecl: ForeignFunctionDeclaration) {
+        addDecl(functionDecl.name, functionDecl)
+
+        processAsBlock {
+            pushLoopStack()
+            processFunParameters(functionDecl.parameters)
+            popLoopStack()
+        }
+    }
+
+
+    private fun processFunParameters(parameters: List<Parameter>) {
+        parameters.forEach{
+            if (hasSameVarAlreadyInScope(it.name))
+                addSameNameOfArgumentError(it)
+            else
+                addDecl(it.name, it)
         }
     }
 
@@ -246,12 +313,32 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
 
     private fun processLoop(loopNode: Loop) {
+        loopNode.identifier?.let {
+            if (hasSameLoopIdentifierInScope(it)) {
+                addSameLoopIdentifierError(loopNode)
+                return
+            }
+        }
+
         val prevLoop = getClosestLoop()
         setClosestLoop(loopNode)
         loopNode.identifier?.let { getLoopData().loopMap[it] = loopNode }
         processAsBlock { processNode( loopNode.body ) }
         setClosestLoop(prevLoop)
         loopNode.identifier?.let { getLoopData().loopMap.remove(it) }
+    }
+
+    private fun processMemoryNew(memoryNew: MemoryNew) {
+        processAsBlock { memoryNew.constructorArguments.forEach { processNode(it) } }
+    }
+
+    private fun processMemoryDel(memoryDel: MemoryDel) {
+        processAsBlock { processNode(memoryDel.pointer) }
+    }
+
+    private fun processArrayAccess(arrayAccess: ArrayAccess) {
+        processAsBlock { processNode(arrayAccess.array) }
+        processAsBlock { processNode(arrayAccess.index) }
     }
 
     private fun addDecl(name: String, node: ASTNode) {
@@ -319,17 +406,27 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun addAlreadyUsedArgError(argument: NamedArgument) {
         addDiagnostic("Trying to pass an already provided parameter (${argument.name}).", argument)
     }
+    private fun addSameNameOfArgumentError(argument: ASTNode) {
+        addDiagnostic("Cannot use the same name for argument twice.", argument)
+    }
+    private fun addSameVariableNameError(variable: ASTNode) {
+        addDiagnostic("Cannot use the same name in the same scope for variable twice.", variable)
+    }
+    private fun addSameLoopIdentifierError(loop: Loop) {
+        addDiagnostic("Cannot use the same identifier in nessted loop.", loop)
+    }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {
-        astInfo.locations[astNode]?.let {
-            diagnostics.add(
-                SimpleDiagnostics(
-                    message = message,
-                    startLocation = it.start,
-                    stopLocation = it.end
-                )
+        val noLocation = SimpleLocation(0, 0)
+        val loc = astInfo.locations[astNode] ?: LocationRange(noLocation, noLocation)
+
+        diagnostics.add(
+            SimpleDiagnostics(
+                message = message,
+                startLocation = loc.start,
+                stopLocation = loc.end
             )
-        }
+        )
     }
 }
 

@@ -8,13 +8,16 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private val typeMap: MutableMap<Expr, Type> = mutableMapOf()
     private val diagnostics: MutableList<Diagnostics> = mutableListOf()
 
-    public fun parse() : OperationResult<TypeMap> {
+    private var activeLoop: Type? = null
+    private val activeLoopMap: MutableMap<String, Type?> = mutableMapOf()
+
+    public fun parse(): OperationResult<TypeMap> {
         innerParse(astInfo.root)
 
         return OperationResult(typeMap, diagnostics)
     }
 
-    private fun innerParse(astNode: ASTNode) : Type? {
+    private fun innerParse(astNode: ASTNode): Type? {
         when (astNode) {
             is IntLiteral -> typeMap[astNode] = IntType
             is NopeLiteral -> typeMap[astNode] = NopeType
@@ -35,12 +38,61 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Assignment -> getAssignmentType(astNode)
 
             is FunctionDeclaration -> getFunctionDeclarationType(astNode)
+            is ForeignFunctionDeclaration -> getForeignFunctionDeclarationType(astNode)
             is FunctionCall -> getFunctionCallType(astNode)
+
+            is MemoryNew -> getMemoryNewType(astNode)
+            is MemoryDel -> getMemoryDelType(astNode)
+            is ArrayAccess -> getArrayAccessType(astNode)
+
             else -> addDiagnostic("Failed to find expression!", astNode)
         }
 
         return typeMap[astNode]
     }
+
+    private fun getMemoryNewType(memoryNew: MemoryNew) {
+        if (memoryNew.type !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed with the new keyword", memoryNew)
+        }
+        if (memoryNew.constructorArguments.isEmpty()) {
+            addDiagnostic("Missing new argument", memoryNew)
+        }
+        if (memoryNew.constructorArguments.size != 1) {
+            addDiagnostic("Only one argument to new is allowed", memoryNew)
+        }
+        val argumentType = innerParse(memoryNew.constructorArguments[0].expression)
+        if (argumentType != IntType) {
+            addDiagnostic("Argument to new must be Int", memoryNew)
+        }
+
+        typeMap[memoryNew] = memoryNew.type
+    }
+
+    private fun getMemoryDelType(memoryDel: MemoryDel) {
+        val pointerType = innerParse(memoryDel.pointer)
+        if (pointerType !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed with the delete keyword", memoryDel)
+        }
+
+        typeMap[memoryDel] = NopeType
+    }
+
+    private fun getArrayAccessType(arrayAccess: ArrayAccess) {
+        val arrayType = innerParse(arrayAccess.array)
+        val indexType = innerParse(arrayAccess.index)
+        if (arrayType !is ArrayType) {
+            addDiagnostic("Only Arrays are allowed on the left side of the array access operator", arrayAccess)
+        }
+        if (indexType !is IntType) {
+            addDiagnostic("Only Int is allowed as the index of the array access operator", arrayAccess)
+        }
+
+        if (arrayType is ArrayType) {
+            typeMap[arrayAccess] = arrayType.elementType
+        }
+    }
+
 
     // Private methods                                           
     private fun getConditionalType(conditional: Conditional) {
@@ -52,8 +104,14 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Condition expression must be Bool", conditional.condition)
         }
 
-        if (thenType != elseType) {
-            addDiagnostic("Then and else branches must have the same type", conditional)
+        if (conditional.elseBranch == null) {
+            if (thenType != NopeType) {
+                addDiagnostic("Condition expression without else must be a Nope type", conditional.thenBranch)
+            }
+        } else {
+            if (thenType != elseType) {
+                addDiagnostic("Then and else branches must have the same type", conditional)
+            }
         }
 
         thenType?.let { typeMap[conditional] = thenType }
@@ -65,7 +123,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
         val expectedType = when (binaryOperation.operator) {
             BinaryOperator.PLUS, BinaryOperator.MINUS, BinaryOperator.MULTIPLY, BinaryOperator.DIVIDE -> IntType
-            BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE -> BoolType
+            BinaryOperator.AND, BinaryOperator.OR, BinaryOperator.EQ, BinaryOperator.GT, BinaryOperator.GTE, BinaryOperator.LT, BinaryOperator.LTE, BinaryOperator.NEQ -> BoolType
         }
 
         if (leftType == NopeType || rightType == NopeType) {
@@ -118,13 +176,76 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     }
 
     private fun getLoopType(loop: Loop) {
-        val bodyType = innerParse(loop.body)
+        val currLoop = activeLoop
+        activeLoop = null
+        loop.identifier?.let { activeLoopMap[it] = null }
 
-        bodyType?.let { typeMap[loop] = bodyType }
+        innerParse(loop.body)
+
+        if (loop.identifier == null) {
+            val currentActiveLoop = activeLoop
+            if (currentActiveLoop == null) {
+                // Loop type is NopeType if there is no break
+                typeMap[loop] = NopeType
+            } else {
+                typeMap[loop] = currentActiveLoop
+            }
+        } else {
+            val currentActiveLoop = activeLoop
+            val targetLoopType = activeLoopMap[loop.identifier]
+            if (currentActiveLoop == null && targetLoopType == null) {
+                // Loop type is NopeType if there is no break
+                typeMap[loop] = NopeType
+            } else if (currentActiveLoop != null && targetLoopType != null) {
+                if (currentActiveLoop != targetLoopType) {
+                    addDiagnostic(
+                        "Break type does not match the loop's type. Given: $currentActiveLoop, Expected: $targetLoopType",
+                        loop
+                    )
+                } else {
+                    typeMap[loop] = targetLoopType
+                }
+            } else if (currentActiveLoop != null) {
+                typeMap[loop] = currentActiveLoop
+            } else if (targetLoopType != null) {
+                typeMap[loop] = targetLoopType
+            }
+        }
+
+        activeLoop = currLoop
+        loop.identifier?.let { activeLoopMap.remove(it) }
     }
 
     private fun getBreakType(breakEl: Break) {
-        val expressionType = breakEl.expression?.let { innerParse(it) }
+        val identifier = breakEl.identifier
+        val expressionType = breakEl.expression?.let { innerParse(it) } ?: NopeType
+
+        // Check if break without label
+        if (identifier == null) {
+            // If first break then it defines loop type
+            if (activeLoop == null) {
+                activeLoop = expressionType
+            }
+            // If second or later break, then it has to match loop type
+            else if (activeLoop != expressionType) {
+                addDiagnostic("Break type does not match loop type", breakEl)
+            }
+        }
+        // Check if break has label
+        else {
+            // If the loop with the label is not registered in the map
+            if (!activeLoopMap.containsKey(identifier)) {
+                addDiagnostic("Break targets an unknown or invalid loop", breakEl)
+            }
+            // If first break then it defines loop type
+            if (activeLoopMap[identifier] == null) {
+                activeLoopMap[identifier] = expressionType
+            }
+            // If second or later break, then it has to match loop type
+            else if (activeLoopMap[identifier] != expressionType) {
+                addDiagnostic("Break type does not match loop type", breakEl)
+            }
+        }
 
         expressionType?.let { typeMap[breakEl] = expressionType }
     }
@@ -136,17 +257,20 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Initializer type does not match declared type", constantDeclaration.initializer)
         }
 
-        typeMap[constantDeclaration] = constantDeclaration.type
+        typeMap[constantDeclaration] = NopeType
     }
 
     private fun getMutableVariableDeclarationType(mutableVariableDeclaration: MutableVariableDeclaration) {
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
-        if (initializerType != mutableVariableDeclaration.type) {
-            addDiagnostic("Initializer type does not match declared type", mutableVariableDeclaration.initializer ?: mutableVariableDeclaration)
+        if (initializerType != null && initializerType != mutableVariableDeclaration.type) {
+            addDiagnostic(
+                "Initializer type does not match declared type",
+                mutableVariableDeclaration.initializer ?: mutableVariableDeclaration
+            )
         }
 
-        typeMap[mutableVariableDeclaration] = mutableVariableDeclaration.type
+        typeMap[mutableVariableDeclaration] = NopeType
     }
 
     private fun getVariableReferenceType(variableReference: VariableReference) {
@@ -167,8 +291,16 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getAssignmentType(assignment: Assignment) {
         val variable = nameResolutionResult.assignmentToDecl[assignment]
         val variableType = when (variable) {
-            is ConstantDeclaration -> innerParse(variable)
-            is MutableVariableDeclaration -> innerParse(variable)
+            is ConstantDeclaration -> {
+                innerParse(variable)
+                variable.type
+            }
+
+            is MutableVariableDeclaration -> {
+                innerParse(variable)
+                variable.type
+            }
+
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)
@@ -182,7 +314,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Assignment type does not match variable type", assignment.value)
         }
 
-        valueType?.let { typeMap[assignment] = valueType }
+        valueType?.let { typeMap[assignment] = NopeType }
     }
 
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {
@@ -193,6 +325,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         }
 
         bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
+    }
+
+    private fun getForeignFunctionDeclarationType(functionDeclaration: ForeignFunctionDeclaration) {
+        typeMap[functionDeclaration] = functionDeclaration.returnType
     }
 
     private fun getFunctionCallType(functionCall: FunctionCall) {
@@ -238,7 +374,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
                 SimpleDiagnostics(
                     message = message,
                     startLocation = locationRange.start,
-                    stopLocation = locationRange.end)
+                    stopLocation = locationRange.end
+                )
             )
         }
     }

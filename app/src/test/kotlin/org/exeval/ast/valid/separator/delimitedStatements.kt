@@ -17,10 +17,14 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                             Parameter(name = "b", type = BoolType)
                         ),
                         returnType = BoolType,
-                        body = BinaryOperation(
-                            left = VariableReference(name = "a"),
-                            operator = BinaryOperator.AND,
-                            right = VariableReference(name = "b")
+                        body = Block(
+                            expressions = listOf(
+                                BinaryOperation(
+                                    left = VariableReference(name = "a"),
+                                    operator = BinaryOperator.AND,
+                                    right = VariableReference(name = "b")
+                                )
+                            )
                         )
                     ),
                     FunctionDeclaration(
@@ -48,15 +52,23 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                     ),
                     Block(
                         expressions = listOf(
-                            BinaryOperation(
-                                left = VariableReference(name = "a"),
-                                operator = BinaryOperator.AND,
-                                right = VariableReference(name = "b")
+                            Block(
+                                expressions = listOf(
+                                    BinaryOperation(
+                                        left = VariableReference(name = "a"),
+                                        operator = BinaryOperator.AND,
+                                        right = VariableReference(name = "b")
+                                    )
+                                )
                             ),
-                            BinaryOperation(
-                                left = VariableReference(name = "a"),
-                                operator = BinaryOperator.OR,
-                                right = VariableReference(name = "b")
+                            Block(
+                                expressions = listOf(
+                                    BinaryOperation(
+                                        left = VariableReference(name = "a"),
+                                        operator = BinaryOperator.OR,
+                                        right = VariableReference(name = "b")
+                                    )
+                                )
                             )
                         )
                     )

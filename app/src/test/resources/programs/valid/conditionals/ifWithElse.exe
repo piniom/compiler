@@ -1,6 +1,6 @@
 // 'if' with 'else', both blocks are complex
 foo main() -> Int = {
-    let y: Int = if 5 > 3 then {
+    let y: Int = if (5 > 3) then {
         let a: Int = 10;
         a + 5
     } else {

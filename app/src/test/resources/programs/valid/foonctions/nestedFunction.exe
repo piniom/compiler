@@ -1,5 +1,5 @@
 foo main() -> Int = {
-    var mut ext: Int = 5;
+    let mut ext: Int = 5;
     foo nested(a: Int) -> Int = {
         if ext > 3 then {
             a + ext

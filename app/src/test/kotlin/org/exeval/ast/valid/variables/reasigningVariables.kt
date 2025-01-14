@@ -23,7 +23,7 @@ val VARIABLES_REASIGNING_VARIABLES_AST = Program(
                     ConstantDeclaration(
                         name = "kNope",
                         type = NopeType,
-                        initializer = NopeLiteral
+                        initializer = NopeLiteral()
                     ),
                     MutableVariableDeclaration(
                         name = "x",
@@ -38,18 +38,18 @@ val VARIABLES_REASIGNING_VARIABLES_AST = Program(
                     MutableVariableDeclaration(
                         name = "nope",
                         type = NopeType,
-                        initializer = NopeLiteral
+                        initializer = NopeLiteral()
                     ),
                     Assignment(
-                        variable = "x",
+                        variable = VariableReference("x"),
                         value = VariableReference(name = "kInt")
                     ),
                     Assignment(
-                        variable = "falsehood",
+                        variable = VariableReference("falsehood"),
                         value = VariableReference(name = "kBool")
                     ),
                     Assignment(
-                        variable = "nope",
+                        variable = VariableReference("nope"),
                         value = VariableReference(name = "kNope")
                     )
                 )
