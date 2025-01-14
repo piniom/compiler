@@ -1,6 +1,6 @@
 foreign foo get_zero() -> Int
 foreign foo get_zero() -> Int
 
-foo main() -> Int {
+foo main() -> Int = {
     get_zero() 
 }

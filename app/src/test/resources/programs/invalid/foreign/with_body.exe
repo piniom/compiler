@@ -1,5 +1,5 @@
 foreign foo get_zero() -> Int = 0
 
-foo main() -> Int {
+foo main() -> Int = {
     get_zero() 
 }

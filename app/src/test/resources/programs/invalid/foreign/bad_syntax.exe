@@ -2,7 +2,7 @@ foo foreign f() -> Int
 
 foo f() -> Int = foreign
 
-foo main() -> Int {
+foo main() -> Int = {
     foreign let x: Int;
     ()
 }
