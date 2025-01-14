@@ -1,8 +1,8 @@
 foreign foo print_if_true(x: Bool, y: Int) -> Nope
 
 foo main() -> Int = {
-    print_if_true(true, 1234)
-    print_if_true(false, 1234)
-    print_if_true(true, 123)
+    print_if_true(true, 1234);
+    print_if_true(false, 1234);
+    print_if_true(true, 123);
     0
 }

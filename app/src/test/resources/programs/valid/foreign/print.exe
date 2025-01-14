@@ -3,9 +3,9 @@ foreign foo print_bool(x: Bool) -> Nope
 foreign foo print_int(x: Int) -> Nope
 
 foo main() -> Int = {
-    print_text()
-    print_bool(true)
-    print_bool(false)
-    print_int(1234)
+    print_text();
+    print_bool(true);
+    print_bool(false);
+    print_int(1234);
     0
 }

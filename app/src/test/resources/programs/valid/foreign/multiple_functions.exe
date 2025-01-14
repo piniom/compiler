@@ -4,6 +4,6 @@ foreign foo add(x: Int, y: Int) -> Int
 foreign foo print(x: Int) -> Nope
 
 foo main() -> Int = {
-    print(add(get_one(), id(3)))
+    print(add(get_one(), id(3)));
     id(0)
 }

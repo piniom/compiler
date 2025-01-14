@@ -9,7 +9,7 @@ Feature: Const Checker diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                             | message                                                        | line | column | endLine | endColumn |
-      | invalid/variables/ChangingConstant.exe | "An illegall assignement to a constant variable (kRealConst)." | 2    | 4      | 2       | 20        |
+      | invalid/variables/ChangingConstant.exe | "An illegall assignement to a constant variable (kRealConst)." | 2    | 4      | 2       | 19        |
 
 
 

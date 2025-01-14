@@ -9,7 +9,7 @@ Feature: Name Resolution diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                    | message                           | line | column | endLine | endColumn |
-      | invalid/blocks/outofscope.exe | "Use of a not existing variable." | 14   | 7      | 14      | 8         |
+      | invalid/blocks/outofscope.exe | "Use of a not existing variable." | 14   | 6      | 14      | 7         |
 
   @comments
   Scenario Outline: Invalid comments do cause name resolution errors
