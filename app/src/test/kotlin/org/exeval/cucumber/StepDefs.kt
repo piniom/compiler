@@ -3,13 +3,33 @@ package org.exeval.cucumber
 import io.cucumber.java.DataTableType
 import io.cucumber.java.en.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.exeval.*
+import org.exeval.ast.*
+import org.exeval.cfg.CFGMaker
 import org.junit.Assert.*
 
-import org.exeval.buildLexer
-import org.exeval.buildInput
+import org.exeval.cfg.ForeignCallManager
+import org.exeval.cfg.FunctionFrameManagerImpl
+import org.exeval.cfg.PhysicalRegister
+import org.exeval.cfg.ffm.interfaces.CallManager
+import org.exeval.ffm.interfaces.FunctionFrameManager
+import org.exeval.input.SimpleLocation
 import org.exeval.input.interfaces.Input
+import org.exeval.instructions.InstructionCoverer
+import org.exeval.instructions.InstructionSetCreator
+import org.exeval.instructions.LivenessCheckerImpl
+import org.exeval.instructions.RegisterAllocatorImpl
+import org.exeval.instructions.linearizer.BasicBlock
+import org.exeval.instructions.linearizer.Linearizer
+import org.exeval.parser.Parser
+import org.exeval.parser.ParseError
 import org.exeval.parser.grammar.GrammarSymbol
+import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.parser.interfaces.ParseTree
+import org.exeval.parser.utilities.GrammarAnalyser
+import org.exeval.utilities.CodeBuilder
+import org.exeval.utilities.LexerUtils
+import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
 import org.exeval.utilities.TokenCategories
@@ -18,10 +38,13 @@ import org.exeval.utilities.interfaces.Diagnostics
 private val logger = KotlinLogging.logger {}
 
 class StepDefs {
-
     private lateinit var sourceCode: Input
     private lateinit var lexerOutput: OperationResult<List<LexerToken>>
-    private lateinit var parserOutput: OperationResult<ParseTree<GrammarSymbol>>
+    private lateinit var parserOutput: OperationResult<ParseTree<GrammarSymbol>?>
+    private lateinit var astInfo: AstInfo
+    private lateinit var nameResolutionOutput: OperationResult<NameResolution>
+    private lateinit var typeCheckerOutput: OperationResult<TypeMap>
+    private lateinit var constCheckerOutput: List<Diagnostics>
 
     @Given("ExEval source code file {string}")
     fun readSourceCodeFile(fileName: String) {
@@ -40,28 +63,61 @@ class StepDefs {
 
     @When("source code is passed through parser")
     fun prepareAndRunLexerAndParser() {
-        val lexer = buildLexer()
-        try {
-            lexerOutput = lexer.run(sourceCode)
-        } catch (e: UninitializedPropertyAccessException) {
-            fail("Input not known. Step providing source code must be run first.")
+        prepareAndRunLexer()
+
+        if (lexerOutput.diagnostics.isNotEmpty()) {
+            return
         }
-        // TODO: when pipeline ready
+
+        try {
+            val leaves = LexerUtils.lexerTokensToParseTreeLeaves(lexerOutput.result)
+            val output = buildParser().run(leaves)
+            parserOutput = OperationResult(output, listOf())
+            astInfo = AstCreatorImpl().create(output, sourceCode)
+        } catch (e: ParseError) {
+            val diagnostics = SimpleDiagnostics(e.message, e.startErrorLocation, e.endErrorLocation)
+            parserOutput = OperationResult(null, listOf(diagnostics))
+        }
+
     }
 
     @When("source code is passed through name resolution")
     fun prepareAndRunNameResolution() {
-        // TODO when pipeline ready
+        if (!::astInfo.isInitialized) {
+            return
+        }
+
+        nameResolutionOutput = NameResolutionGenerator(astInfo).parse()
     }
 
     @When("source code is passed through const checker")
     fun prepareAndRunConstChecker() {
-        // TODO when pipeline ready
+        prepareAndRunNameResolution()
+        if (!::nameResolutionOutput.isInitialized) {
+            return
+        }
+
+        constCheckerOutput = ConstChecker().check(nameResolutionOutput.result, astInfo)
     }
 
     @When("source code is passed through type checker")
     fun prepareAndRunTypeChecker() {
-        // TODO when pipeline ready
+        prepareAndRunConstChecker()
+        if (!::nameResolutionOutput.isInitialized || constCheckerOutput.isNotEmpty()) {
+            return
+        }
+
+        typeCheckerOutput = TypeChecker(astInfo, nameResolutionOutput.result).parse()
+    }
+
+    @When("source code is compiled to asm")
+    fun prepareAndRunCodeGenerator() {
+        prepareAndRunTypeChecker()
+        if (!::typeCheckerOutput.isInitialized) {
+            return
+        }
+
+        generateCode()
     }
 
     @Then("no errors are returned")
@@ -156,5 +212,82 @@ class StepDefs {
         }
         return result
     }
+
+    private fun buildParser(): Parser<GrammarSymbol> {
+        val grammarAnalyser = GrammarAnalyser()
+        val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
+        val parser = Parser(analyzedGrammar)
+        return parser
+    }
+
+    private fun generateCode()
+    {
+        try {
+            val functionAnalisisResult = FunctionAnalyser().analyseFunctions(astInfo)
+
+            val functions = (astInfo.root as Program).functions.filterIsInstance<FunctionDeclaration>()
+
+            val frameManagers = mutableMapOf<FunctionDeclaration, FunctionFrameManager>()
+            for (function in functions) {
+                frameManagers[function] = FunctionFrameManagerImpl(function, functionAnalisisResult, frameManagers)
+            }
+
+            val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
+            val fCallMMap = foreignFs.associate { it to ForeignCallManager(it) }
+
+            val nodes = functionNodes(
+                functions,
+                functionAnalisisResult,
+                nameResolutionOutput,
+                frameManagers,
+                typeCheckerOutput,
+                fCallMMap
+            )
+
+            val codeBuilder = CodeBuilder(functionAnalisisResult.maxNestedFunctionDepth());
+
+            val instructionPatterns = InstructionSetCreator().createInstructionSet()
+            val linearizer = Linearizer(InstructionCoverer(instructionPatterns))
+            val linearizedFunctions = nodes.map { it.first to linearizer.createBasicBlocks(it.second) }.map {
+                val domain = registersDomain(it.second)
+                val livenessResult = LivenessCheckerImpl().check(it.second)
+                val registerMapping = RegisterAllocatorImpl().allocate(livenessResult, domain, PhysicalRegister.range())
+                codeBuilder.addFunction(it.first, it.second, registerMapping.mapping)
+            }
+        } catch (e: Exception) {
+            fail("Failed to generate code: ${e.message}")
+        }
+    }
+
+
+    private fun registersDomain(linearizedFunction: List<BasicBlock>) =
+        linearizedFunction.map { basicBlock ->
+            basicBlock.instructions.map { instruction ->
+                listOf(
+                    instruction.definedRegisters(),
+                    instruction.usedRegisters()
+                )
+            }
+        }.flatten().flatten().flatten().distinct().toSet()
+
+    private fun functionNodes(
+        functions: List<FunctionDeclaration>,
+        functionAnalisisResult: FunctionAnalysisResult,
+        nameResolutionOutput: OperationResult<NameResolution>,
+        frameManagers: MutableMap<FunctionDeclaration, FunctionFrameManager>,
+        typeCheckerOutput: OperationResult<TypeMap>,
+        foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
+    ) = functions.map {
+        val variableUsage =
+            usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
+        it.name to CFGMaker(
+            frameManagers[it]!!,
+            nameResolutionOutput.result,
+            variableUsage,
+            typeCheckerOutput.result,
+            frameManagers + foreignCallManagers
+        ).makeCfg(it)
+    }
+
 
 }

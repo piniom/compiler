@@ -1,11 +1,29 @@
-@parser @valid @noErrors
-Feature: Parser without errors
-	Verify parser does not return any errors on valid source code examples.
+@Compiler @valid @noErrors
+Feature: Compiler without errors
+	Verify Compiler does not return any errors on valid source code examples.
+
+	@arrays
+	Scenario Outline: Valid arrays do not cause Compiler errors
+		Given ExEval source code file "<sourceFile>"
+		When source code is compiled to asm
+		Then no errors are returned
+		Examples:
+			| sourceFile                                                       |
+			| valid/arrays/arrayOfArray.exe                                    |
+			| valid/arrays/arrayShouldNotBeDealocatedAfterReturnedFromFunc.exe |
+			| valid/arrays/doubleDealocation.exe                               |
+			| valid/arrays/outsideBoundariesAccess.exe                         |
+			| valid/arrays/passArrToFuncSimple.exe                             |
+			| valid/arrays/simpleArray.exe                                     |
+			| valid/arrays/simpleArrOfArr.exe                                  |
+			| valid/arrays/simpleDealocation.exe                               |
+			| valid/arrays/simpleDeclaration.exe                               |
+
 
 	@blocks
-	Scenario Outline: Valid blocks do not cause parser errors
+	Scenario Outline: Valid blocks do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                    |
@@ -14,9 +32,9 @@ Feature: Parser without errors
 			| valid/blocks/max.exe          |
 
 	@comments
-	Scenario Outline: Valid comments do not cause parser errors
+	Scenario Outline: Valid comments do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                              |
@@ -25,9 +43,9 @@ Feature: Parser without errors
 			| valid/comments/singleLineComments.exe |
 
 	@conditionals
-	Scenario Outline: Valid conditionals do not cause parser errors
+	Scenario Outline: Valid conditionals do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                                      |
@@ -39,9 +57,9 @@ Feature: Parser without errors
 			| valid/conditionals/nestedConditionals.exe       |
 
 	@functions
-	Scenario Outline: Valid functions do not cause parser errors
+	Scenario Outline: Valid functions do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                                   |
@@ -51,10 +69,23 @@ Feature: Parser without errors
 			| valid/foonctions/nestedFunction.exe          |
 			| valid/foonctions/recursiveFunction.exe       |
 
-	@identifiers
-	Scenario Outline: Valid identifiers do not cause parser errors
+	@foreign
+	Scenario Outline: Valid foreign functions do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
+		Then no errors are returned
+		Examples:
+			| sourceFile                           |
+			| valid/foreign/bool.exe               |
+			| valid/foreign/many_arguments.exe     |
+			| valid/foreign/multiple_functions.exe |
+			| valid/foreign/no_arguments.exe	   |
+			| valid/foreign/print.exe              |
+
+	@identifiers
+	Scenario Outline: Valid identifiers do not cause Compiler errors
+		Given ExEval source code file "<sourceFile>"
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                      |
@@ -62,9 +93,9 @@ Feature: Parser without errors
 			| valid/identifiers/variables.exe |
 
 	@loops
-	Scenario Outline: Valid loops do not cause parser errors
+	Scenario Outline: Valid loops do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                                          |
@@ -75,9 +106,9 @@ Feature: Parser without errors
 			| valid/loops/nestedLoopsBreaksProperlyWithLabels.exe |
 
 	@separators
-	Scenario Outline: Valid separators do not cause parser errors
+	Scenario Outline: Valid separators do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                              |
@@ -86,9 +117,9 @@ Feature: Parser without errors
 			| valid/separator/valueOfFunctions.exe    |
 
 	@variables
-	Scenario Outline: Valid variables do not cause parser errors
+	Scenario Outline: Valid variables do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                                       |
@@ -99,9 +130,9 @@ Feature: Parser without errors
 			| valid/variables/reassigningVariables.exe         |
 
 	@various
-	Scenario Outline: Valid programs using various features do not cause parser errors
+	Scenario Outline: Valid programs using various features do not cause Compiler errors
 		Given ExEval source code file "<sourceFile>"
-		When source code is passed through parser
+		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
 			| sourceFile                        |
