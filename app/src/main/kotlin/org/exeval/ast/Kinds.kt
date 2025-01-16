@@ -37,6 +37,7 @@ class IntLiteral(val value: Long) : Literal()
 
 class BoolLiteral(val value: Boolean) : Literal()
 class NopeLiteral : Literal()
+class NothingLiteral : Literal()
 
 
 class VariableReference(val name: String) : AssignableExpr()
@@ -52,10 +53,15 @@ enum class UnaryOperator {
     NOT, MINUS
 }
 
-sealed class AnyFunctionDeclaration() : Expr()
+sealed class AnyCallableDeclaration() : Expr()
+{
+    abstract val parameters: List<Parameter>;
+}
+
+sealed class AnyFunctionDeclaration() : AnyCallableDeclaration()
 {
     abstract val name: String;
-    abstract val parameters: List<Parameter>;
+    abstract override val parameters: List<Parameter>;
     abstract val returnType: Type
 }
 
@@ -112,3 +118,25 @@ class ArrayAccess(
     val array: Expr,
     val index: Expr
 ) : AssignableExpr()
+
+class StructTypeDeclaration(
+    val name: String,
+    val fields: List<VariableDeclarationBase>,
+    val constructorMethod: ConstructorDeclaration
+) : Expr()
+
+class ConstructorDeclaration(
+    override val parameters: List<Parameter>,
+    val body: Expr
+) : AnyCallableDeclaration()
+
+class StructFieldAccess(
+    val structObject: Expr,
+    val field: String
+) : AssignableExpr()
+
+class HereReference : Expr()
+
+class TypeUse(
+    val typeName: String
+) : Type

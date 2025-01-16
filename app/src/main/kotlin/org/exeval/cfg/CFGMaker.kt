@@ -55,6 +55,10 @@ class CFGMaker(
             is ArrayAccess -> TODO()
             is MemoryDel -> TODO()
             is MemoryNew -> TODO()
+            is StructFieldAccess -> TODO("scheduled in task Structs #1")
+            is ConstructorDeclaration -> TODO("scheduled in task Structs #1")
+            is HereReference -> TODO("scheduled in task Structs #1")
+            is StructTypeDeclaration -> TODO("scheduled in task Structs #1")
             null -> WalkResult(then, null)
         }
     }
@@ -267,6 +271,7 @@ class CFGMaker(
             is IntLiteral -> WalkResult(then, NumericalConstantTree(literal.value))
             is BoolLiteral -> WalkResult(then, NumericalConstantTree(if (literal.value) 1 else 0))
             is NopeLiteral -> WalkResult(then, null)
+            is NothingLiteral -> TODO("scheduled in task Structs #1")
         }
     }
 
