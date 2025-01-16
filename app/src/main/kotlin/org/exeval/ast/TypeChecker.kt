@@ -320,11 +320,13 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {
         val bodyType = innerParse(functionDeclaration.body)
 
-        if (bodyType != functionDeclaration.returnType) {
+        if (bodyType == null) {
+            addDiagnostic("Could not determine function body type", functionDeclaration.body)
+        }
+        else if (bodyType != functionDeclaration.returnType) {
             addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
-        bodyType?.let { typeMap[functionDeclaration] = functionDeclaration.returnType }
         typeMap[functionDeclaration] = functionDeclaration.returnType
     }
 

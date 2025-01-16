@@ -79,12 +79,6 @@ class CFGMaker(
         if (bin.operator == BinaryOperator.AND || bin.operator == BinaryOperator.OR) {
             return walkLogicalExpressionShortCircuit(bin, then)
         }
-        if (varUsage[bin.left] == null) {
-            println("problematic expression (left): ${bin.left}, ${bin.operator}")
-        }
-        if (varUsage[bin.left] == null) {
-            println("problematic expression (right): ${bin.right}, ${bin.operator}")
-        }
         val leftUsage = varUsage[bin.left]!!
         val rightUsage = varUsage[bin.right]!!
         if (leftUsage.conflicts(rightUsage)) {

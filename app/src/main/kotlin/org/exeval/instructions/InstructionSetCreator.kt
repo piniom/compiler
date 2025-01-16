@@ -125,7 +125,7 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(
         operation: OperationAsm,
-        dest: Register,
+        dest: AssignableDest,
         inputs: List<OperandArgumentType>
     ): List<Instruction> {
         // NOTE Needed always, can be either register or memory
@@ -156,11 +156,21 @@ class InstructionSetCreator {
                     else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
                 }
             )
-        } + listOf(
-            // Save result & restore registers
-            XchgInstruction(dest, PhysicalRegister.RAX),
-            MovInstruction(PhysicalRegister.RDX, reg1)
-        )
+        } + if (dest is Register) {
+                listOf(
+                // Save result & restore registers
+                XchgInstruction(dest, PhysicalRegister.RAX),
+                MovInstruction(PhysicalRegister.RDX, reg1)
+            )
+        }
+        else {
+            listOf(
+                MovInstruction(reg2, dest),
+                MovInstruction(dest, PhysicalRegister.RAX),
+                MovInstruction(PhysicalRegister.RAX, reg2),
+                MovInstruction(PhysicalRegister.RDX, reg1)
+            )
+        }
     }
 
     private fun createSafeSimple2ArgPatterns(

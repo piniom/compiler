@@ -44,7 +44,7 @@ class LivenessCheckerImpl: LivenessChecker {
                     val next: List<Instruction> =
                         if (i == basicBlocks.size - 1 && j == bb.instructions.size - 1) listOf()
                         else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.firstOrNull() }.filterNotNull()
-                            .toList() as List<Instruction>
+                            .toList()
                         else listOf(bb.instructions[j + 1])
                     val instruction = bb.instructions[j]
 

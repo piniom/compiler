@@ -7,7 +7,7 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : Register?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
+    val createInstruction: (resultHolder : AssignableDest?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
 )
 
 interface InstructionPattern{
@@ -30,7 +30,7 @@ class TemplatePattern(
     override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
-    val lambdaInstruction: (resultHolder : Register?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : AssignableDest?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
 ) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
@@ -85,7 +85,7 @@ class TemplatePattern(
             }
             if (hasDest) {
                 val combinedDest = combinedArgs.removeFirst()
-                lambdaInstruction(combinedDest as Register, combinedArgs, label)
+                lambdaInstruction(combinedDest as AssignableDest, combinedArgs, label)
             }
             else {
                 lambdaInstruction(dest, combinedArgs, label)

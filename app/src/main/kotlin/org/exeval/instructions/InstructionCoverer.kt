@@ -85,7 +85,7 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
                     var newCost = instructionPattern.cost
                     for (child in result.children) {
                         val childCost = subtreeCost[child]
-                        if (childCost == null || childCost.second == null) {
+                        if (childCost?.second == null) {
                             newCost = Int.MAX_VALUE
                             break
                         }
