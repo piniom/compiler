@@ -247,6 +247,12 @@ object FunctionCallArgumentsSymbol: GrammarSymbol {
 		// from variable assignment from grammar's point
 		// of view. Assignment is also part of expression.
 		listOf(ExpressionSymbol),
+		listOf(SimpleFunctionDefinitionSymbol),
+		listOf(
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationComma,
+			FunctionCallArgumentsSymbol,
+		),
 		listOf(
 			ExpressionSymbol,
 			Token.PunctuationComma,
@@ -285,7 +291,18 @@ object ArrayIndexSymbol: GrammarSymbol {
 		),
 		listOf(
 			Token.PunctuationLeftSquareBracket,
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationRightSquareBracket,
+		),
+		listOf(
+			Token.PunctuationLeftSquareBracket,
 			ExpressionSymbol,
+			Token.PunctuationRightSquareBracket,
+			ArrayIndexSymbol,
+		),
+		listOf(
+			Token.PunctuationLeftSquareBracket,
+			SimpleFunctionDefinitionSymbol,
 			Token.PunctuationRightSquareBracket,
 			ArrayIndexSymbol,
 		),
@@ -307,6 +324,36 @@ object IfSymbol: GrammarSymbol {
 			Token.KeywordIf,
 			ExpressionSymbol,
 			Token.KeywordThen,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordIf,
+			SimpleFunctionDefinitionSymbol,
+			Token.KeywordThen,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordIf,
+			SimpleFunctionDefinitionSymbol,
+			Token.KeywordThen,
+			SimpleFunctionDefinitionSymbol,
+			Token.KeywordElse,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordIf,
+			ExpressionSymbol,
+			Token.KeywordThen,
+			SimpleFunctionDefinitionSymbol,
+			Token.KeywordElse,
+			ExpressionSymbol,
+		),
+		listOf(
+			Token.KeywordIf,
+			SimpleFunctionDefinitionSymbol,
+			Token.KeywordThen,
+			ExpressionSymbol,
+			Token.KeywordElse,
 			ExpressionSymbol,
 		),
 		listOf(
@@ -422,6 +469,18 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			Token.PunctuationLeftRoundBracket,
 			ExpressionSymbol,
 			Token.PunctuationRightRoundBracket,
+		),
+		listOf(
+			Token.PunctuationLeftRoundBracket,
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationRightRoundBracket,
+		),
+		listOf(
+			Token.PunctuationLeftRoundBracket,
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationRightRoundBracket,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
 		),
 		listOf(
 			Token.PunctuationLeftRoundBracket,
