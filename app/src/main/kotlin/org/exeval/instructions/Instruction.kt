@@ -4,6 +4,7 @@ import org.exeval.cfg.Register
 import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.VirtualRegister
 import org.exeval.cfg.Label
+import org.exeval.cfg.Memory
 
 enum class OperationAsm {
     MOV, ADD, SUB, MUL, DIV,
@@ -37,24 +38,30 @@ fun argToString(arg: OperandArgumentType, mapping: Map<Register, PhysicalRegiste
         is Label -> {
             arg.name
         }
+        is Memory -> {
+            "[${argToString(arg.address, mapping)}]"
+        }
         else -> {
             throw IllegalArgumentException("Unexpected argument type: $arg")
         }
     }
 }
 
+fun getRegisters(vararg operands: OperandArgumentType): List<Register> {
+    return operands.map { if (it is Memory) it.address else it }.map { it as? Register }.filterNotNull()
+}
+
 // Instructions definitions
-// TODO: Update instructions allowing memory arguments
 // MOV instruction
 class MovInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>): String =
         "MOV ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
 
-    override fun usedRegisters() = listOfNotNull(src as? Register)
+    override fun usedRegisters() = getRegisters(src)
 
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun definedRegisters() = getRegisters(dest)
 
-    override fun isCopy() = src is Register //&& dest is Register 
+    override fun isCopy() = src is Register //&& dest is Register
 }
 
 // Arithmetic and Logical instructions
@@ -63,9 +70,9 @@ class AddInstruction(val dest: AssignableDest, val src: OperandArgumentType): In
     override fun toAsm(mapping: Map<Register, PhysicalRegister>): String =
         "ADD ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
 
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
 
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun definedRegisters() = getRegisters(dest)
 
     override fun isCopy() = false
 }
@@ -73,15 +80,15 @@ class AddInstruction(val dest: AssignableDest, val src: OperandArgumentType): In
 class SubInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "SUB ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class MulInstruction(val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "MUL ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(PhysicalRegister.RAX, src as? Register)
+    override fun usedRegisters() = getRegisters(PhysicalRegister.RAX, src)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
     override fun isCopy() = false
 }
@@ -91,7 +98,7 @@ class DivInstruction(val src: OperandArgumentType) : Instruction {
         "DIV ${argToString(src, mapping)}"
     override fun usedRegisters() = listOf(
             PhysicalRegister.RAX, PhysicalRegister.RDX
-        ) + listOfNotNull(src as? Register)
+        ) + getRegisters(src)
     override fun definedRegisters() = listOf(PhysicalRegister.RAX, PhysicalRegister.RDX)
     override fun isCopy() = false
 }
@@ -99,24 +106,24 @@ class DivInstruction(val src: OperandArgumentType) : Instruction {
 class AndInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "AND ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class OrInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "OR ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class XorInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "XOR ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
@@ -132,24 +139,24 @@ class XchgInstruction(val reg1: Register, val reg2: Register) : Instruction {
 class NegInstruction(val dest: AssignableDest) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "NEG ${argToString(dest, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class IncInstruction(val dest: AssignableDest) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "INC ${argToString(dest, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class DecInstruction(val dest: AssignableDest) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "DEC ${argToString(dest, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
@@ -174,7 +181,7 @@ class RetInstruction : Instruction {
 class CmpInstruction(val left: OperandArgumentType, val right: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMP ${argToString(left, mapping)}, ${argToString(right, mapping)}"
-    override fun usedRegisters() = listOfNotNull(left as? Register, right as? Register)
+    override fun usedRegisters() = getRegisters(left, right)
     override fun definedRegisters() = emptyList<Register>()
     override fun isCopy() = false
 }
@@ -196,7 +203,7 @@ class JgInstruction(val target: OperandArgumentType) : Instruction {
 }
 
 class JgeInstruction(val target: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JGE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
     override fun definedRegisters() = emptyList<Register>()
@@ -204,7 +211,7 @@ class JgeInstruction(val target: OperandArgumentType) : Instruction {
 }
 
 class JeInstruction(val target: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
     override fun definedRegisters() = emptyList<Register>()
@@ -212,7 +219,7 @@ class JeInstruction(val target: OperandArgumentType) : Instruction {
 }
 
 class JneInstruction(val target: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JNE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
     override fun definedRegisters() = emptyList<Register>()
@@ -221,34 +228,52 @@ class JneInstruction(val target: OperandArgumentType) : Instruction {
 
 // Conditional move instructions
 class AdcInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "ADC ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(dest as? Register, src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(dest, src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = false
 }
 
 class CmovgInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMOVG ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = src is Register // && dest is Register
 }
 
 class CmovgeInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMOVGE ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = src is Register // && dest is Register
 }
 
 class CmoveInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
-    override fun toAsm(mapping: Map<Register, PhysicalRegister>) = 
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMOVE ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
-    override fun usedRegisters() = listOfNotNull(src as? Register)
-    override fun definedRegisters() = listOfNotNull(dest as? Register)
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = src is Register // && dest is Register
+}
+
+// Stack instructions
+
+class PushInstruction(val src: OperandArgumentType) : Instruction {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "PUSH ${argToString(src, mapping)}"
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = emptyList<Register>()
+    override fun isCopy() = false
+}
+
+class PopInstruction(val dest: AssignableDest) : Instruction {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "POP ${argToString(dest, mapping)}"
+    override fun usedRegisters() = emptyList<Register>()
+    override fun definedRegisters() = getRegisters(dest)
+    override fun isCopy() = false
 }
 
