@@ -312,8 +312,15 @@ class CFGTest{
             return Block(listOf(*e))
         }
         ast = Block(
+            MutableVariableDeclaration("a", IntType,IntLiteral(0)),
             Loop("1",Block(
-                Break(null,IntLiteral(1))
+                Assignment(
+                    VariableReference("a"),
+                    BinaryOperation(VariableReference("a"),BinaryOperator.PLUS, IntLiteral(1))),
+                Conditional(
+                    BinaryOperation(VariableReference("a"),BinaryOperator.GTE, IntLiteral(10)),
+                    Break(null,IntLiteral(1))
+                )
             ))
         )
         assert(loop(getCFG(ast)))
