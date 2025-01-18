@@ -390,9 +390,9 @@ class InstructionSetCreator {
                     inputs[1]
                 ) + listOf(
                     when(asmJccOperation) {
-                        OperationAsm.JG -> JeInstruction(label)
+                        OperationAsm.JG -> JgInstruction(label)
                         OperationAsm.JE -> JeInstruction(label)
-                        OperationAsm.JGE -> JeInstruction(label)
+                        OperationAsm.JGE -> JgeInstruction(label)
                         else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
                     }
                 )
