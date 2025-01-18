@@ -243,13 +243,7 @@ class FunctionFrameManagerImplTest {
                         RegisterTree(reg1)
                     ),
                     // push arg 3 on stack
-                    BinaryOperationTree(
-                        RegisterTree(PhysicalRegister.RSP),
-                        NumericalConstantTree(8),
-                        BinaryTreeOperationType.SUBTRACT
-                    ),
-                    AssignmentTree(
-                        MemoryTree(RegisterTree(PhysicalRegister.RSP)),
+                    StackPushTree(
                         BinaryOperationTree(
                             NumericalConstantTree(6),
                             RegisterTree(reg2),

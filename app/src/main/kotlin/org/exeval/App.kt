@@ -196,7 +196,7 @@ private fun functionNodes(
     foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
 ) = functions.map {
     val variableUsage =
-        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).getAnalysisResult()
+        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.body).run()
     it.name to CFGMaker(
         frameManagers[it]!!,
         nameResolutionOutput.result,

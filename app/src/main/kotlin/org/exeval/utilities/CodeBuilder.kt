@@ -9,7 +9,7 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
 
     private val lines: MutableList<String> = mutableListOf();
 
-    val code: String get() = lines.joinToString { "\n" }
+    val code: String get() = lines.joinToString ( "\n" )
 
     init {
         lines.add("section .data")
@@ -19,7 +19,7 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
         lines.addAll(
             listOf(
                 "section .text",
-                "global FUNCTION_main",
+                "global main",
                 ""
             )
         )
@@ -30,7 +30,12 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
         blocks: List<BasicBlock>,
         registerMapping: Map<Register, PhysicalRegister>
     ) {
-        lines.add("FUNCTION_$name")
+        if (name == TokenCategories.IdentifierEntrypoint.regex) {
+            lines.add("main:")
+        }
+        else {
+            lines.add("FUNCTION_$name:")
+        }
         for (b in blocks) {
             lines.add(b.label.toAsm())
             lines.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })
