@@ -7,6 +7,7 @@ import org.exeval.cfg.PhysicalRegister;
 import org.exeval.cfg.interfaces.CFGNode;
 import org.exeval.instructions.InstructionCovererInterface;
 import org.exeval.instructions.LabelIdGenerator
+import org.exeval.instructions.JmpInstruction
 
 class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
     private var nodeToBBMap : MutableMap<CFGNode, BasicBlock> = mutableMapOf<CFGNode, BasicBlock>()
@@ -71,24 +72,5 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
 
     private fun generateLabel() : Label {
         return Label("LabelLin" + LabelIdGenerator.getId().toString())
-    }
-
-    private class JmpInstruction(private val label : Label) : Instruction {
-
-        override fun toAsm(mapping: Map<Register, PhysicalRegister>): String {
-            return "jmp " + label.name
-        }
-
-        override fun usedRegisters(): List<Register> {
-            return listOf()
-        }
-
-        override fun definedRegisters(): List<Register> {
-            return listOf()
-        }
-
-        override fun isCopy(): Boolean {
-            return false
-        }
     }
 }

@@ -186,7 +186,9 @@ class CmpInstruction(val left: OperandArgumentType, val right: OperandArgumentTy
     override fun isCopy() = false
 }
 
-class JmpInstruction(val target: OperandArgumentType) : Instruction {
+abstract class JumpInstructionBase(val target: OperandArgumentType) : Instruction
+
+class JmpInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JMP ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
@@ -194,7 +196,7 @@ class JmpInstruction(val target: OperandArgumentType) : Instruction {
     override fun isCopy() = false
 }
 
-class JgInstruction(val target: OperandArgumentType) : Instruction {
+class JgInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JG ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
@@ -202,7 +204,7 @@ class JgInstruction(val target: OperandArgumentType) : Instruction {
     override fun isCopy() = false
 }
 
-class JgeInstruction(val target: OperandArgumentType) : Instruction {
+class JgeInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JGE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
@@ -210,7 +212,7 @@ class JgeInstruction(val target: OperandArgumentType) : Instruction {
     override fun isCopy() = false
 }
 
-class JeInstruction(val target: OperandArgumentType) : Instruction {
+class JeInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()
@@ -218,7 +220,7 @@ class JeInstruction(val target: OperandArgumentType) : Instruction {
     override fun isCopy() = false
 }
 
-class JneInstruction(val target: OperandArgumentType) : Instruction {
+class JneInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "JNE ${argToString(target, mapping)}"
     override fun usedRegisters() = emptyList<Register>()

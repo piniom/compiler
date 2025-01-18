@@ -4,6 +4,7 @@ import org.exeval.cfg.Label
 import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.Register
 import org.exeval.instructions.linearizer.BasicBlock
+import org.exeval.instructions.JumpInstructionBase
 
 class CodeBuilder(val maxNestedFunctionDepth: Int) {
 
@@ -30,9 +31,10 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
         blocks: List<BasicBlock>,
         registerMapping: Map<Register, PhysicalRegister>
     ) {
+        val needed_labels = blocks.map { it.instructions.map { (it as? JumpInstructionBase)?.target as? Label }.filterNotNull() }.flatten()
         lines.add("${getMangledFunctionName(name)}:")
         for (b in blocks) {
-            lines.add(b.label.toAsm())
+            if (b.label in needed_labels) lines.add(b.label.toAsm())
             lines.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })
         }
         lines.add("")
