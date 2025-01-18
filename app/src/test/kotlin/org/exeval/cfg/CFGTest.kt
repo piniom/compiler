@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.exeval.cfg.CFGMaker
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
+import org.exeval.instructions.InstructionCoverer
+import org.exeval.instructions.InstructionSetCreator
+import org.exeval.instructions.linearizer.Linearizer
+import org.junit.Ignore
 
 fun Assigment(r:Register,v:Tree):Tree{
     return AssignmentTree(RegisterTree(r),v)
@@ -303,6 +307,15 @@ class CFGTest{
                 BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(1))
             ))))
         ))
+        assert(loop(getCFG(ast)))
+        fun Block(vararg e: Expr):Block{
+            return Block(listOf(*e))
+        }
+        ast = Block(
+            Loop("1",Block(
+                Break(null,IntLiteral(1))
+            ))
+        )
         assert(loop(getCFG(ast)))
     }
     @Test
