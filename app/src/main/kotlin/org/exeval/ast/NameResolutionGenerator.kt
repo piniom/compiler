@@ -238,7 +238,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                         addPositionalAfterNamedArgumentError(it)
                         return
                     }
-                    if(positionalIdx > decl.parameters.size) {
+                    if(positionalIdx >= decl.parameters.size) {
                         addToManyArgumentsError(call)
                         return
                     }
@@ -257,6 +257,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                     }
                     if (usedParameters.contains(idx)) {
                         addAlreadyUsedArgError(it)
+                        return
+                    }
+                    if(idx >= decl.parameters.size) {
+                        addToManyArgumentsError(call)
                         return
                     }
 

@@ -18,7 +18,7 @@ Feature: Name Resolution diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                                          | message                           | line | column | endLine | endColumn |
-      | invalid/comments/commented_variable_declaration.exe | "Use of a not existing variable." | 3    | 4      | 3       | 11        |
+      | invalid/comments/commented_variable_declaration.exe | "Use of a not existing variable." | 3    | 4      | 3       | 10        |
 
   @conditionals
   Scenario Outline: Invalid conditionals do cause name resolution errors
@@ -27,7 +27,7 @@ Feature: Name Resolution diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                                                 | message                           | line | column | endLine | endColumn |
-      | invalid/conditionals/incorrectVariableScopeInThenBlock.exe | "Use of a not existing variable." | 5    | 4      | 5       | 6         |
+      | invalid/conditionals/incorrectVariableScopeInThenBlock.exe | "Use of a not existing variable." | 5    | 4      | 5       | 5         |
 
   @functions
   Scenario Outline: Invalid functions do cause name resolution errors
@@ -53,6 +53,6 @@ Feature: Name Resolution diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                                | message                                                | line | column | endLine | endColumn |
-      | invalid/loops/BreakLoopOutsideOfLoop.exe  | "Break statement must be inside a loop."               | 2    | 4      | 2       | 12        |
-      | invalid/loops/BreakLoopOutsideOfRange.exe | "Break use not existing loop identifier (firstLoop)."  | 8    | 8      | 8       | 26        |
-      | invalid/loops/UnknownLoopLabel.exe        | "Break use not existing loop identifier (secondLoop)." | 3    | 8      | 3       | 27        |
+      | invalid/loops/BreakLoopOutsideOfLoop.exe  | "Break statement must be inside a loop."               | 2    | 5      | 2       | 13        |
+      | invalid/loops/BreakLoopOutsideOfRange.exe | "Break use not existing loop identifier (firstLoop)."  | 8    | 9      | 8       | 25        |
+      | invalid/loops/UnknownLoopLabel.exe        | "Break use not existing loop identifier (secondLoop)." | 3    | 9      | 3       | 28        |

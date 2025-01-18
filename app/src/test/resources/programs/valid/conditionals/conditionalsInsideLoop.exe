@@ -4,8 +4,9 @@ foo main() -> Int = {
     loop {
         if x >= 5 then {
             break x
+            ()
         } else {
-            x = x + 1
+            x = x + 1;
         }
     }
 }
