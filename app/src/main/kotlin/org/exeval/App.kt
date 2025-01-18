@@ -37,6 +37,7 @@ import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 import org.exeval.utilities.interfaces.OperationResult
 import java.io.File
+import org.exeval.parser.grammar.PrecompiledParserFactory
 
 private val logger = KotlinLogging.logger {}
 
@@ -164,7 +165,7 @@ fun buildInput(fileName: String): Input {
 fun buildParser(): Parser<GrammarSymbol> {
     val grammarAnalyser = GrammarAnalyser()
     val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
-    val parser = Parser(analyzedGrammar)
+    val parser = PrecompiledParserFactory().create(analyzedGrammar)
     return parser
 }
 

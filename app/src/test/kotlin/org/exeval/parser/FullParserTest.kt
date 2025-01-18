@@ -3,7 +3,7 @@ package org.exeval.parser
 import org.exeval.input.interfaces.Location
 import org.exeval.parser.interfaces.ParseTree
 import org.exeval.parser.parser.ParseError
-import org.exeval.parser.parser.Parser
+import org.exeval.parser.parser.impls.BigParserFactory
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -30,8 +30,7 @@ class FullParserTest {
         ), grammar = grammar
     )
 
-    //GrammarAnalyser.analyseGrammar(grammar)
-    private val parser = Parser(analyzedGrammar)
+    private val parser = BigParserFactory<ParSym>().create(analyzedGrammar)
 
     @Test
     fun `() works`() {

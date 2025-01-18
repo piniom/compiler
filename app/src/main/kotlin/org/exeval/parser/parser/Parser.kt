@@ -4,25 +4,10 @@ import org.exeval.input.interfaces.Location
 import org.exeval.parser.AnalyzedGrammar
 import org.exeval.parser.Production
 import org.exeval.parser.interfaces.ParseTree
-import org.exeval.parser.parser.impls.BigTablesCreator
-import org.exeval.parser.parser.impls.SimpleTablesCreator
-import org.exeval.parser.parser.impls.LR1OneTimeParser
 
-class Parser<S>(analyzedGrammar: AnalyzedGrammar<S>) {
-    private val oneTimeParserFactory: OneTimeParser.Factory<S>
-    private val startProduction: Production<S>
-    private val tablesCreator: TablesCreator<S, Int> = SimpleTablesCreator(BigTablesCreator(analyzedGrammar))
-
-    init {
-        val startSymbol = analyzedGrammar.grammar.startSymbol
-        val endSymbol = analyzedGrammar.grammar.endOfParse
-        startProduction = analyzedGrammar.grammar.productions.find { production -> production.left == startSymbol }
-            ?: throw IllegalStateException("No production where left=startSymbol")
-
-        val tables = tablesCreator.tables
-        oneTimeParserFactory = LR1OneTimeParser.Factory(startSymbol, endSymbol, tables)
-    }
-
+class Parser<S>(
+    private val oneTimeParserFactory: OneTimeParser.Factory<S>, private val startProduction: Production<S>
+) {
     fun run(leaves: List<ParseTree.Leaf<S>>): ParseTree<S> {
         val startLocation = leaves.first().startLocation
         val endLocation = leaves.last().endLocation
@@ -39,6 +24,9 @@ class Parser<S>(analyzedGrammar: AnalyzedGrammar<S>) {
         return resTree
     }
 
+    interface Factory<S> {
+        fun create(analyzedGrammar: AnalyzedGrammar<S>): Parser<S>
+    }
 }
 
 class ParseError(override val message: String, val startErrorLocation: Location, val endErrorLocation: Location) :
