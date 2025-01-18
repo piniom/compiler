@@ -1,15 +1,16 @@
 package org.exeval.parser
 
 import org.exeval.input.interfaces.Location
-import org.exeval.parser.Parser.Action
-import org.exeval.parser.Parser.Tables
 import org.exeval.parser.interfaces.ParseTree
-import org.exeval.parser.utilities.RawParser
+import org.exeval.parser.parser.ParseError
+import org.exeval.parser.parser.TablesCreator.Tables
+import org.exeval.parser.parser.TablesCreator.Action
+import org.exeval.parser.parser.impls.LR1OneTimeParser
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
-class RawParserParenthesisTest {
+class LR1OneTimeParserParenthesisTest {
     // ParenthesisSymbol - ParSym, it's symbol in the grammar that codes valid parenthesis sequences
     private enum class ParSym {
         LIST, PAIR, OPEN, CLOSE, END
@@ -66,7 +67,9 @@ class RawParserParenthesisTest {
         (ParSym.PAIR to 7) to 6,
         (ParSym.PAIR to 11) to 9,
     )
-    private val parser = RawParser<ParSym, Int>(grammar.startSymbol, grammar.endOfParse, Tables(0, actions, goto))
+    private val parserFactory = LR1OneTimeParser.Factory<ParSym, Int>(grammar.startSymbol, grammar.endOfParse,
+        Tables(0, actions, goto)
+    )
 
     @Test
     fun `() works`() {
@@ -83,7 +86,7 @@ class RawParserParenthesisTest {
             ), 0.toLoc(), 1.toLoc()
         )
 
-        val actual = parser.run(leaves)
+        val actual = parserFactory.create(leaves).run()
 
         assertEquals(expected, actual)
     }
@@ -121,7 +124,7 @@ class RawParserParenthesisTest {
             ), 0.toLoc(), 5.toLoc()
         )
 
-        val actual = parser.run(leaves)
+        val actual = parserFactory.create(leaves).run()
 
         assertEquals(expected, actual)
     }
@@ -130,14 +133,14 @@ class RawParserParenthesisTest {
     fun `()) throws error`() {
         val leaves = stringToLeaves("())")
 
-        assertThrows<ParseError> { parser.run(leaves) }
+        assertThrows<ParseError> { parserFactory.create(leaves).run() }
     }
 
     @Test
     fun `(() throws error`() {
         val leaves = stringToLeaves("(()")
 
-        assertThrows<ParseError> { parser.run(leaves) }
+        assertThrows<ParseError> { parserFactory.create(leaves).run() }
     }
 
     private fun stringToLeaves(str: String): List<ParseTree.Leaf<ParSym>> {

@@ -1,8 +1,10 @@
 package org.exeval.utilities
 
+import kotlinx.serialization.Serializable
 import org.exeval.utilities.interfaces.TokenCategory
 import org.exeval.parser.grammar.Terminal
 
+@Serializable
 enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	PunctuationSemicolon(";"),
 	PunctuationColon(":"),
