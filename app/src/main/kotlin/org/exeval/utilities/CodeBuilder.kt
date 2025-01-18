@@ -30,12 +30,7 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
         blocks: List<BasicBlock>,
         registerMapping: Map<Register, PhysicalRegister>
     ) {
-        if (name == TokenCategories.IdentifierEntrypoint.regex) {
-            lines.add("main:")
-        }
-        else {
-            lines.add("FUNCTION_$name:")
-        }
+        lines.add("${getMangledFunctionName(name)}:")
         for (b in blocks) {
             lines.add(b.label.toAsm())
             lines.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })

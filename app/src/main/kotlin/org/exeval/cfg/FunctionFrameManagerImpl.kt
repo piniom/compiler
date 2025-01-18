@@ -6,7 +6,7 @@ import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
-import org.exeval.utilities.TokenCategories
+import org.exeval.utilities.getMangledFunctionName
 
 private const val BYTES_IN_WORD = 8
 
@@ -32,12 +32,7 @@ class FunctionFrameManagerImpl(
 
     init {
         initialiseVariableMap()
-        //TODO: Think about it :))
-        if (f.name == TokenCategories.IdentifierEntrypoint.regex) {
-            label = Label(f.name)
-        } else {
-            label = Label("FUNCTION_${f.name}")
-        }
+        label = Label(getMangledFunctionName(f.name))
     }
 
     override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): AssignableTree {
