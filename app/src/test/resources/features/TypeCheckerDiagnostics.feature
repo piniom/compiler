@@ -8,8 +8,8 @@ Feature: Type Checker diagnostics
     When source code is passed through type checker
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
-      | sourceFile                    | message                                        | line | column | endLine | endColumn |
-      | invalid/blocks/wrong_type.exe | "Assignment type does not match variable type" | 4    | 17     | 6       | 6         |
+      | sourceFile                    | message                                         | line | column | endLine | endColumn |
+      | invalid/blocks/wrong_type.exe | "Initializer type does not match declared type" | 4    | 17     | 6       | 5         |
 
   @conditionals
   Scenario Outline: Invalid conditionals do cause type checker errors
@@ -18,10 +18,10 @@ Feature: Type Checker diagnostics
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
       | sourceFile                                                     | message                                          | line | column | endLine | endColumn |
-      | invalid/conditionals/assigningInCondition.exe                  | "Condition expression must be Bool"              | 3    | 6      | 3       | 11        |
-      | invalid/conditionals/conditionNotBoolType.exe                  | "Condition expression must be Bool"              | 2    | 6      | 2       | 7         |
+      | invalid/conditionals/assigningInCondition.exe                  | "Condition expression must be Bool"              | 3    | 7      | 3       | 12        |
+      | invalid/conditionals/conditionNotBoolType.exe                  | "Condition expression must be Bool"              | 2    | 7      | 2       | 8         |
       | invalid/conditionals/mismachedTypesUsingNestedConditionals.exe | "Then and else branches must have the same type" | 2    | 3      | 6       | 4         |
-      | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe   | "Then and else branches must have the same type" | 2    | 3      | 2       | 25        |
+      | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe   | "Then and else branches must have the same type" | 2    | 4      | 2       | 26        |
       | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe   | "Condition expression must be Bool"              | 4    | 6      | 4       | 16        |
 
   @conditionals
