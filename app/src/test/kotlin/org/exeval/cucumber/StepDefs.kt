@@ -13,7 +13,6 @@ import org.exeval.cfg.FunctionFrameManagerImpl
 import org.exeval.cfg.PhysicalRegister
 import org.exeval.cfg.ffm.interfaces.CallManager
 import org.exeval.ffm.interfaces.FunctionFrameManager
-import org.exeval.input.SimpleLocation
 import org.exeval.input.interfaces.Input
 import org.exeval.instructions.InstructionCoverer
 import org.exeval.instructions.InstructionSetCreator
@@ -21,11 +20,11 @@ import org.exeval.instructions.LivenessCheckerImpl
 import org.exeval.instructions.RegisterAllocatorImpl
 import org.exeval.instructions.linearizer.BasicBlock
 import org.exeval.instructions.linearizer.Linearizer
-import org.exeval.parser.Parser
-import org.exeval.parser.ParseError
+import org.exeval.parser.grammar.PrecompiledParserFactory
+import org.exeval.parser.parser.ParseError
+import org.exeval.parser.parser.Parser
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
-import org.exeval.parser.interfaces.ParseTree
 import org.exeval.parser.utilities.GrammarAnalyser
 import org.exeval.utilities.CodeBuilder
 import org.exeval.utilities.LexerUtils
@@ -225,7 +224,7 @@ class StepDefs {
     private fun buildParser(): Parser<GrammarSymbol> {
         val grammarAnalyser = GrammarAnalyser()
         val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
-        val parser = Parser(analyzedGrammar)
+        val parser = PrecompiledParserFactory().create(analyzedGrammar)
         return parser
     }
 
