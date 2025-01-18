@@ -51,7 +51,8 @@ val VARIABLES_REASIGNING_VARIABLES_AST = Program(
                     Assignment(
                         variable = VariableReference("nope"),
                         value = VariableReference(name = "kNope")
-                    )
+                    ),
+                    NopeLiteral(),
                 )
             )
         )
