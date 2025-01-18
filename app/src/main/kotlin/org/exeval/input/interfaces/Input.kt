@@ -1,7 +1,7 @@
 package org.exeval.input.interfaces
 
 interface Input {
-    var location: Location
+	var location: Location
 
-    fun nextChar(): Char?
+	fun nextChar(): Char?
 }

@@ -8,24 +8,27 @@ import org.exeval.utilities.interfaces.LexerToken
 import org.exeval.utilities.interfaces.OperationResult
 import org.exeval.utilities.interfaces.TokenCategory
 
-class MultipleTokensLexer(private val dfas: Map<DFA<*>, TokenCategory>) : Lexer {
-    override fun run(input: Input): OperationResult<List<LexerToken>> {
-        val tokens = mutableListOf<LexerToken>()
-        val diagnostics = mutableListOf<Diagnostics>()
-        while (!inputIsFinished(input)) {
-            val res = SingleTokenLexer(this.dfas, input).run()
-            if (res.result != null) tokens.addLast(res.result)
-            diagnostics.addAll(res.diagnostics)
-        }
-        return OperationResult(
-            result = tokens,
-            diagnostics = diagnostics
-        )
-    }
-    private fun inputIsFinished(input: Input): Boolean {
-        val loc = input.location
-        val result = input.nextChar() == null
-        input.location = loc
-        return result
-    }
+class MultipleTokensLexer(
+	private val dfas: Map<DFA<*>, TokenCategory>,
+) : Lexer {
+	override fun run(input: Input): OperationResult<List<LexerToken>> {
+		val tokens = mutableListOf<LexerToken>()
+		val diagnostics = mutableListOf<Diagnostics>()
+		while (!inputIsFinished(input)) {
+			val res = SingleTokenLexer(this.dfas, input).run()
+			if (res.result != null) tokens.addLast(res.result)
+			diagnostics.addAll(res.diagnostics)
+		}
+		return OperationResult(
+			result = tokens,
+			diagnostics = diagnostics,
+		)
+	}
+
+	private fun inputIsFinished(input: Input): Boolean {
+		val loc = input.location
+		val result = input.nextChar() == null
+		input.location = loc
+		return result
+	}
 }

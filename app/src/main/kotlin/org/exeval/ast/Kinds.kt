@@ -1,6 +1,8 @@
 package org.exeval.ast
 
-class Program(val functions: List<AnyFunctionDeclaration>) : ASTNode
+class Program(
+	val functions: List<AnyFunctionDeclaration>,
+) : ASTNode
 
 interface ASTNode
 
@@ -8,135 +10,181 @@ sealed class Expr : ASTNode
 
 sealed class AssignableExpr : Expr()
 
-class Block(val expressions: List<Expr>) : Expr()
+class Block(
+	val expressions: List<Expr>,
+) : Expr()
 
 sealed interface AnyVariable : ASTNode
 
-sealed class VariableDeclarationBase : AnyVariable, Expr() {
-    abstract val name: String
-    abstract val type: Type
-    abstract val initializer: Expr?
+sealed class VariableDeclarationBase :
+	Expr(),
+	AnyVariable {
+	abstract val name: String
+	abstract val type: Type
+	abstract val initializer: Expr?
 }
 
 class ConstantDeclaration(
-    override val name: String,
-    override val type: Type,
-    override val initializer: Expr
+	override val name: String,
+	override val type: Type,
+	override val initializer: Expr,
 ) : VariableDeclarationBase()
 
 class MutableVariableDeclaration(
-    override val name: String,
-    override val type: Type,
-    override val initializer: Expr? = null
+	override val name: String,
+	override val type: Type,
+	override val initializer: Expr? = null,
 ) : VariableDeclarationBase()
 
-class Assignment(val variable: AssignableExpr, val value: Expr) : Expr()
+class Assignment(
+	val variable: AssignableExpr,
+	val value: Expr,
+) : Expr()
 
 sealed class Literal : Expr()
-class IntLiteral(val value: Long) : Literal()
 
-class BoolLiteral(val value: Boolean) : Literal()
+class IntLiteral(
+	val value: Long,
+) : Literal()
+
+class BoolLiteral(
+	val value: Boolean,
+) : Literal()
+
 class NopeLiteral : Literal()
+
 class NothingLiteral : Literal()
 
+class VariableReference(
+	val name: String,
+) : AssignableExpr()
 
-class VariableReference(val name: String) : AssignableExpr()
+class BinaryOperation(
+	val left: Expr,
+	val operator: BinaryOperator,
+	val right: Expr,
+) : Expr()
 
-class BinaryOperation(val left: Expr, val operator: BinaryOperator, val right: Expr) : Expr()
 enum class BinaryOperator {
-    PLUS, MINUS, MULTIPLY, DIVIDE,
-    AND, OR, EQ, GT, GTE, LT, LTE, NEQ
+	PLUS,
+	MINUS,
+	MULTIPLY,
+	DIVIDE,
+	AND,
+	OR,
+	EQ,
+	GT,
+	GTE,
+	LT,
+	LTE,
+	NEQ,
 }
 
-class UnaryOperation(val operator: UnaryOperator, val operand: Expr) : Expr()
+class UnaryOperation(
+	val operator: UnaryOperator,
+	val operand: Expr,
+) : Expr()
+
 enum class UnaryOperator {
-    NOT, MINUS
+	NOT,
+	MINUS,
 }
 
-sealed class AnyCallableDeclaration() : Expr()
-{
-    abstract val parameters: List<Parameter>;
+sealed class AnyCallableDeclaration : Expr() {
+	abstract val parameters: List<Parameter>
 }
 
-sealed class AnyFunctionDeclaration() : AnyCallableDeclaration()
-{
-    abstract val name: String;
-    abstract override val parameters: List<Parameter>;
-    abstract val returnType: Type
+sealed class AnyFunctionDeclaration : AnyCallableDeclaration() {
+	abstract val name: String
+	abstract override val parameters: List<Parameter>
+	abstract val returnType: Type
 }
 
 class FunctionDeclaration(
-    override val name: String,
-    override val parameters: List<Parameter>,
-    override val returnType: Type,
-    val body: Expr
+	override val name: String,
+	override val parameters: List<Parameter>,
+	override val returnType: Type,
+	val body: Expr,
 ) : AnyFunctionDeclaration()
 
 class ForeignFunctionDeclaration(
-    override val name: String,
-    override val parameters: List<Parameter>,
-    override val returnType: Type
+	override val name: String,
+	override val parameters: List<Parameter>,
+	override val returnType: Type,
 ) : AnyFunctionDeclaration()
 
-class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
+class Parameter(
+	val name: String,
+	val type: Type,
+) : AnyVariable,
+	ASTNode
 
 class FunctionCall(
-    val functionName: String,
-    val arguments: List<Argument>
+	val functionName: String,
+	val arguments: List<Argument>,
 ) : Expr()
 
-sealed class Argument(val expression: Expr) : ASTNode
-class PositionalArgument(expression: Expr) : Argument(expression)
-class NamedArgument(val name: String, expression: Expr) : Argument(expression)
+sealed class Argument(
+	val expression: Expr,
+) : ASTNode
+
+class PositionalArgument(
+	expression: Expr,
+) : Argument(expression)
+
+class NamedArgument(
+	val name: String,
+	expression: Expr,
+) : Argument(expression)
 
 class Conditional(
-    val condition: Expr,
-    val thenBranch: Expr,
-    val elseBranch: Expr? = null
+	val condition: Expr,
+	val thenBranch: Expr,
+	val elseBranch: Expr? = null,
 ) : Expr()
 
 class Loop(
-    val identifier: String?,
-    val body: Expr
+	val identifier: String?,
+	val body: Expr,
 ) : Expr()
 
 class Break(
-    val identifier: String?,
-    val expression: Expr? = null
+	val identifier: String?,
+	val expression: Expr? = null,
 ) : Expr()
 
 class MemoryNew(
-    val type: Type,
-    val constructorArguments: List<Argument>
+	val type: Type,
+	val constructorArguments: List<Argument>,
 ) : Expr()
 
 class MemoryDel(
-    val pointer: Expr
+	val pointer: Expr,
 ) : Expr()
 
 class ArrayAccess(
-    val array: Expr,
-    val index: Expr
+	val array: Expr,
+	val index: Expr,
 ) : AssignableExpr()
 
 class StructTypeDeclaration(
-    val name: String,
-    val fields: List<VariableDeclarationBase>,
-    val constructorMethod: ConstructorDeclaration
+	val name: String,
+	val fields: List<VariableDeclarationBase>,
+	val constructorMethod: ConstructorDeclaration,
 ) : Expr()
 
 class ConstructorDeclaration(
-    override val parameters: List<Parameter>,
-    val body: Expr
+	override val parameters: List<Parameter>,
+	val body: Expr,
 ) : AnyCallableDeclaration()
 
 class StructFieldAccess(
-    val structObject: Expr,
-    val field: String
+	val structObject: Expr,
+	val field: String,
 ) : AssignableExpr()
 
 class HereReference : Expr()
 
 class TypeUse(
-    val typeName: String
+	val typeName: String,
 ) : Type

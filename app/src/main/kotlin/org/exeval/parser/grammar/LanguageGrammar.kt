@@ -1,8 +1,7 @@
 package org.exeval.parser.grammar
 
-import org.exeval.parser.Production
 import org.exeval.parser.Grammar
-import org.exeval.parser.Parser
+import org.exeval.parser.Production
 
 interface GrammarSymbol {
 	fun productions(): List<List<GrammarSymbol>>
@@ -14,7 +13,8 @@ interface Terminal : GrammarSymbol {
 
 interface TerminalGroup : GrammarSymbol {
 	fun values(): List<Terminal>
-	override fun productions(): List<List<GrammarSymbol>> = values().map{ listOf(it) }
+
+	override fun productions(): List<List<GrammarSymbol>> = values().map { listOf(it) }
 }
 
 object LanguageGrammar {
@@ -24,7 +24,7 @@ object LanguageGrammar {
 		fun getSymbolProductions(
 			symbol: GrammarSymbol,
 			processedSymbols: MutableSet<GrammarSymbol>,
-			productions: MutableList<Production<GrammarSymbol>>
+			productions: MutableList<Production<GrammarSymbol>>,
 		) {
 			if (!processedSymbols.contains(symbol)) {
 				processedSymbols.add(symbol)

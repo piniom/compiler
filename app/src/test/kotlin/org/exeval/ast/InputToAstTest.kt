@@ -17,60 +17,61 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class InputToAstTest {
+	private companion object {
+		private val astCreator = AstCreatorImpl()
+		private val lexer = buildLexer()
+		private val parser = buildParser()
 
-    private companion object {
-        private val astCreator = AstCreatorImpl()
-        private val lexer = buildLexer()
-        private val parser = buildParser()
+		@JvmStatic
+		private fun filenameParameters(): List<String> = FilesToAst.MAP.keys.toList()
+	}
 
-        @JvmStatic
-        private fun filenameParameters(): List<String> = FilesToAst.MAP.keys.toList()
-    }
+	@ParameterizedTest
+	@MethodSource("filenameParameters")
+	fun `Valid ASTs are produced from example programs`(filepath: String) {
+		val expectedAst = FilesToAst.MAP[filepath]!!
+		testFileToAst(filepath, expectedAst)
+	}
 
-    @ParameterizedTest
-    @MethodSource("filenameParameters")
-    fun `Valid ASTs are produced from example programs`(filepath: String) {
-        val expectedAst = FilesToAst.MAP[filepath]!!
-        testFileToAst(filepath, expectedAst)
-    }
+	private fun testFileToAst(
+		filename: String,
+		expectedAst: ASTNode,
+	) {
+		val fileInput = CommentCutter(FileInput(filename))
+		val actualAst = getActualAst(fileInput).root
+		assertTrue(
+			AstComparator.compareASTNodes(expectedAst, actualAst),
+			"Wrong AST for $filename:\n\nactual:\n$actualAst\n\nexpected:\n$expectedAst",
+		)
+	}
 
+	@Ignore("Should unignore after fixing StringInput")
+	@Test
+	fun `Test from StringInput main = 4 to AST`() {
+		val codeStr = """foo main() -> Int = 4"""
+		val stringInput = CommentCutter(StringInput(codeStr))
+		val actualAst = getActualAst(stringInput)
 
-    private fun testFileToAst(filename: String, expectedAst: ASTNode) {
-        val fileInput = CommentCutter(FileInput(filename))
-        val actualAst = getActualAst(fileInput).root
-        assertTrue(
-            AstComparator.compareASTNodes(expectedAst, actualAst),
-            "Wrong AST for $filename:\n\nactual:\n$actualAst\n\nexpected:\n$expectedAst"
-        )
-    }
+		assertNotNull(actualAst)
+		assertTrue(actualAst.root is Program)
+		val programNode = actualAst.root as Program
+		assertEquals(1, programNode.functions.size)
 
-    @Ignore("Should unignore after fixing StringInput")
-    @Test
-    fun `Test from StringInput main = 4 to AST`() {
-        val codeStr = """foo main() -> Int = 4"""
-        val stringInput = CommentCutter(StringInput(codeStr))
-        val actualAst = getActualAst(stringInput)
+		val functionNode = programNode.functions.first()
+		assertEquals("main", functionNode.name)
+		assertEquals(0, functionNode.parameters.size)
+		assertTrue(functionNode.returnType is IntType)
 
-        assertNotNull(actualAst)
-        assertTrue(actualAst.root is Program)
-        val programNode = actualAst.root as Program
-        assertEquals(1, programNode.functions.size)
+		assertTrue(functionNode is FunctionDeclaration)
+		assertTrue(functionNode.body is IntLiteral)
+		assertEquals(4, (functionNode.body as IntLiteral).value)
+	}
 
-        val functionNode = programNode.functions.first()
-        assertEquals("main", functionNode.name)
-        assertEquals(0, functionNode.parameters.size)
-        assertTrue(functionNode.returnType is IntType)
-
-        assertTrue(functionNode is FunctionDeclaration)
-        assertTrue(functionNode.body is IntLiteral)
-        assertEquals(4, (functionNode.body as IntLiteral).value)
-    }
-
-    private fun getActualAst(input: Input): AstInfo {
-        val lexerOutput = lexer.run(input)
-        val leaves = LexerUtils.Companion.lexerTokensToParseTreeLeaves(lexerOutput.result)
-        val parseTree = parser.run(leaves)
-        val actualAst = astCreator.create(parseTree, input)
-        return actualAst
-    }
+	private fun getActualAst(input: Input): AstInfo {
+		val lexerOutput = lexer.run(input)
+		val leaves = LexerUtils.Companion.lexerTokensToParseTreeLeaves(lexerOutput.result)
+		val parseTree = parser.run(leaves)
+		val actualAst = astCreator.create(parseTree, input)
+		return actualAst
+	}
 }

@@ -1,10 +1,10 @@
-package org.exeval.instructions.linearizer;
+package org.exeval.instructions.linearizer
 
-import org.exeval.instructions.Instruction;
-import org.exeval.cfg.Label;
+import org.exeval.cfg.Label
+import org.exeval.instructions.Instruction
 
-data class BasicBlock (
-    val label : Label,
-    var instructions : List<Instruction>,
-    var successors : List<BasicBlock>
+data class BasicBlock(
+	val label: Label,
+	var instructions: List<Instruction>,
+	var successors: List<BasicBlock>,
 )

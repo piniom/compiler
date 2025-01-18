@@ -5,11 +5,13 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class TemplatePatternTest {
-
-	class TestInstruction(val arguments: List<OperandArgumentType>): Instruction {
+	class TestInstruction(val arguments: List<OperandArgumentType>) : Instruction {
 		override fun toAsm(mapping: Map<Register, PhysicalRegister>): String = ""
+
 		override fun usedRegisters(): List<Register> = listOf()
+
 		override fun definedRegisters(): List<Register> = listOf()
+
 		override fun isCopy(): Boolean = false
 	}
 
@@ -18,28 +20,30 @@ class TemplatePatternTest {
 			BinaryAddTreeKind,
 			InstructionKind.EXEC,
 			1,
-			{_, inputs, _ -> listOf(TestInstruction(inputs))}
+			{ _, inputs, _ -> listOf(TestInstruction(inputs)) },
 		)
 
-	private fun createTree(left: Tree, right: Tree) =
-		BinaryOperationTree(left, right, BinaryTreeOperationType.ADD)
+	private fun createTree(
+		left: Tree,
+		right: Tree,
+	) = BinaryOperationTree(left, right, BinaryTreeOperationType.ADD)
 
 	fun validateInstructionCreation(
 		matchResult: InstructionMatchResult,
-		inputs: List<VirtualRegister>
+		inputs: List<VirtualRegister>,
 	): TestInstruction {
 		val instructions = matchResult.createInstruction(null, inputs, null)
 		assertEquals(1, instructions.size, "Exactly one instruction should be returned")
 		assertTrue(
 			instructions[0] is TestInstruction,
-			"Returned instruction should be a TestInstruction"
+			"Returned instruction should be a TestInstruction",
 		)
 
 		val instr = instructions[0] as TestInstruction
 		assertEquals(
 			2,
 			instr.arguments.size,
-			"Exactly two arguments should be passed to instantiated instruction"
+			"Exactly two arguments should be passed to instantiated instruction",
 		)
 		return instr
 	}
@@ -116,5 +120,4 @@ class TemplatePatternTest {
 		assertSame(reg, instr.arguments[0])
 		assertSame(label, instr.arguments[1])
 	}
-
 }
