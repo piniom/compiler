@@ -89,11 +89,6 @@ class LivenessCheckerImpl: LivenessChecker {
         for(register in interferenceGraph.keys){
             interferenceGraph[register]!!.remove(register)
         }
-
-        //remove CopyGraph edges from inferenceGraph
-        for((register, list) in copyGraph){
-            interferenceGraph[register]!!.removeAll(list)
-        }
         return LivenessResult(interferenceGraph,  copyGraph)
     }
 
