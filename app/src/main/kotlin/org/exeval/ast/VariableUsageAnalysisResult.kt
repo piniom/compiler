@@ -33,9 +33,9 @@ class usageAnalysis{
         require(nameResolution.variableToDecl.containsKey(v))
         return nameResolution.variableToDecl[v]!!
     }
-    private fun translate(v:Assignment):AnyVariable{
-        require(nameResolution.assignmentToDecl.containsKey(v))
-        return nameResolution.assignmentToDecl[v]!!
+    private fun translate(v:Assignment): AnyVariable{
+        require(nameResolution.variableToDecl.containsKey(v.variable))
+        return nameResolution.variableToDecl[v.variable]!!
     }
     private fun generateUsageAnalysis(node:Expr){
         if(!analysis.containsKey(node)){

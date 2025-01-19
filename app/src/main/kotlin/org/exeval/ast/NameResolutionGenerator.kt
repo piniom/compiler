@@ -31,8 +31,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private val breakToLoop: MutableMap<Break, Loop> = mutableMapOf()
     private val argumentToParam: MutableMap<Argument, Parameter> = mutableMapOf()
     private val functionToDecl: MutableMap<FunctionCall, AnyFunctionDeclaration> = mutableMapOf()
-    private val variableToDecl: MutableMap<VariableReference, AnyVariable> = mutableMapOf()
-    private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
+    private val variableToDecl: MutableMap<AssignableExpr, AnyVariable> = mutableMapOf()
     private val useToStruct: MutableMap<TypeUse, StructTypeDeclaration> = mutableMapOf()
 
 
@@ -48,7 +47,6 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             argumentToParam,
             functionToDecl,
             variableToDecl,
-            assignmentToDecl,
             useToStruct,
         ), diagnostics)
     }
@@ -165,12 +163,11 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         if (variableName == "")
             addUnknownNodeError(variable)
 
-        if(variableName != consts.hereRef) {
-            getVarDecl(assignment, variableName)?.let {
-                assignmentToDecl[assignment] = it
-            }
+        if(variable is VariableReference && variableToDecl[variable] is ConstantDeclaration) {
+            addDiagnostic("An illegall assignement to a constant value", variableToDecl[variable]!!)
         }
-
+        
+        processAsBlock { processNode(assignment.variable) }
         processAsBlock { processNode(assignment.value) }
     }
 

@@ -476,7 +476,6 @@ class TypeCheckerTest {
             LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
         }
         every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
-        every { mockNameResolution.assignmentToDecl[aAssignment] } returns aDeclaration
 
         // Run TypeChecker
         val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
@@ -524,7 +523,6 @@ class TypeCheckerTest {
         }
         every { mockNameResolution.variableToDecl[bReference] } returns bDeclaration
         every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
-        every { mockNameResolution.assignmentToDecl[assignment] } returns aDeclaration
 
         // Run TypeChecker
         val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
@@ -571,8 +569,6 @@ class TypeCheckerTest {
             LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
         }
         every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
-        every { mockNameResolution.assignmentToDecl[outerAssignment] } returns aDeclaration
-        every { mockNameResolution.assignmentToDecl[assignmentInsideLoop] } returns aDeclaration
 
         // Run TypeChecker
         val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)
@@ -728,7 +724,6 @@ class TypeCheckerTest {
             LocationRange(SimpleLocation(1, 4), SimpleLocation(1, 18))
         }
         every { mockNameResolution.variableToDecl[aReference] } returns aDeclaration
-        every { mockNameResolution.assignmentToDecl[aAssignment] } returns aDeclaration
 
         // Run TypeChecker
         val typeChecker = TypeChecker(mockAstInfo, mockNameResolution)

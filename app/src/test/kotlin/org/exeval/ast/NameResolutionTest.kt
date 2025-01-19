@@ -102,29 +102,6 @@ class NameResolutionTest {
     }
 
     @Test
-    fun `should match assignment to declarations`() {
-        val decl = MutableVariableDeclaration("var", IntType, IntLiteral(1))
-        val assignment = Assignment(VariableReference("var"), IntLiteral(3))
-        val function = FunctionDeclaration(
-            "main", emptyList(), IntType,
-            Block(
-                listOf(
-                    decl,
-                    assignment
-                )
-            )
-        )
-        val astInfo = AstInfo(function, emptyMap())
-        val nameResolution = NameResolutionGenerator(astInfo).parse().result
-
-        assertEquals(
-            decl,
-            nameResolution.assignmentToDecl[assignment],
-            "Expected 'second_var' assignment to be matched to its declaration"
-        )
-    }
-
-    @Test
     fun `should match parameter to arguments`() {
         val aParam = Parameter("a", IntType)
         val bParam = Parameter("b", IntType)
@@ -406,7 +383,6 @@ class NameResolutionTest {
         assert(result.diagnostics.size==0)
         assert(result.result.variableToDecl[b_ref]!! == b_decl)
         assert(result.result.variableToDecl[c_ref]!! == c_param)
-        assert(result.result.assignmentToDecl[a_ass]!! == a_decl)
     }
 
     @Test
