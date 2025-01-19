@@ -20,14 +20,14 @@ class FunctionFrameManagerImpl(
     private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
 
     val label: Label
-    private val calleSaveRegisters = listOf(
-        PhysicalRegister.R9,
-        PhysicalRegister.R10,
-        PhysicalRegister.R11,
-        PhysicalRegister.R12,
-        PhysicalRegister.R13,
-        PhysicalRegister.R14,
-        PhysicalRegister.R15,
+    private var calleSaveRegisters = mapOf(
+        PhysicalRegister.R9 to VirtualRegister(),
+        PhysicalRegister.R10 to VirtualRegister(),
+        PhysicalRegister.R11 to VirtualRegister(),
+        PhysicalRegister.R12 to VirtualRegister(),
+        PhysicalRegister.R13 to VirtualRegister(),
+        PhysicalRegister.R14 to VirtualRegister(),
+        PhysicalRegister.R15 to VirtualRegister(),
     )
 
     init {
@@ -178,13 +178,15 @@ class FunctionFrameManagerImpl(
     private fun backupRegisters(): List<Tree> {
         stackOffset.value += calleSaveRegisters.size
 
-        return calleSaveRegisters.map {
-            pushToStack(RegisterTree(it))
-        }.flatten()
+        calleSaveRegisters = calleSaveRegisters.mapValues { VirtualRegister() }
+
+        return calleSaveRegisters.map { (actualRegister, backupRegister) ->
+            AssignmentTree(RegisterTree(backupRegister), RegisterTree(actualRegister))
+        }
     }
 
     private fun restoreRegisters(): List<Tree> {
-        return calleSaveRegisters.map { popFromStack(RegisterTree(it)) }.flatten()
+        return calleSaveRegisters.map { (actualRegister, backupRegister) -> AssignmentTree(RegisterTree(actualRegister), RegisterTree(backupRegister)) }
     }
 
     private fun initialiseVariableMap() {
