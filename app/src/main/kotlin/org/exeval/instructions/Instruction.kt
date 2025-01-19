@@ -178,7 +178,9 @@ class RetInstruction : Instruction {
     override fun isCopy() = false
 }
 
-class CmpInstruction(val left: OperandArgumentType, val right: OperandArgumentType) : Instruction {
+// NOTE Nothing is assigned to the first argument.
+//      However, assembly allows it to be only a register or memory location.
+class CmpInstruction(val left: AssignableDest, val right: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMP ${argToString(left, mapping)}, ${argToString(right, mapping)}"
     override fun usedRegisters() = getRegisters(left, right)

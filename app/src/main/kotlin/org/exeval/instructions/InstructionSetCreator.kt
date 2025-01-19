@@ -221,7 +221,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[0], NumericalConstant(0))
+                        CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     JeInstruction(shortCutLabel)
@@ -233,7 +233,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(1))
+                        CmpInstruction(inputs[1] as AssignableDest, NumericalConstant(1))
                     )
                 } + listOf(
                     JeInstruction(label),
@@ -266,7 +266,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[0], NumericalConstant(0))
+                        CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     // TODO fix labels
@@ -279,7 +279,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(0))
+                        CmpInstruction(inputs[1] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     JneInstruction(label)
@@ -384,11 +384,21 @@ class InstructionSetCreator {
                     throw IllegalArgumentException("Label must be passed to jump operation")
                 }
                 // TODO fix labels
-                create2ArgInstruction(
-                    {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
-                    inputs[0],
-                    inputs[1]
-                ) + listOf(
+                if (inputs[0] is ConstantOperandArgumentType) {
+                    listOf(
+                        MovInstruction(reg1, inputs[0])
+                    ) + create2ArgInstruction(
+                        {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
+                        reg1,
+                        inputs[1]
+                    )
+                } else {
+                    create2ArgInstruction(
+                        {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
+                        inputs[0],
+                        inputs[1]
+                    )
+                } + listOf(
                     when(asmJccOperation) {
                         OperationAsm.JG -> JgInstruction(label)
                         OperationAsm.JE -> JeInstruction(label)
@@ -479,7 +489,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                    CmpInstruction(inputs[0], NumericalConstant(0)),
+                    CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0)),
                     )
                 } + listOf(
                     // TODO fix labels
