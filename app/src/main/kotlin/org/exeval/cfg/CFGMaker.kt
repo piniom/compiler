@@ -54,11 +54,11 @@ class CFGMaker(
             is VariableReference -> walkVariableReference(expr, then)
             is ArrayAccess -> TODO()
             is MemoryDel -> TODO()
-            is MemoryNew -> TODO()
+            is MemoryNew -> walkMemoryNew(expr, then)
             is StructFieldAccess -> walkStructFieldAccess(expr, then)
             is ConstructorDeclaration -> WalkResult(then, null)
             is HereReference -> TODO("scheduled in task Structs #1")
-            is StructTypeDeclaration -> TODO("scheduled in task Structs #1")
+            is StructTypeDeclaration -> WalkResult(then, null)
             null -> WalkResult(then, null)
         }
     }
@@ -316,6 +316,18 @@ class CFGMaker(
 
             )
         } else throw Exception("Accessing a field of non structure!")
+    }
+
+    private fun walkMemoryNew(expr: MemoryNew, then: CFGNode): WalkResult {
+        when(expr.type) {
+            is StructType {
+                val mallocSize = expr.type.size
+
+            }
+            else -> {
+                TODO("Array type")
+            }
+        }
     }
 
     private fun convertBinOp(operation: BinaryOperator): BinaryOpType {
