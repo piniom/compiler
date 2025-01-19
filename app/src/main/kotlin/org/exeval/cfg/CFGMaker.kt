@@ -18,7 +18,14 @@ class Node(override var branches: Pair<CFGNode, CFGNode?>?, override var trees: 
 }
 
 
-class WalkResult(val top: CFGNode, var tree: Tree?)
+class WalkResult(val top: CFGNode, var tree: Tree?) {
+    /* Please comment on this and what I added to walkBlock.
+     * It's a fix to last instruction not being returned as
+     * function result (nothing, or rather null, was always
+     * set in this case).
+     */
+    var result: Tree? = null
+}
 
 class CFGMaker(
     private val fm: FunctionFrameManager,
@@ -32,7 +39,7 @@ class CFGMaker(
     fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
         val body = walkExpr(ast.body, node)
-        val bottom = fm.generate_epilouge(body.tree)
+        val bottom = fm.generate_epilouge(body.result)
         node.branches = Pair(bottom, null)
         return fm.generate_prolog(body.top)
     }
@@ -108,14 +115,19 @@ class CFGMaker(
     private fun walkBlock(block: Block, then: CFGNode): WalkResult {
         val reversed = block.expressions.reversed()
         var prev = WalkResult(then, null)
+        var lastExprInBlock: Tree? = null
         for (e in reversed) {
             val node = if (prev.tree != null) {
+                if (lastExprInBlock == null) {
+                    lastExprInBlock = prev.tree
+                }
                 Node(prev.top, prev.tree!!)
             } else {
                 prev.top
             }
             prev = walkExpr(e, node)
         }
+        prev.result = lastExprInBlock
         return prev
     }
 
