@@ -21,7 +21,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
 
     // create reversed list of basic blocks (revesed due to time saving)
     private fun makeBasicBlocks(node : CFGNode, result : MutableList<BasicBlock>) : BasicBlock {
-        
+
         if (nodeToBBMap.containsKey(node))
             return nodeToBBMap[node]!!
 
@@ -49,7 +49,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
         var elseBranch = makeBasicBlocks(node.branches?.second!!, result)
         successors.add(elseBranch)
         successors.add(ifBranch)
-        var instructions = generateContent(node, currentBB.label)
+        var instructions = generateContent(node, ifBranch.label)
         if (result.lastOrNull() != elseBranch)
             instructions.add(JmpInstruction(elseBranch.label))
 
