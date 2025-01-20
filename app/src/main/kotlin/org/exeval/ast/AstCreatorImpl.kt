@@ -76,7 +76,46 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                 }
             }
             astNode = Parameter(name!!, type!!)
-        } else if (symbol === ExpressionSymbol) {
+        } else if (symbol === ConstructorDeclarationSymbol) {
+            val constructorParams = unwrapList<Parameter>(children[0], ConstructorDeclarationParamsSymbol, input, Parameter::class)
+            val body = createAux(children[1], input) as Expr
+            astNode = ConstructorDeclaration(constructorParams, body)
+        } else if (symbol === StructDefinitionSymbol) {
+            var name: String? = null
+            val fields = mutableListOf<VariableDeclarationBase>()
+            var constructorMethod: ConstructorDeclaration? = null
+
+            for (child in children) {
+                val childSymbol = getSymbol(child)
+
+                when {
+                    childSymbol === TokenCategories.IdentifierType -> {
+                        name = getNodeText(child, input)
+                    }
+                    childSymbol === StructDefinitionBodySymbol -> {
+                        constructorMethod = extractStructBody(child, input, fields) ?: constructorMethod
+                    }
+                }
+            }
+
+            astNode = StructTypeDeclaration(name!!, fields, constructorMethod!!)
+        }
+        else if (symbol === StructAccessSymbol) {
+            val structObject = createAux(children[0], input) as Expr
+            val field = getNodeText(children[2], input)
+            astNode = StructFieldAccess(structObject, field)
+        } else if (symbol === HereAccess) {
+            astNode = if (children.size == 1) {
+                HereReference()
+            } else {
+                val field = getNodeText(children[2], input)
+                StructFieldAccess(HereReference(), field)
+            }
+        } else if (symbol === TypeSymbol) {
+            val typeName = getNodeText(node, input)
+            astNode = TypeUse(typeName)
+        }
+        else if (symbol === ExpressionSymbol) {
             astNode = createAux(children[0], input)
         } else if (symbol === SimpleExpressionSymbol) {
             astNode = createAux(children[0], input)
@@ -86,6 +125,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             astNode = createAux(children[0], input)
         } else if (symbol === TokenCategories.LiteralInteger) {
             astNode = IntLiteral(getNodeText(node, input).toLong())
+        } else if (symbol === TokenCategories.LiteralNothing) {
+            astNode = NothingLiteral()
         } else if (symbol === TokenCategories.LiteralBoolean) {
             astNode = BoolLiteral(getNodeText(node, input) == "true")
         } else if (symbol === TokenCategories.LiteralNope) {
@@ -133,7 +174,7 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     variableExpr = VariableReference(getNodeText(child, input))
                 } else if (childSymbol === ExpressionSymbol) {
                     valueExpr = createAux(child, input) as Expr
-                } else if (childSymbol === ArrayAccessSymbol) {
+                } else if (childSymbol === StructAccessSymbol || childSymbol === HereAccess) {
                     variableExpr = createAux(child, input) as AssignableExpr
                 }
             }
@@ -370,6 +411,68 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             else -> false
         }
     }
+
+    private fun extractStructBody(node: ParseTree<GrammarSymbol>, input: Input, fields: MutableList<VariableDeclarationBase>): ConstructorDeclaration? {
+        var constructorMethod: ConstructorDeclaration? = null
+
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
+        }
+
+        for (child in children) {
+            val childSymbol = getSymbol(child)
+
+            when {
+                childSymbol === VariableDeclarationSymbol || childSymbol === ConstantDeclarationSymbol -> {
+                    fields.add(createAux(child, input) as VariableDeclarationBase)
+                }
+                childSymbol === ConstructorDeclarationSymbol -> {
+                    constructorMethod = createAux(child, input) as ConstructorDeclaration
+                }
+                childSymbol === StructDefinitionBodySymbol -> {
+                    constructorMethod = extractStructBody(child, input, fields) ?: constructorMethod
+                }
+                childSymbol === StructDefinitionBodyPropertySymbol -> {
+                    handleStructProperty(child, input, fields)?.let { constructor ->
+                        constructorMethod = constructor
+                    }
+                }
+            }
+        }
+
+        return constructorMethod
+    }
+
+    private fun handleStructProperty(node: ParseTree<GrammarSymbol>, input: Input, fields: MutableList<VariableDeclarationBase>): ConstructorDeclaration? {
+        val children = when (node) {
+            is Leaf -> listOf()
+            is Branch -> node.children
+        }
+
+        var constructor: ConstructorDeclaration? = null
+
+        if (children.isNotEmpty()) {
+            val childSymbol = getSymbol(children[0])
+
+            when {
+                childSymbol === VariableDeclarationSymbol || childSymbol === ConstantDeclarationSymbol -> {
+                    fields.add(createAux(node, input) as VariableDeclarationBase)
+                }
+                childSymbol === Token.KeywordLet -> {
+                    val name = getNodeText(children[1], input)
+                    val type = getType(children[3], input) ?: throw IllegalStateException("Missing type for $name")
+                    fields.add(ConstantDeclaration(name, type, NopeLiteral()))
+                }
+                childSymbol === ConstructorDeclarationSymbol -> {
+                    constructor = createAux(node, input) as ConstructorDeclaration
+                }
+            }
+        }
+
+        return constructor
+    }
+
 
     private fun parseFunctionCallArguments(node: ParseTree<GrammarSymbol>, input: Input): List<Argument> {
         val arguments = mutableListOf<Argument>()

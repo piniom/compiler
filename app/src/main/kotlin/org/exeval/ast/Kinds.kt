@@ -139,4 +139,4 @@ class HereReference : Expr()
 
 class TypeUse(
     val typeName: String
-) : Type
+) : Type, ASTNode
