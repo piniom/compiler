@@ -50,8 +50,8 @@ Feature: Type Checker diagnostics
     When source code is passed through type checker
     Then returns diagnostics:
       | message                                     | line | column | endLine | endColumn |
-      | Argument type does not match parameter type | 3    | 3      | 3       | 8         |
-      | Argument type does not match parameter type | 3    | 10     | 3       | 18        |
+      | Argument type does not match parameter type | 3    | 6      | 3       | 8         |
+      | Argument type does not match parameter type | 3    | 14     | 3       | 18        |
 
 # TODO: for some reason type checker returns the second error twice
 #  @variables
