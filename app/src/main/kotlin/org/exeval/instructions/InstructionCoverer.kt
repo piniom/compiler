@@ -13,7 +13,12 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
     }
 
     private fun coverTree(tree: Tree, subtreeCost: Map<Tree, Pair<Int, InstructionPattern?>>, registerMap: MutableMap<Tree, VirtualRegister?>, labelTrue : Label?): List<Instruction> {
-        val matchResult = subtreeCost[tree]!!.second!!.matches(tree)!!
+        if (tree is RegisterTree || tree is ConstantTree) {
+            return listOf()
+        }
+        val matchResult = subtreeCost[tree]!!
+            .second!!
+            .matches(tree)!!
         val register =  when (tree) {
              is AssignmentTree, Return -> {
                 registerMap[tree] = null
@@ -57,27 +62,39 @@ class InstructionCoverer(private val instructionPatterns: Map<InstructionPattern
                 computeCost(tree.address, subtreeCost, InstructionKind.VALUE)
             }
 
+            is StackPushTree -> {
+                computeCost(tree.source, subtreeCost, InstructionKind.VALUE)
+            }
+
+            is StackPopTree -> {
+                computeCost(tree.destination, subtreeCost, InstructionKind.VALUE)
+            }
+
             else -> {
                 // leaf
             }
         }
         var minCost = Int.MAX_VALUE
         var bestInstr: InstructionPattern? = null
-        for (instructionPattern in instructionPatterns[InstructionPatternMapKey(tree.treeKind(), instructionKind)]!!) {
-            val result = instructionPattern.matches(tree)
-            if (result != null) {
-                var newCost = instructionPattern.cost
-                for (child in result.children){
-                    val childCost = subtreeCost[child]!!.first
-                    if (childCost == Int.MAX_VALUE){
-                        newCost = Int.MAX_VALUE
-                        break
+        val candidatePatterns =
+            instructionPatterns[InstructionPatternMapKey(tree.treeKind(), instructionKind)]
+        if (candidatePatterns != null) {
+            for (instructionPattern in candidatePatterns) {
+                val result = instructionPattern.matches(tree)
+                if (result != null) {
+                    var newCost = instructionPattern.cost
+                    for (child in result.children) {
+                        val childCost = subtreeCost[child]
+                        if (childCost?.second == null) {
+                            newCost = Int.MAX_VALUE
+                            break
+                        }
+                        newCost += childCost.first
                     }
-                    newCost += childCost
-                }
-                if (minCost > newCost) {
-                    minCost = newCost
-                    bestInstr = instructionPattern
+                    if (minCost > newCost) {
+                        minCost = newCost
+                        bestInstr = instructionPattern
+                    }
                 }
             }
         }

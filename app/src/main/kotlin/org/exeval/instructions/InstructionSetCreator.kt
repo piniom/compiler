@@ -47,6 +47,11 @@ class InstructionSetCreator {
             + createCallPatterns()
 
             + createReturnPatterns()
+
+            + createPushPatterns()
+            + createPopPatterns()
+
+            + createMemoryReadPatterns()
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
@@ -64,29 +69,20 @@ class InstructionSetCreator {
                 AssignmentTreeKind,
                 InstructionKind.EXEC,
                 1
-            ) { _, inputs, _ ->
-                if (inputs.size != 2) {
+            ) { dest, inputs, _ ->
+                if (inputs.size != 1) {
                     throw IllegalArgumentException(
                         """Assignment takes exactly two arguments:
                         [1] destination (where to assign) and
                         [2] source (what to assign)""".trimIndent()
                     )
                 }
-                if (!(inputs is Register)) { // TODO or Memory
-                    throw IllegalArgumentException(
-                        "First argument for assignment must be a register or memory location"
-                    )
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for assignment cannot be null")
                 }
-                if (false) { // TODO inputRegisters[0] is Memory && inputRegisters[1] is Memory
-                    listOf(
-                        MovInstruction(reg1, inputs[1]),
-                        MovInstruction(inputs[0] as AssignableDest, reg1)
-                    )
-                } else {
-                    listOf(
-                        MovInstruction(inputs[0] as AssignableDest, inputs[1])
-                    )
-                }
+                listOf(
+                    MovInstruction(dest, inputs[0])
+                )
             }
         )
     }
@@ -129,7 +125,7 @@ class InstructionSetCreator {
 
     private fun createMulDivModInstructions(
         operation: OperationAsm,
-        dest: VirtualRegister,
+        dest: AssignableDest,
         inputs: List<OperandArgumentType>
     ): List<Instruction> {
         // NOTE Needed always, can be either register or memory
@@ -160,11 +156,21 @@ class InstructionSetCreator {
                     else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
                 }
             )
-        } + listOf(
-            // Save result & restore registers
-            XchgInstruction(dest, PhysicalRegister.RAX),
-            MovInstruction(PhysicalRegister.RDX, reg1)
-        )
+        } + if (dest is Register) {
+                listOf(
+                // Save result & restore registers
+                XchgInstruction(dest, PhysicalRegister.RAX),
+                MovInstruction(PhysicalRegister.RDX, reg1)
+            )
+        }
+        else {
+            listOf(
+                MovInstruction(reg2, dest),
+                MovInstruction(dest, PhysicalRegister.RAX),
+                MovInstruction(PhysicalRegister.RAX, reg2),
+                MovInstruction(PhysicalRegister.RDX, reg1)
+            )
+        }
     }
 
     private fun createSafeSimple2ArgPatterns(
@@ -540,12 +546,55 @@ class InstructionSetCreator {
         return listOf(
             TemplatePattern(
                 ReturnTreeKind,
-                InstructionKind.VALUE,
+                InstructionKind.EXEC,
                 1
             ) { _, _, _ ->
                 listOf(
                     RetInstruction()
                 )
+            }
+        )
+    }
+
+    private fun createPushPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(StackPushTreeKind, InstructionKind.EXEC, 1) { _, inputs, _ ->
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException(
+                        "Push to stack takes exactly one argument"
+                    )
+                }
+                listOf(PushInstruction(inputs[0]))
+            }
+        )
+    }
+
+    private fun createPopPatterns(): List<InstructionPattern> {
+        return listOf(
+            // TODO why does InstructionCoverer expect an EXEC pattern here, while it's a VALUE kind?
+            TemplatePattern(StackPopTreeKind, InstructionKind.EXEC, 1) { dest, _, _ ->
+                if (dest == null) {
+                    throw IllegalArgumentException("Destination for pop from stack should not be null")
+                }
+                listOf(PopInstruction(dest))
+            }
+        )
+    }
+
+    private fun createMemoryReadPatterns(): List<InstructionPattern> {
+        return listOf(
+            TemplatePattern(MemoryTreeKind, InstructionKind.VALUE, 1) { dest, inputs, _ ->
+                if (dest == null) {
+                    throw IllegalArgumentException(
+                        "Destination for read from memory should not be null"
+                    )
+                }
+                if (inputs.size != 1) {
+                    throw IllegalArgumentException(
+                        "Read from memory takes exactly one argument"
+                    )
+                }
+                listOf(MovInstruction(dest, inputs[0]))
             }
         )
     }

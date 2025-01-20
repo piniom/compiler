@@ -6,14 +6,12 @@ import org.exeval.cfg.Register;
 import org.exeval.cfg.PhysicalRegister;
 import org.exeval.cfg.interfaces.CFGNode;
 import org.exeval.instructions.InstructionCovererInterface;
+import org.exeval.instructions.LabelIdGenerator
 
 class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
-
-    private var labelNum : Int = 0
     private var nodeToBBMap : MutableMap<CFGNode, BasicBlock> = mutableMapOf<CFGNode, BasicBlock>()
 
     public fun createBasicBlocks(node : CFGNode) : List<BasicBlock> {
-        labelNum = 0
         nodeToBBMap = mutableMapOf<CFGNode, BasicBlock>()
         var result = mutableListOf<BasicBlock>()
         makeBasicBlocks(node, result)
@@ -72,8 +70,7 @@ class Linearizer(private val instructionCoverer : InstructionCovererInterface) {
     }
 
     private fun generateLabel() : Label {
-        labelNum += 1
-        return Label("LabelLin" + labelNum.toString())
+        return Label("LabelLin" + LabelIdGenerator.getId().toString())
     }
 
     private class JmpInstruction(private val label : Label) : Instruction {

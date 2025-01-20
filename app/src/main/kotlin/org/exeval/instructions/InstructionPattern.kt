@@ -7,7 +7,7 @@ import org.exeval.cfg.*
 
 data class InstructionMatchResult (
     val children: List<Tree>,
-    val createInstruction: (resultHolder : VirtualRegister?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
+    val createInstruction: (resultHolder : AssignableDest?, registers : List<VirtualRegister>, label : Label?) -> List<Instruction>
 )
 
 interface InstructionPattern{
@@ -30,7 +30,7 @@ class TemplatePattern(
     override val rootType: TreeKind,
     override val kind: InstructionKind,
     override val cost: Int,
-    val lambdaInstruction: (resultHolder : VirtualRegister?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
+    val lambdaInstruction: (resultHolder : AssignableDest?, inputs : List<OperandArgumentType>, label : Label?) -> List<Instruction>
 ) : InstructionPattern{
 
     // NOTE only simple patterns supported for now
@@ -38,14 +38,28 @@ class TemplatePattern(
         if (rootType != parseTree.treeKind()) {
             return null
         }
+        var hasDest = false
         val args = when (parseTree) {
+            is StackPushTree -> {
+                listOf(parseTree.source)
+            }
+            is StackPopTree -> {
+                listOf(parseTree.destination)
+            }
             is BinaryOperationTree -> {
+                if (parseTree.left is MemoryTree && parseTree.right is MemoryTree) {
+                    return null
+                }
                 listOf(parseTree.left, parseTree.right)
             }
             is UnaryOperationTree -> {
                 listOf(parseTree.child)
             }
             is AssignmentTree -> {
+                if (parseTree.destination is MemoryTree && parseTree.value is MemoryTree) {
+                    return null
+                }
+                hasDest = true
                 listOf(parseTree.destination, parseTree.value)
             }
             is Call -> {
@@ -58,11 +72,24 @@ class TemplatePattern(
                 return null
             }
         }
+
         val toMatch: MutableList<Tree> = mutableListOf()
         val constants: MutableList<OperandArgumentType?> = mutableListOf()
         split(args, constants, toMatch)
         return InstructionMatchResult(toMatch, { dest, registers, label ->
-            lambdaInstruction(dest, injectConstants(constants, registers), label)
+            val combinedArgs = if (dest is VirtualRegister) {
+                injectConstants(constants, listOf(dest) + registers).toMutableList()
+            }
+            else {
+                injectConstants(constants, registers).toMutableList()
+            }
+            if (hasDest) {
+                val combinedDest = combinedArgs.removeFirst()
+                lambdaInstruction(combinedDest as AssignableDest, combinedArgs, label)
+            }
+            else {
+                lambdaInstruction(dest, combinedArgs, label)
+            }
         })
     }
 
@@ -70,7 +97,7 @@ class TemplatePattern(
         constants.clear()
         constants.addAll(args.map { extractConstant(it) })
         toMatch.clear()
-        toMatch.addAll(args.filter { !(it is ConstantTree) })
+        toMatch.addAll(args.map { if (it is MemoryTree) it.address else it }.filter { extractConstant(it) == null })
     }
 
     private fun extractConstant(tree: Tree): OperandArgumentType? {
@@ -79,7 +106,8 @@ class TemplatePattern(
             is NumericalConstantTree -> NumericalConstant(tree.value)
             is DelayedNumericalConstantTree -> DelayedNumericalConstant(tree.getValue)
             is Call -> tree.label
-            is RegisterTree -> if (tree.register is PhysicalRegister) { tree.register } else { null }
+            is RegisterTree -> tree.register
+            is MemoryTree -> MemoryHolder(extractConstant(tree.address))
             else -> null
         }
     }
@@ -88,11 +116,23 @@ class TemplatePattern(
         val args = constants.toMutableList()
         var i = 0
         for (j in constants.indices) {
-            if (constants[j] == null) {
+            val constant = constants[j]
+            if (constant == null) {
                 args[j] = registers[i]
                 i += 1
+            }
+            else if (constant is MemoryHolder) {
+                if (constant.address == null) {
+                    args[j] = Memory(registers[i])
+                    i += 1
+                }
+                else {
+                    args[j] = Memory(constant.address)
+                }
             }
         }
         return args as List<OperandArgumentType>
     }
+
+    private class MemoryHolder(val address: OperandArgumentType?): OperandArgumentType
 }
