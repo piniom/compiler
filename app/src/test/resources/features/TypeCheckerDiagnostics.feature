@@ -40,12 +40,21 @@ Feature: Type Checker diagnostics
     When source code is passed through type checker
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
-      | sourceFile                                   | message                                                    | line | column | endLine | endColumn |
-      | invalid/functions/incompatibleReturnType.exe | "Function return type does not match declared return type" | 4    | 20     | 6       | 1         |
+      | sourceFile                                    | message                                                    | line | column | endLine | endColumn |
+      | invalid/foonctions/incompatibleReturnType.exe | "Function return type does not match declared return type" | 4    | 20     | 6       | 2         |
 
   @functions
   Scenario: Invalid functions using various features do cause type checker errors
-    Given ExEval source code file "invalid/functions/badArgumentType.exe"
+    Given ExEval source code file "invalid/foonctions/incompatibleReturnType.exe"
+    When source code is passed through type checker
+    Then returns diagnostics:
+      | message                                                  | line | column | endLine | endColumn |
+      | Function return type does not match declared return type | 4    | 20     | 6       | 1         |
+      | Argument type does not match parameter type              | 3    | 10     | 3       | 18        |
+
+  @functions
+  Scenario: Invalid functions using various features do cause type checker errors
+    Given ExEval source code file "invalid/foonctions/badArgumentType.exe"
     When source code is passed through type checker
     Then returns diagnostics:
       | message                                     | line | column | endLine | endColumn |
@@ -61,19 +70,6 @@ Feature: Type Checker diagnostics
       | Initializer type does not match declared type | 1    | 18     | 1       | 19        |
       | Initializer type does not match declared type | 2    | 21     | 2       | 23        |
       | Assignment type does not match variable type  | 3    | 4      | 3       | 12        |
-
-  @various
-  Scenario: Invalid functions using various features do cause type checker errors
-    Given ExEval source code file "invalid/functions/badArgumentType.exe"
-    When source code is passed through type checker
-    Then returns diagnostics:
-      | message                                              | line | column | endLine | endColumn |
-      | One of operands is NopeType!                         | 4    | 4      | 4       | 13        |
-      | Operands of binary operation must have the same type | 4    | 4      | 4       | 13        |
-      | Operands has to be numerical                         | 5    | 4      | 5       | 12        |
-      | Operand is NopeType!                                 | 6    | 4      | 6       | 8         |
-      | Operator and operand must both be the same type      | 7    | 4      | 7       | 6         |
-
 
   @separator
   Scenario Outline: Invalid separator do cause type checker errors
