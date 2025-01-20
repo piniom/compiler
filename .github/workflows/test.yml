@@ -21,3 +21,6 @@ jobs:
 
     - name: Build with Gradle and run tests
       run: ./gradlew build test -PtestOutput=full
+    
+    - name: Ktlint check
+      run: ./gradlew ktlintCheck
