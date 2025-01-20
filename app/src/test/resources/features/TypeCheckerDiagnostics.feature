@@ -17,21 +17,22 @@ Feature: Type Checker diagnostics
     When source code is passed through type checker
     Then returns diagnostic with message <message> that starts at line <line> and column <column> and ends at line <endLine> and column <endColumn>
     Examples:
-      | sourceFile                                                     | message                                          | line | column | endLine | endColumn |
-      | invalid/conditionals/assigningInCondition.exe                  | "Condition expression must be Bool"              | 3    | 7      | 3       | 12        |
-      | invalid/conditionals/conditionNotBoolType.exe                  | "Condition expression must be Bool"              | 2    | 7      | 2       | 8         |
-      | invalid/conditionals/mismachedTypesUsingNestedConditionals.exe | "Then and else branches must have the same type" | 2    | 3      | 6       | 4         |
-      | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe   | "Then and else branches must have the same type" | 2    | 4      | 2       | 26        |
-      | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe   | "Condition expression must be Bool"              | 4    | 6      | 4       | 16        |
+      | sourceFile                                                   | message                                          | line | column | endLine | endColumn |
+      | invalid/conditionals/assigningInCondition.exe                | "Condition expression must be Bool"              | 3    | 7      | 3       | 12        |
+      | invalid/conditionals/conditionNotBoolType.exe                | "Condition expression must be Bool"              | 2    | 7      | 2       | 8         |
+      | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe | "Then and else branches must have the same type" | 2    | 4      | 2       | 26        |
+      | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe | "Condition expression must be Bool"              | 4    | 6      | 4       | 16        |
+      | invalid/conditionals/mismachedTypesInNestedConditionals.exe  | "Then and else branches must have the same type" | 3    | 8      | 3       | 31        |
+
 
   @conditionals
   Scenario: Invalid conditionals using various features do cause type checker errors
-    Given ExEval source code file "invalid/conditionals/mismachedTypesInNestedConditionals.exe"
+    Given ExEval source code file "invalid/conditionals/mismachedTypesUsingNestedConditionals.exe"
     When source code is passed through type checker
     Then returns diagnostics:
-      | message                                        | line | column | endLine | endColumn |
-      | Then and else branches must have the same type | 3    | 8      | 3       | 31        |
-      | Then and else branches must have the same type | 2    | 4      | 6       | 5         |
+      | message                                                  | line | column | endLine | endColumn |
+      | Then and else branches must have the same type           | 2    | 4      | 6       | 5         |
+      | Function return type does not match declared return type | 1    | 20     | 7       | 1         |
 
   @functions
   Scenario Outline: Invalid functions do cause type checker errors
