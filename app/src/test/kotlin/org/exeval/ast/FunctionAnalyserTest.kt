@@ -723,4 +723,176 @@ class FunctionAnalyserTest {
         assertTrue(callGraph[middleFunction]!!.contains(innerFunc)) // "middleFunction" calls "innerFunction"
     }
 
+    @Test
+    fun `test structure with fields and constructor`() {
+        // Define a structure with fields and a constructor
+        val intType: Type = mockType()
+        val structDeclaration = StructTypeDeclaration(
+            name = "MyStruct",
+            fields = listOf(
+                ConstantDeclaration(name = "field1", type = intType, initializer = IntLiteral(42)),
+                MutableVariableDeclaration(name = "field2", type = intType)
+            ),
+            constructorMethod = ConstructorDeclaration(
+                parameters = listOf(
+                    Parameter(name = "param1", type = intType),
+                    Parameter(name = "param2", type = intType)
+                ),
+                body = Block(
+                    expressions = listOf(
+                        Assignment(
+                            variable = StructFieldAccess(HereReference(), "field2"),
+                            value = VariableReference("param2")
+                        )
+                    )
+                )
+            )
+        )
+
+        // Create a program with the structure
+        val program = Program(
+            functions = listOf(),
+            structures = listOf(structDeclaration)
+        )
+
+        val astInfo = AstInfo(program, locations = emptyMap())
+
+        val analyser = FunctionAnalyser()
+
+        // Perform analysis (specific logic to analyse structures might be needed)
+        val analysisResult = analyser.analyseFunctions(astInfo)
+
+        // Test structure integration
+        assertEquals(1, program.structures.size)
+        assertEquals("MyStruct", program.structures[0].name)
+
+        val fields = program.structures[0].fields
+        assertEquals(2, fields.size)
+        assertEquals("field1", fields[0].name)
+        assertEquals("field2", fields[1].name)
+
+        val constructor = program.structures[0].constructorMethod
+        assertEquals(2, constructor.parameters.size)
+        assertEquals("param1", constructor.parameters[0].name)
+        assertEquals("param2", constructor.parameters[1].name)
+
+        // Verify that the constructor body assigns the parameter correctly
+        val body = constructor.body as Block
+        assertTrue(body.expressions[0] is Assignment)
+        val assignment = body.expressions[0] as Assignment
+        val fieldAccess = assignment.variable as StructFieldAccess
+        assertEquals("field2", fieldAccess.field)
+        assertEquals("param2", (assignment.value as VariableReference).name)
+    }
+
+    @Test
+    fun `test structure usage in a function`() {
+        // Define a structure and use it in a function
+        val intType: Type = mockType()
+        val structDeclaration = StructTypeDeclaration(
+            name = "MyStruct",
+            fields = listOf(
+                ConstantDeclaration(name = "field1", type = intType, initializer = IntLiteral(42)),
+                MutableVariableDeclaration(name = "field2", type = intType)
+            ),
+            constructorMethod = ConstructorDeclaration(
+                parameters = listOf(Parameter(name = "param", type = intType)),
+                body = Block(
+                    expressions = listOf(
+                        Assignment(
+                            variable = StructFieldAccess(HereReference(), "field2"),
+                            value = VariableReference("param")
+                        )
+                    )
+                )
+            )
+        )
+
+        val program = Program(
+            functions = listOf(
+                FunctionDeclaration(
+                    name = "useStruct",
+                    parameters = listOf(Parameter(name = "value", type = intType)),
+                    returnType = intType,
+                    body = Block(
+                        expressions = listOf(
+                            MemoryNew(
+                                type = TypeUse("MyStruct"),
+                                constructorArguments = listOf(PositionalArgument(VariableReference("value")))
+                            )
+                        )
+                    )
+                )
+            ),
+            structures = listOf(structDeclaration)
+        )
+
+        val astInfo = AstInfo(program, locations = emptyMap())
+
+        val analyser = FunctionAnalyser()
+
+        val analysisResult = analyser.analyseFunctions(astInfo)
+
+        // Verify the structure and function are correctly analyzed
+        val function = program.functions[0] as FunctionDeclaration
+        assertEquals("useStruct", function.name)
+        val body = function.body as Block
+        val memoryNew = body.expressions[0] as MemoryNew
+        assertEquals("MyStruct", (memoryNew.type as TypeUse).typeName)
+    }
+
+    @Test
+    fun `test nested structures and their constructors`() {
+        // Define nested structures
+        val intType: Type = mockType()
+        val innerStruct = StructTypeDeclaration(
+            name = "InnerStruct",
+            fields = listOf(
+                ConstantDeclaration(name = "innerField", type = intType, initializer = IntLiteral(24))
+            ),
+            constructorMethod = ConstructorDeclaration(
+                parameters = listOf(),
+                body = Block(expressions = listOf())
+            )
+        )
+
+        val outerStruct = StructTypeDeclaration(
+            name = "OuterStruct",
+            fields = listOf(
+                ConstantDeclaration(name = "outerField", type = intType, initializer = IntLiteral(42)),
+                MutableVariableDeclaration(name = "innerStruct", type = TypeUse("InnerStruct"))
+            ),
+            constructorMethod = ConstructorDeclaration(
+                parameters = listOf(),
+                body = Block(
+                    expressions = listOf(
+                        Assignment(
+                            variable = StructFieldAccess(HereReference(), "innerStruct"),
+                            value = MemoryNew(type = TypeUse("InnerStruct"), constructorArguments = listOf())
+                        )
+                    )
+                )
+            )
+        )
+
+        val program = Program(
+            functions = listOf(),
+            structures = listOf(innerStruct, outerStruct)
+        )
+
+        val astInfo = AstInfo(program, locations = emptyMap())
+
+        val analyser = FunctionAnalyser()
+
+        val analysisResult = analyser.analyseFunctions(astInfo)
+
+        // Verify nested structure integration
+        assertEquals(2, program.structures.size)
+        val outer = program.structures[1]
+        assertEquals("OuterStruct", outer.name)
+        assertEquals(2, outer.fields.size)
+        assertEquals("outerField", outer.fields[0].name)
+        assertEquals("innerStruct", outer.fields[1].name)
+    }
+
 }
