@@ -39,7 +39,7 @@ class CFGMaker(
     fun makeCfg(ast: FunctionDeclaration): CFGNode {
         val node = Node()
         val body = walkExpr(ast.body, node)
-        val bottom = fm.generate_epilouge(body.result)
+        val bottom = fm.generate_epilouge(if (body.tree != null) body.tree else body.result)
         node.branches = Pair(bottom, null)
         return fm.generate_prolog(body.top)
     }
