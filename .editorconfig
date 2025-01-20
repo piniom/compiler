@@ -1,0 +1,5 @@
+root = true
+
+[*.{kt,kts}]
+indent_style = tab
+ktlint_standard_no-wildcard-imports = disabled

@@ -9,7 +9,7 @@ interface LivenessChecker {
 
 data class LivenessResult(
 	val interference: RegisterGraph,
-	val copy: RegisterGraph
+	val copy: RegisterGraph,
 )
 
 typealias RegisterGraph = Map<Register, Set<Register>>

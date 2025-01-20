@@ -10,119 +10,126 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class CommentCutterTests {
+	private fun testWithStringInput(
+		input: String,
+		expected: String,
+	) {
+		val commentCutter = CommentCutter(StringInput(input))
 
-    private fun testWithStringInput(input: String, expected: String) {
-        val commentCutter = CommentCutter(StringInput(input))
+		var result = ""
+		var char = commentCutter.nextChar()
+		while (char != null) {
+			result += char
+			char = commentCutter.nextChar()
+		}
 
-        var result = ""
-        var char = commentCutter.nextChar()
-        while (char != null) {
-            result += char
-            char = commentCutter.nextChar()
-        }
+		assertEquals(expected, result)
+	}
 
-        assertEquals(expected, result)
-    }
+	@Test
+	fun withEmptyInput() {
+		val emptyInput = mockk<Input>()
+		every { emptyInput.nextChar() } returns null
+		every { emptyInput.location } returns mockk {}
 
+		val commentCutter = CommentCutter(emptyInput)
+		val result = commentCutter.nextChar()
 
-    @Test
-    fun withEmptyInput() {
-        val emptyInput = mockk<Input>()
-        every { emptyInput.nextChar() } returns null
-        every { emptyInput.location } returns mockk {}
+		assertNull(result)
+	}
 
-        val commentCutter = CommentCutter(emptyInput)
-        val result = commentCutter.nextChar()
+	@Test
+	fun withLineWithoutComment() {
+		val testText = "aaa bbb ccc"
+		testWithStringInput(testText, testText)
+	}
 
-        assertNull(result)
-    }
+	@Test
+	fun withSimpleMultiLineComment() {
+		val testText = "aaa /*bbb*/ ccc"
+		val expected = "aaa   ccc"
+		testWithStringInput(testText, expected)
+	}
 
-    @Test
-    fun withLineWithoutComment() {
-        val testText = "aaa bbb ccc"
-        testWithStringInput(testText, testText)
-    }
+	@Test
+	fun withSimpleSingleLineComment() {
+		val testText = "aaa bbb //ccc"
+		val expected = "aaa bbb "
+		testWithStringInput(testText, expected)
+	}
 
-    @Test
-    fun withSimpleMultiLineComment() {
-        val testText = "aaa /*bbb*/ ccc"
-        val expected = "aaa   ccc"
-        testWithStringInput(testText, expected)
-    }
+	@Test
+	fun withSimpleOnlyFirstCharOfComment() {
+		val testText = "aaa bbb / ccc"
+		testWithStringInput(testText, testText)
+	}
 
-    @Test
-    fun withSimpleSingleLineComment() {
-        val testText = "aaa bbb //ccc"
-        val expected = "aaa bbb "
-        testWithStringInput(testText, expected)
-    }
+	@Test
+	fun withMultiLineTextWithSingleLineComment() {
+		val testText =
+			"""
+			aaaa // b
+			// xxx
+			abd
+			xd // xd
+			aa
+			""".trimIndent()
 
-    @Test
-    fun withSimpleOnlyFirstCharOfComment() {
-        val testText = "aaa bbb / ccc"
-        testWithStringInput(testText, testText)
-    }
+		val expected =
+			"""
+			aaaa 
+			
+			abd
+			xd 
+			aa
+			""".trimIndent()
 
-    @Test
-    fun withMultiLineTextWithSingleLineComment() {
-        val testText = """
-            aaaa // b
-            // xxx
-            abd
-            xd // xd
-            aa
-        """.trimIndent()
+		testWithStringInput(testText, expected)
+	}
 
-        val expected = """
-            aaaa 
-            
-            abd
-            xd 
-            aa
-        """.trimIndent()
+	@Test
+	fun withMultiLineTextWithMultiLineComment() {
+		val testText =
+			"""
+			aaaa /* b
+			xxx
+			ab*/d
+			xd /*xd
+			a*/a
+			""".trimIndent()
 
-        testWithStringInput(testText, expected)
-    }
+		val expected =
+			"""
+			aaaa 
+			d
+			xd 
+			a
+			""".trimIndent()
 
-    @Test
-    fun withMultiLineTextWithMultiLineComment() {
-        val testText = """
-            aaaa /* b
-            xxx
-            ab*/d
-            xd /*xd
-            a*/a
-        """.trimIndent()
+		testWithStringInput(testText, expected)
+	}
 
-        val expected = """
-            aaaa 
-            d
-            xd 
-            a
-        """.trimIndent()
+	@Test
+	fun withNestedMultiLineComment() {
+		val testText =
+			"""
+			aaa /* a /* 
+			/**/ /*x*/
+			*/ a */bb
+			""".trimIndent()
 
-        testWithStringInput(testText, expected)
-    }
+		val expected =
+			"""
+			aaa 
+			bb
+			""".trimIndent()
 
-    @Test
-    fun withNestedMultiLineComment() {
-        val testText = """
-            aaa /* a /* 
-            /**/ /*x*/
-            */ a */bb
-        """.trimIndent()
+		testWithStringInput(testText, expected)
+	}
 
-        val expected = """
-            aaa 
-            bb
-        """.trimIndent()
-
-        testWithStringInput(testText, expected)
-    }
-
-    @Test
-    fun withNotFinished() {
-        val commentCutter = CommentCutter(StringInput("/*"))
-        assertThrows(NotFinishedCommentException::class.java) { commentCutter.nextChar() }
-    }
+	@Test
+	fun withNotFinished() {
+		val commentCutter = CommentCutter(StringInput("/*"))
+		assertThrows(NotFinishedCommentException::class.java) { commentCutter.nextChar() }
+	}
 }

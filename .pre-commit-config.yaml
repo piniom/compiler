@@ -1,0 +1,9 @@
+repos: 
+
+- repo: local
+  hooks:
+  - id: ktlint-format
+    name: Ktlint-format
+    entry: .hooks/ktlint-format.sh
+    language: script
+   
