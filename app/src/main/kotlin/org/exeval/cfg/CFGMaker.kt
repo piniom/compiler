@@ -149,7 +149,7 @@ class CFGMaker(
 
         val saveThen = Node(then)
         val thenBranch = walkExpr(conditional.thenBranch, saveThen)
-        saveElse.trees = if (thenBranch.tree != null) { // TODO: watch out - this is null when branch only contains break - check if this is intended
+        saveElse.trees = if (thenBranch.tree != null) {
             listOf(CFGAssignment(reg, thenBranch.tree!!))
         } else {
             listOf()
