@@ -203,8 +203,11 @@ class FunctionAnalyser() {
         }
 
         // Assign all variable info
-        if (variableMap.containsKey(variable))
-            isUsedInNested[variable] = true
+        if (variableMap.containsKey(variable)) {
+            if (variableMap[variable] != context) {
+                isUsedInNested[variable] = true
+            }
+        }
         else {
             variableMap[variable] = context
             isUsedInNested[variable] = false
