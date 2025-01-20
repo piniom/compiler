@@ -136,9 +136,9 @@ Feature: Compiler without errors
 		When source code is compiled to asm
 		Then no errors are returned
 		Examples:
-			| sourceFile                    |
+			| sourceFile                        |
 		#	| valid/various/arithmetic.exe      |
-		#	| valid/various/knownReturnType.exe |
+			| valid/various/knownReturnType.exe |
 		#	| valid/various/nested.exe          | # multiple errors example is wrong
-			| valid/various/parantheses.exe |
-			| valid/various/whitespace.exe  |
+			| valid/various/parantheses.exe     |
+			| valid/various/whitespace.exe      |
