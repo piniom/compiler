@@ -52,7 +52,7 @@ val VARIABLES_REASIGNING_VARIABLES_AST = Program(
                         variable = VariableReference("nope"),
                         value = VariableReference(name = "kNope")
                     ),
-                    NopeLiteral(),
+                    IntLiteral(0),
                 )
             )
         )
