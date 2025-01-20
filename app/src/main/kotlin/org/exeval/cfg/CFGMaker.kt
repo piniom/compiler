@@ -140,11 +140,20 @@ class CFGMaker(
 
         val saveElse = Node(then)
         val elseBranch = walkExpr(conditional.elseBranch, saveElse)
-        saveElse.trees = listOf(CFGAssignment(reg, elseBranch.tree!!))
+
+        saveElse.trees = listOf()
+        elseBranch.tree?.let {
+            saveElse.trees = listOf(CFGAssignment(reg, elseBranch.tree!!))
+        }
+
 
         val saveThen = Node(then)
         val thenBranch = walkExpr(conditional.thenBranch, saveThen)
-        saveThen.trees = listOf(CFGAssignment(reg, thenBranch.tree!!))
+        saveThen.trees = listOf()
+        thenBranch.tree?.let{
+            saveThen.trees = listOf(CFGAssignment(reg, thenBranch.tree!!))
+        }
+
 
         return WalkResult(
             walkShortCircuit(conditional.condition, thenBranch.top, elseBranch.top),

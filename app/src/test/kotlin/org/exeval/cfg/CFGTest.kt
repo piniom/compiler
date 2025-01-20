@@ -35,6 +35,10 @@ object VirtualRegisterBank{
     }
 }
 
+fun Block(vararg e: Expr):Block{
+    return Block(listOf(*e))
+}
+
 class FunctionFrameManagerMock(private val fm: FunctionFrameManager, override val f: FunctionDeclaration): FunctionFrameManager {
     override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): AssignableTree {
         return fm.generate_var_access(x, functionFrameOffset)
@@ -86,18 +90,26 @@ class CFGTest{
     fun branch(cfg:CFGNode):Boolean{
         /*
         if-else requires branching
+        changed to make it loop-proof
         */
-        //recursive function that detects branching
-        fun recursive(n:CFGNode):Boolean{
-            if(n.branches == null){
-                return false
-            }else if(n.branches!!.second == null){
-                return recursive(n.branches!!.first)
-            }else{
-                return true
+        val visited = mutableSetOf<CFGNode>()
+        val considered = mutableSetOf<CFGNode>(cfg)
+        while(considered.isNotEmpty()){
+            val current = considered.first()
+            considered -= current
+            visited += current
+            //
+            current.branches?.let{
+                current.branches!!.second?.let{
+                    return true
+                }
+                val next = current.branches!!.first
+                if(!visited.contains(next)){
+                    considered += next
+                }
             }
         }
-        return recursive(cfg)
+        return false
     }
     fun loop(cfg:CFGNode):Boolean{
         /*prove that a loop occurs */
@@ -308,12 +320,10 @@ class CFGTest{
             ))))
         ))
         assert(loop(getCFG(ast)))
-        fun Block(vararg e: Expr):Block{
-            return Block(listOf(*e))
-        }
+
         ast = Block(
             MutableVariableDeclaration("a", IntType,IntLiteral(0)),
-            Loop("1",Block(
+            Loop("loop",Block(
                 Assignment(
                     VariableReference("a"),
                     BinaryOperation(VariableReference("a"),BinaryOperator.PLUS, IntLiteral(1))),
@@ -321,16 +331,21 @@ class CFGTest{
                     BinaryOperation(VariableReference("a"),BinaryOperator.GTE, IntLiteral(10)),
                     Break(null,IntLiteral(1))
                 )
-            ))
+            )),
+            Assignment(
+                VariableReference("a"),
+                IntLiteral(0)
+            )
         )
         assert(loop(getCFG(ast)))
+        assert(branch(getCFG(ast)))
     }
     @Test
     fun calcTest(){
         var ast:Expr = MutableVariableDeclaration("a",IntType,BinaryOperation(
             IntLiteral(1),BinaryOperator.PLUS,IntLiteral(2)
         ))
-        var value = BinaryOperationTree(Constant(1), Constant(2), BinaryTreeOperationType.ADD)
+        var value: Tree = BinaryOperationTree(Constant(1), Constant(2), BinaryTreeOperationType.ADD)
         assert(calculate(getCFG(ast), value))
         //a=2*(1+1)
         ast = Block(listOf(
@@ -353,6 +368,13 @@ class CFGTest{
                 BinaryTreeOperationType.ADD
             ),
             BinaryTreeOperationType.MULTIPLY)
+        assert(calculate(getCFG(ast), value))
+
+        ast = Block(
+            MutableVariableDeclaration("a",IntType),
+            Assignment(VariableReference("a"),Loop(null,Break(null,IntLiteral(1))))
+        )
+        value = Constant(1)
         assert(calculate(getCFG(ast), value))
     }
     @Test
