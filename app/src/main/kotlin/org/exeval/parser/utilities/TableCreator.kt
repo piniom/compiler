@@ -18,8 +18,8 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
 
     init {
         val startingState = getStartingState()
-
         val statesGotoPair = getAllStatesAndOldGoto(startingState)
+        
         val allStates: Set<Parser.State<S>> = statesGotoPair.first
         val oldGoto: Map<Pair<S, Parser.State<S>>, Parser.State<S>> = statesGotoPair.second
 
@@ -114,7 +114,6 @@ class TableCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) {
 
         while (!queue.isEmpty()) {
             val cci = queue.remove()
-
             for (item in cci.items) {
                 val placeholderSymbol = item.production.right.getOrNull(item.placeholder) ?: continue
                 val newCC = getGoto(cci, placeholderSymbol)

@@ -7,6 +7,7 @@ object ValueSymbol: TerminalGroup {
 		Token.LiteralInteger,
 		Token.LiteralBoolean,
 		Token.LiteralNope,
+		Token.LiteralNothing,
 	)
 }
 
@@ -74,6 +75,46 @@ object VariableAssignmentSymbol: GrammarSymbol {
 			ArrayAccessSymbol,
 			Token.OperatorAssign,
 			ExpressionSymbol,
+		),
+		listOf(
+			StructAccessSymbol,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			HereAccess,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		)
+	)
+}
+
+object ConstructorDeclarationParamsSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordCtor,
+			Token.PunctuationLeftRoundBracket,
+			FunctionParamsSymbol,
+			Token.PunctuationRightRoundBracket,
+			Token.OperatorAssign,
+		),
+		listOf(
+			Token.KeywordCtor,
+			Token.LiteralNope,
+			Token.OperatorAssign,
+		),
+	)
+}
+
+object ConstructorDeclarationSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			ConstructorDeclarationParamsSymbol,
+			SimpleExpressionSymbol,
+		),
+		listOf(
+			ConstructorDeclarationParamsSymbol,
+			ExpressionBlockSymbol,
 		),
 	)
 }
@@ -254,19 +295,9 @@ object ArrayIndexSymbol: GrammarSymbol {
 object ArrayAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			Token.IdentifierNontype,
-			ArrayIndexSymbol
-		),
-		listOf(
-			FunctionCallSymbol,
-			ArrayIndexSymbol
-		),
-		listOf(
-			Token.PunctuationLeftRoundBracket,
 			ExpressionSymbol,
-			Token.PunctuationRightRoundBracket,
 			ArrayIndexSymbol
-		)
+		),
 	)
 }
 
@@ -374,6 +405,16 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			ExpressionSymbol,
 		),
 		listOf(
+			StructAccessSymbol,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
+		listOf(
+			HereAccess,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
+		listOf(
 			Operator1ArgSymbol,
 			ExpressionSymbol,
 		),
@@ -400,7 +441,6 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(VariableDeclarationSymbol),
 		listOf(ConstantDeclarationSymbol),
 		listOf(VariableAssignmentSymbol),
-		listOf(SimpleFunctionDefinitionSymbol),
 		listOf(FunctionCallSymbol),
 		listOf(IfSymbol),
 		listOf(LoopSymbol),
@@ -408,6 +448,8 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(AllocationSymbol),
 		listOf(DeallocationSymbol),
 		listOf(ArrayAccessSymbol),
+		listOf(StructAccessSymbol),
+		listOf(HereAccess),
 	)
 }
 
@@ -423,9 +465,15 @@ object ExpressionBlockSymbol: GrammarSymbol {
 	object ExpressionChainSymbol: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(SimpleExpressionSymbol),
+			listOf(SimpleFunctionDefinitionSymbol),
 			listOf(ExpressionBlockSymbol),
 			listOf(
 				SimpleExpressionSymbol,
+				Token.PunctuationSemicolon,
+				ExpressionChainSymbol,
+			),
+			listOf(
+				SimpleFunctionDefinitionSymbol,
 				Token.PunctuationSemicolon,
 				ExpressionChainSymbol,
 			),
@@ -453,6 +501,10 @@ object ExpressionBlockSymbol: GrammarSymbol {
 object ExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(SimpleExpressionSymbol),
+		listOf(
+			SimpleFunctionDefinitionSymbol,
+			Token.PunctuationSemicolon,
+		),
 		listOf(ExpressionBlockSymbol),
 	)
 }
@@ -462,12 +514,85 @@ object EndOfProgramSymbol: Terminal
 object ProgramSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 	)
 }
 
-object FunctionsDeclarationsSymbol: GrammarSymbol {
+object HereAccess: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordHere,
+		),
+		listOf(
+			Token.KeywordHere,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+	)
+}
+
+object StructAccessSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			ExpressionSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+	)
+}
+
+object StructDefinitionSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordUct,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			Token.PunctuationLeftCurlyBracket,
+			StructDefinitionBodySymbol,
+			Token.PunctuationRightCurlyBracket,
+		),
+	)
+}
+
+object StructDefinitionBodySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			Token.PunctuationSemicolon,
+			StructDefinitionBodySymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			StructDefinitionBodySymbol,
+		),
+	)
+}
+
+object StructDefinitionBodyPropertySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			VariableDeclarationSymbol,
+		),
+		listOf(
+			ConstantDeclarationSymbol,
+		),
+		listOf(
+			Token.KeywordLet,
+			Token.IdentifierNontype,
+			Token.PunctuationColon,
+			TypeSymbol,
+		),
+		listOf(
+			ConstructorDeclarationSymbol,
+		),
+	)
+}
+
+object TopLevelStatementsDeclarationsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			SimpleFunctionDefinitionSymbol,
@@ -477,15 +602,22 @@ object FunctionsDeclarationsSymbol: GrammarSymbol {
 		listOf(
 			SimpleFunctionDefinitionSymbol,
 			Token.PunctuationSemicolon,
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
 			BlockFunctionDefinitionSymbol,
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
 			ForeignFunctionDeclarationSymbol,
-			FunctionsDeclarationsSymbol
+			TopLevelStatementsDeclarationsSymbol,
+		),
+		listOf(
+			StructDefinitionSymbol,
+			TopLevelStatementsDeclarationsSymbol,
+		),
+		listOf(
+			StructDefinitionSymbol,
 		),
 	)
 }

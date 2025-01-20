@@ -22,6 +22,10 @@ class LexerUtils {
                 var category = TokenCategories.IdentifierNontype
                 if(newCategories.size == 1) {
                     category = newCategories.first() as TokenCategories
+                } 
+                else if (newCategories.size == 2 && newCategories.contains(TokenCategories.LiteralNothing) && newCategories.contains(TokenCategories.OperatorNot)) {
+                    // 'not' is substring of 'nothing' so if it is in categories, 'nothing' wins over 'not' keyword
+                    category = TokenCategories.LiteralNothing
                 } else if(newCategories.size > 1) {
                     throw UnambiguesTokenCategories(token)
                 }
