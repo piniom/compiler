@@ -44,6 +44,7 @@ class StepDefs {
     private lateinit var nameResolutionOutput: OperationResult<NameResolution>
     private lateinit var typeCheckerOutput: OperationResult<TypeMap>
     private lateinit var constCheckerOutput: List<Diagnostics>
+    private lateinit var outAsm: String
 
     @Given("ExEval source code file {string}")
     fun readSourceCodeFile(fileName: String) {
@@ -262,6 +263,8 @@ class StepDefs {
                 val registerMapping = RegisterAllocatorImpl().allocate(livenessResult, domain, PhysicalRegister.range())
                 codeBuilder.addFunction(it.first, it.second, registerMapping.mapping)
             }
+
+            outAsm = codeBuilder.code
         } catch (e: Exception) {
             fail("Failed to generate code: ${e.message}")
         }
