@@ -18,7 +18,7 @@ Feature: Lexer diagnostics
     When source code is passed through lexer
     Then returns diagnostics:
       | message                             | line | column | endLine | endColumn |
-      | String "~" didn't match any tokens! | 1    | 3      | 1       | 4         |
-      | String "$" didn't match any tokens! | 2    | 3      | 2       | 4         |
-      | String "^" didn't match any tokens! | 3    | 5      | 3       | 5         |
+      | String "~" didn't match any tokens! | 1    | 4      | 1       | 5         |
+      | String "$" didn't match any tokens! | 2    | 4      | 2       | 5         |
+      | String "^" didn't match any tokens! | 3    | 5      | 3       | 6         |
 
