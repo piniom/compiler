@@ -21,7 +21,7 @@ Feature: Type Checker diagnostics
       | invalid/conditionals/assigningInCondition.exe                | "Condition expression must be Bool"              | 3    | 7      | 3       | 12        |
       | invalid/conditionals/conditionNotBoolType.exe                | "Condition expression must be Bool"              | 2    | 7      | 2       | 8         |
       | invalid/conditionals/thenAndElseEvaluateToDifferentTypes.exe | "Then and else branches must have the same type" | 2    | 4      | 2       | 26        |
-      | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe | "Condition expression must be Bool"              | 4    | 6      | 4       | 16        |
+      | invalid/conditionals/usingInvalidFunctionCallAsCondition.exe | "Condition expression must be Bool"              | 4    | 7      | 4       | 17        |
       | invalid/conditionals/mismachedTypesInNestedConditionals.exe  | "Then and else branches must have the same type" | 3    | 8      | 3       | 31        |
 
 
