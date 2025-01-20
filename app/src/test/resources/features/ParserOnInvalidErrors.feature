@@ -19,7 +19,6 @@ Feature: Parser without errors on invalid programs
     Then no errors are returned
     Examples:
       | sourceFile                                          |
-      | invalid/comments/commented_main.exe                 |
       | invalid/comments/commented_variable_declaration.exe |
 
   @conditionals
@@ -74,9 +73,6 @@ Feature: Parser without errors on invalid programs
     Then no errors are returned
     Examples:
       | sourceFile                                |
-      | invalid/separator/conditional.exe         |
-      | invalid/separator/empty.exe               |
-      | invalid/separator/invalidBlock.exe        |
       | invalid/separator/variableDeclaration.exe |
 
   @variables

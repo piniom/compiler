@@ -2,4 +2,5 @@ foo main() -> Int = {
     let mut x: Int = 42;
     let mut x: Int;
     x = 43;
+    0
 }
