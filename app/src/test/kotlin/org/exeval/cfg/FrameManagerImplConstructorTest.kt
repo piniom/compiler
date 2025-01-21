@@ -2,10 +2,7 @@ package org.exeval.cfg
 
 import io.mockk.every
 import io.mockk.mockk
-import org.exeval.ast.AnyCallableDeclaration
-import org.exeval.ast.AnyVariable
-import org.exeval.ast.FunctionAnalysisResult
-import org.exeval.ast.FunctionDeclaration
+import org.exeval.ast.*
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.ffm.interfaces.FunctionFrameManager
@@ -13,24 +10,25 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class FunctionFrameManagerImplTest {
+class FunctionFrameManagerImplConstructorTest {
 
     private lateinit var analyser: FunctionAnalysisResult
-    private lateinit var functionDeclaration: FunctionDeclaration
+
+    private lateinit var structDeclaration: StructTypeDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
     private val otherFunctions: Map<AnyCallableDeclaration, FunctionFrameManager> = mockk()
 
     @BeforeEach
     fun setup() {
         analyser = mockk()
-        functionDeclaration = mockk()
+        structDeclaration = mockk()
 
         every { analyser.variableMap } returns mutableMapOf()
         every { analyser.isUsedInNested } returns mutableMapOf()
-        every { functionDeclaration.name } returns "my_function_declaration_name"
-        every { functionDeclaration.parameters } returns listOf()
+        every { structDeclaration.name } returns "my_function_declaration_name"
+        every { structDeclaration.constructorMethod.parameters } returns listOf()
 
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
     }
 
     @Test
@@ -54,14 +52,14 @@ class FunctionFrameManagerImplTest {
 
         // Set up the mock analyser
         every { analyser.variableMap } returns mapOf(
-            a to functionDeclaration,
-            b to functionDeclaration,
-            max to functionDeclaration
+            a to structDeclaration.constructorMethod,
+            b to structDeclaration.constructorMethod,
+            max to structDeclaration.constructorMethod
         )
         every { analyser.isUsedInNested } returns mapOf(a to false, b to false, max to true)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
@@ -94,14 +92,14 @@ class FunctionFrameManagerImplTest {
 
         // Set up the mock analyser
         every { analyser.variableMap } returns mapOf(
-            y to functionDeclaration,
-            a to functionDeclaration,
-            b to functionDeclaration
+            y to structDeclaration.constructorMethod,
+            a to structDeclaration.constructorMethod,
+            b to structDeclaration.constructorMethod
         )
         every { analyser.isUsedInNested } returns mapOf(y to false, a to false, b to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // Check allocation for each variable
         assertTrue(frameManager.variable_to_virtual_register(a) is UsableMemoryCell.VirtReg)
@@ -128,11 +126,11 @@ class FunctionFrameManagerImplTest {
         val n = mockk<AnyVariable>()
 
         // Set up the mock analyser
-        every { analyser.variableMap } returns mapOf(n to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(n to structDeclaration.constructorMethod)
         every { analyser.isUsedInNested } returns mapOf(n to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // Check allocation for `n`
         assertTrue(frameManager.variable_to_virtual_register(n) is UsableMemoryCell.VirtReg)
@@ -148,11 +146,11 @@ class FunctionFrameManagerImplTest {
         val fibResult = mockk<AnyVariable>()
 
         // Set up the mock analyser
-        every { analyser.variableMap } returns mapOf(fibResult to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(fibResult to structDeclaration.constructorMethod)
         every { analyser.isUsedInNested } returns mapOf(fibResult to false)
 
         // Initialize the FunctionFrameManagerImpl
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // Check allocation for `fibResult`
         assertTrue(frameManager.variable_to_virtual_register(fibResult) is UsableMemoryCell.VirtReg)
@@ -172,11 +170,11 @@ class FunctionFrameManagerImplTest {
         val x = mockk<AnyVariable>()
 
         // Update analyser mock specifically for this test case
-        every { analyser.variableMap } returns mapOf(x to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(x to structDeclaration.constructorMethod)
         every { analyser.isUsedInNested } returns mapOf(x to true) // Mark `x` as used in a nested scope
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // Check allocation for `x`
         assertEquals(UsableMemoryCell.MemoryPlace(0), frameManager.variable_to_virtual_register(x))
@@ -185,12 +183,12 @@ class FunctionFrameManagerImplTest {
     @Test
     fun `generate function call no arguments no return`() {
         val x = mockk<AnyVariable>()
-        every { analyser.variableMap } returns mapOf(x to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(x to structDeclaration.constructorMethod)
         every { analyser.isUsedInNested } returns mapOf(x to false)
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         // args
         val trees = listOf<Tree>()
@@ -211,12 +209,12 @@ class FunctionFrameManagerImplTest {
     @Test
     fun `generate function call 3 arguments with return`() {
         val x = mockk<AnyVariable>()
-        every { analyser.variableMap } returns mapOf(x to functionDeclaration)
+        every { analyser.variableMap } returns mapOf(x to structDeclaration.constructorMethod)
         every { analyser.isUsedInNested } returns mapOf(x to false)
         val then = mockk<CFGNode>()
 
         // Reinitialize FunctionFrameManagerImpl after setting up specific mocks
-        frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
+        frameManager = FunctionFrameManagerImpl(structDeclaration, analyser, otherFunctions)
 
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()

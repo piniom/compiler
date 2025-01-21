@@ -1,8 +1,6 @@
 package org.exeval.cfg
 
-import org.exeval.ast.AnyVariable
-import org.exeval.ast.FunctionAnalysisResult
-import org.exeval.ast.FunctionDeclaration
+import org.exeval.ast.*
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
@@ -11,13 +9,16 @@ import org.exeval.utilities.TokenCategories
 private const val BYTES_IN_WORD = 8
 
 class FunctionFrameManagerImpl(
-    override val f: FunctionDeclaration,
+    private val name: String,
+    private val declaration: AnyCallableDeclaration,
     private val analyser: FunctionAnalysisResult,
-    private val otherManagers: Map<FunctionDeclaration, FunctionFrameManager>
+    private val otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
 ) : FunctionFrameManager {
     private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
     private var stackOffset = LockableBox<Long>(0)
     private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
+
+    private val parameters: List<Parameter>
 
     val label: Label
     private val calleSaveRegisters = listOf(
@@ -30,13 +31,38 @@ class FunctionFrameManagerImpl(
         PhysicalRegister.R15,
     )
 
+    constructor(
+        declaration: AnyFunctionDeclaration,
+        functionAnalysisResult: FunctionAnalysisResult,
+        otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
+    ) : this(declaration.name, declaration, functionAnalysisResult, otherManagers)
+
+    constructor(
+        structure: StructTypeDeclaration,
+        functionAnalysisResult: FunctionAnalysisResult,
+        otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
+    ) : this(structure.name + "_constructor", structure.constructorMethod, functionAnalysisResult, otherManagers)
+
     init {
+        parameters = when (declaration) {
+            is AnyFunctionDeclaration -> {
+                declaration.parameters
+            }
+
+            is ConstructorDeclaration -> {
+                declaration.parameters
+            }
+
+            else -> {
+                throw Error("Unexpected declaration")
+            }
+        }
         initialiseVariableMap()
         //TODO: Think about it :))
-        if (f.name == TokenCategories.IdentifierEntrypoint.regex) {
-            label = Label(f.name)
+        label = if (name == TokenCategories.IdentifierEntrypoint.regex) {
+            Label(name)
         } else {
-            label = Label("FUNCTION_${f.name}")
+            Label("FUNCTION_${name}")
         }
     }
 
@@ -110,15 +136,15 @@ class FunctionFrameManagerImpl(
         trees.add(AssignmentTree(RegisterTree(PhysicalRegister.RBP), RegisterTree(PhysicalRegister.RSP)))
         trees.addAll(updateDisplay())
 
-        if (f.parameters.isNotEmpty()) {
-            trees.add(AssignmentTree(generate_var_access(f.parameters[0]), RegisterTree(PhysicalRegister.RCX)))
+        if (parameters.isNotEmpty()) {
+            trees.add(AssignmentTree(generate_var_access(parameters[0]), RegisterTree(PhysicalRegister.RCX)))
         }
 
-        if (f.parameters.size >= 2) {
-            trees.add(AssignmentTree(generate_var_access(f.parameters[1]), RegisterTree(PhysicalRegister.RDX)))
+        if (parameters.size >= 2) {
+            trees.add(AssignmentTree(generate_var_access(parameters[1]), RegisterTree(PhysicalRegister.RDX)))
         }
 
-        for (i in 2 until f.parameters.size) {
+        for (i in 2 until parameters.size) {
             val fromStack = MemoryTree(
                 BinaryOperationTree(
                     RegisterTree(PhysicalRegister.RSP),
@@ -127,7 +153,7 @@ class FunctionFrameManagerImpl(
                 )
             )
 
-            trees.add(AssignmentTree(generate_var_access(f.parameters[i]), fromStack))
+            trees.add(AssignmentTree(generate_var_access(parameters[i]), fromStack))
         }
 
         trees.addAll(backupRegisters())
@@ -170,7 +196,7 @@ class FunctionFrameManagerImpl(
         val curOffset = stackOffset.value * BYTES_IN_WORD
         stackOffset.value += 1
 
-        val resTree =  MemoryTree(
+        val resTree = MemoryTree(
             BinaryOperationTree(
                 RegisterTree(PhysicalRegister.RBP),
                 NumericalConstantTree(curOffset),
@@ -194,7 +220,7 @@ class FunctionFrameManagerImpl(
 
     private fun initialiseVariableMap() {
         analyser.variableMap.forEach { (variable, functionDeclaration) ->
-            if (functionDeclaration == f) {
+            if (functionDeclaration == declaration) {
                 val isNested = analyser.isUsedInNested[variable] ?: false
                 val memoryCell: UsableMemoryCell
 
@@ -213,7 +239,7 @@ class FunctionFrameManagerImpl(
     private fun updateDisplay(): List<Tree> {
         val trees = mutableListOf<Tree>()
 
-        val nestingLevel = getNestingLevel()
+        val nestingLevel = getNestingLevel(declaration)
         displayBackupVirtualRegister = VirtualRegister()
 
         trees.add(
@@ -236,7 +262,7 @@ class FunctionFrameManagerImpl(
     private fun restoreDisplay(): List<Tree> {
         return mutableListOf<Tree>(
             AssignmentTree(
-                getDisplayMemory(getNestingLevel()),
+                getDisplayMemory(getNestingLevel(declaration)),
                 RegisterTree(displayBackupVirtualRegister)
             )
         )
@@ -260,10 +286,10 @@ class FunctionFrameManagerImpl(
         )
     }
 
-    private fun getNestingLevel(fnDecl: FunctionDeclaration = f): Long {
+    private fun getNestingLevel(fnDecl: AnyCallableDeclaration): Long {
         var result: Long = 0
 
-        var decl: FunctionDeclaration? = fnDecl
+        var decl: AnyCallableDeclaration? = fnDecl
         while (analyser.staticParents[decl] != null) {
             result += 1
             decl = analyser.staticParents[decl]

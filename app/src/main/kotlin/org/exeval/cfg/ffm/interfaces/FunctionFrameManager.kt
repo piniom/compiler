@@ -11,8 +11,6 @@ import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
 
 interface FunctionFrameManager: CallManager {
-    val f: FunctionDeclaration
-
     fun generate_var_access(
         x: AnyVariable,
         functionFrameOffset: Tree = RegisterTree(PhysicalRegister.RBP)

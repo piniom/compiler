@@ -31,7 +31,7 @@ object VirtualRegisterBank{
     }
 }
 
-class FunctionFrameManagerMock(private val fm: FunctionFrameManager, override val f: FunctionDeclaration): FunctionFrameManager {
+class FunctionFrameManagerMock(private val fm: FunctionFrameManager, val f: FunctionDeclaration): FunctionFrameManager {
     override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): AssignableTree {
         return fm.generate_var_access(x, functionFrameOffset)
     }
