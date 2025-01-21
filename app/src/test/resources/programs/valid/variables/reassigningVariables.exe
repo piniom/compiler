@@ -9,5 +9,6 @@ foo main() -> Int = {
 
     x = kInt;
     falsehood = kBool;
-    nope = kNope
+    nope = kNope;
+    0
 }

@@ -4,5 +4,6 @@ foo main() -> Int = {
 
     // However variable declaration as well as blocks do need to be separated by semicolon
     let a: Bool = true; let b: Bool = false;
-    {{a and b}; {a or b}}
+    {{a and b}; {a or b}};
+    0
 }

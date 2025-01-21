@@ -1,5 +1,6 @@
 package org.exeval.utilities
 
+import org.exeval.input.SimpleLocation
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.utilities.interfaces.LexerToken
@@ -29,7 +30,7 @@ class LexerUtils {
             }
 
             // add last endOfParse to leaves
-            val lastLocation = leaves.last().endLocation
+            val lastLocation = if (leaves.isNotEmpty()) leaves.last().endLocation else SimpleLocation(0, 0)
             leaves.add(ParseTree.Leaf(LanguageGrammar.grammar.endOfParse, lastLocation, lastLocation))
 
             return leaves

@@ -238,7 +238,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                         addPositionalAfterNamedArgumentError(it)
                         return
                     }
-                    if(positionalIdx > decl.parameters.size) {
+                    if(positionalIdx >= decl.parameters.size) {
                         addToManyArgumentsError(call)
                         return
                     }
@@ -257,6 +257,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                     }
                     if (usedParameters.contains(idx)) {
                         addAlreadyUsedArgError(it)
+                        return
+                    }
+                    if(idx >= decl.parameters.size) {
+                        addToManyArgumentsError(call)
                         return
                     }
 
@@ -393,7 +397,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processNamedBreak(breakNode: Break, name: String) {
         getLoopData().loopMap[name]?.let { breakToLoop[breakNode] = it; }
-            ?: addUnknownLoopIdentifierError(breakNode)
+            ?: addUnknownLoopIdentifierError(breakNode, name)
     }
 
     private fun processSimpleBreak(breakNode: Break) {
@@ -471,14 +475,14 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun addBreakOutsideLoopError(breakNode: Break) {
         addDiagnostic("Break statement must be inside a loop.", breakNode)
     }
-    private fun addUnknownLoopIdentifierError(breakNode: Break) {
-        addDiagnostic("Break use not existing loop identifier.", breakNode)
+    private fun addUnknownLoopIdentifierError(breakNode: Break, identifier: String) {
+        addDiagnostic("Break use not existing loop identifier (${identifier}).", breakNode)
     }
     private fun addUnknownFunctionCallError(functionCall: FunctionCall) {
-        addDiagnostic("Call of a not existing function.", functionCall)
+        addDiagnostic("Call of a not existing function (${functionCall.functionName}).", functionCall)
     }
     private fun addExpectedFunctionDeclarationError(functionCall: FunctionCall) {
-        addDiagnostic("Trying to call not callable thing.", functionCall)
+        addDiagnostic("Trying to call not callable thing (${functionCall.functionName}).", functionCall)
     }
     private fun addUnknownVarError(node: ASTNode) {
         addDiagnostic("Use of a not existing variable.", node)
@@ -493,13 +497,13 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         addDiagnostic("Cannot use positional argument after named argument.", argument)
     }
     private fun addToManyArgumentsError(call: FunctionCall) {
-        addDiagnostic("Trying to pass to many arguments to a function.", call)
+        addDiagnostic("Trying to pass too many arguments to a function.", call)
     }
     private fun addNamedArgNotFoundError(argument: NamedArgument) {
         addDiagnostic("Cannot find a provided name of argument in function declaration (${argument.name}).", argument)
     }
-    private fun addAlreadyUsedArgError(argument: ASTNode) {
-        addDiagnostic("Trying to pass to an already provided parameter.", argument)
+    private fun addAlreadyUsedArgError(argument: NamedArgument) {
+        addDiagnostic("Trying to pass an already provided parameter (${argument.name}).", argument)
     }
     private fun addSameNameOfArgumentError(argument: ASTNode) {
         addDiagnostic("Cannot use the same name for argument twice.", argument)
