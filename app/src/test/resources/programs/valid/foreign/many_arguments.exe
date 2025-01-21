@@ -1,6 +1,6 @@
-foreign fun print_many(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int) -> Nope
+foreign foo print_many(a: Int, b: Int, c: Int, d: Int, e: Int, f: Int) -> Nope
 
-fun main() -> Int{
-    print_many(1, 2, 3, e = 5, f = 6, d = 4)
+foo main() -> Int = {
+    print_many(1, 2, 3, e = 5, f = 6, d = 4);
     0
 }

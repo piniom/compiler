@@ -1,9 +1,9 @@
-foreign fun id(x: Int) -> Int
-foreign fun get_one() -> Int
-foreign fun add(x: Int, y: Int) -> Int
-foreign fun print(x: Int) -> Nope
+foreign foo id(x: Int) -> Int
+foreign foo get_one() -> Int
+foreign foo add(x: Int, y: Int) -> Int
+foreign foo print(x: Int) -> Nope
 
-fun main() -> Int{
-    print(add(get_one(), id(3)))
+foo main() -> Int = {
+    print(add(get_one(), id(3)));
     id(0)
 }
