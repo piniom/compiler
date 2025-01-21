@@ -17,6 +17,16 @@ class StdlibDeclarationsCreator {
                     name = "scan_int",
                     parameters = listOf(),
                     returnType = IntType
+                ),
+                ForeignFunctionDeclaration(
+                    name = "malloc",
+                    parameters = listOf(Parameter("size", IntType)),
+                    returnType = IntType
+                ),
+                ForeignFunctionDeclaration(
+                    name = "free",
+                    parameters = listOf(Parameter("pointer", IntType)),
+                    returnType = NopeType
                 )
             )
         }

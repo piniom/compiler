@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 void print_int(int64_t a)
 {
@@ -14,3 +14,10 @@ int64_t scan_int()
     return a;
 }
 
+int64_t malloc_exe(int64_t size){
+    return malloc(size)
+}
+
+void free_exe(int64_t pointer){
+    free(pointer)
+}
