@@ -139,7 +139,7 @@ class LanguageGrammarTest {
 		assertEquals(expectedProductions, LanguageGrammar.getAllProductions(SymbolC))
 	}
 
-	@Ignore("Run this test after changing grammar")
+	//@Ignore("Run this test after changing grammar")
 	@Test
 	fun testGrammarAndRebuildTables() {
 		val grammar = LanguageGrammar.grammar
