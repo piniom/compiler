@@ -52,9 +52,9 @@ class CFGMaker(
             is UnaryOperation -> walkUnaryOperation(expr, then)
             is VariableDeclarationBase -> walkVariableDeclarationBase(expr, then)
             is VariableReference -> walkVariableReference(expr, then)
-            is ArrayAccess -> TODO()
-            is MemoryDel -> TODO()
-            is MemoryNew -> TODO()
+            is ArrayAccess -> walkArrayAccess(expr, then)
+            is MemoryDel -> walkMemoryDel(expr, then)
+            is MemoryNew -> walkMemoryNew(expr, then)
             is StructFieldAccess -> TODO("scheduled in task Structs #1")
             is ConstructorDeclaration -> TODO("scheduled in task Structs #1")
             is HereReference -> TODO("scheduled in task Structs #1")
@@ -78,6 +78,7 @@ class CFGMaker(
         )
         return WalkResult(value.top, null)
     }
+
 
     private fun walkBinaryOperation(bin: BinaryOperation, then: CFGNode): WalkResult {
         if (bin.operator == BinaryOperator.AND || bin.operator == BinaryOperator.OR) {
@@ -218,6 +219,7 @@ class CFGMaker(
             val expression = when (a) {
                 is NamedArgument -> a.expression
                 is PositionalArgument -> a.expression
+
             }
             val curUsage = varUsage[expression]!!
 
@@ -274,7 +276,79 @@ class CFGMaker(
             is NothingLiteral -> TODO("scheduled in task Structs #1")
         }
     }
+    private fun walkArrayAccess(acc: ArrayAccess, then: CFGNode): WalkResult{
+        val leftUsage = varUsage[acc.array]!!
+        val rightUsage = varUsage[acc.index]!!
+        val typeConst: Long = when(typeMap[acc.array]){
+            is ArrayType -> 8
+            is BoolType -> 1
+            is IntType -> 8
+            is StructType -> TODO()
+            else -> 8
+        }
+        if (leftUsage.conflicts(rightUsage)) {
+            val r = walkExpr(acc.index, then)
+            r.tree = BinaryOp(r.tree!!, NumericalConstantTree(typeConst), BinaryTreeOperationType.MULTIPLY)
+            val node = Node(r.top)
+            val l = walkExpr(acc.array, node)
+            val reg = newVirtualRegister()
+            node.trees = listOf(CFGAssignment(reg, l.tree!!))
+            return WalkResult(
+                l.top,
+                MemoryTree(BinaryOp(reg, r.tree!!, BinaryTreeOperationType.ADD))
+            )
+        } else {
+            val r = walkExpr(acc.index, then)
+            r.tree = BinaryOp(r.tree!!, NumericalConstantTree(typeConst), BinaryTreeOperationType.MULTIPLY)
+            val l = walkExpr(acc.array, r.top)
+            return WalkResult(
+                l.top,
+                MemoryTree(BinaryOp(l.tree!!, r.tree!!, BinaryTreeOperationType.ADD))
+            )
+        }
+    }
 
+    private fun findFunctionDeclaration(name: String): AnyFunctionDeclaration?{
+        for(key in CallManagerMap.keys){
+            if(key.name == name){
+                return key
+            }
+        }
+        return null
+    }
+    private fun walkMemoryNew(memNew: MemoryNew, then: CFGNode): WalkResult{
+        val node = Node()
+        val inner = walkExpr(memNew.constructorArguments.first().expression, node)
+        val typeConst: Long = when(memNew.type){
+            is ArrayType -> 8
+            is BoolType -> 1
+            is IntType -> 8
+            is StructType -> TODO()
+            else -> 8
+        }
+        inner.tree = BinaryOp(inner.tree!!, NumericalConstantTree(typeConst), BinaryTreeOperationType.MULTIPLY)
+        val reg = newVirtualRegister()
+        val declaration = findFunctionDeclaration("malloc_exe")
+        if(declaration == null){
+            error("malloc_exe not found!!")
+        }
+        val call = CallManagerMap[declaration]!!.generate_function_call(listOf(inner.tree!!), reg, then)
+        node.branches = Pair(call, null)
+        return WalkResult(inner.top, reg)
+    }
+
+    private fun walkMemoryDel(memDel: MemoryDel, then: CFGNode): WalkResult{
+        val node = Node()
+        val inner = walkExpr(memDel.pointer, node)
+        // generate function call free
+        val declaration = findFunctionDeclaration("free_exe")
+        if(declaration == null){
+            error("free_exe not found!!")
+        }
+        val call = CallManagerMap[declaration]!!.generate_function_call(listOf(inner.tree!!), null, then)
+        node.branches = Pair(call, null)
+        return WalkResult(inner.top, null)
+    }
     private fun walkUnaryOperation(unaryOperation: UnaryOperation, then: CFGNode): WalkResult {
         if (unaryOperation.operator == UnaryOperator.NOT) {
             return walkLogicalExpressionShortCircuit(unaryOperation, then)
@@ -286,8 +360,7 @@ class CFGMaker(
     private fun walkVariableDeclarationBase(variableDeclaration: VariableDeclarationBase, then: CFGNode): WalkResult {
         if (variableDeclaration.initializer == null || typeMap[variableDeclaration.initializer!!]!!.isNope()) return WalkResult(
             then,
-            null
-        )
+            null)
         val node = Node(then)
         val inner = walkExpr(variableDeclaration.initializer!!, node)
         val destination = fm.generate_var_access(variableDeclaration)

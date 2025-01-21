@@ -38,6 +38,7 @@ import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 import org.exeval.utilities.interfaces.OperationResult
 import java.io.File
+import java.nio.file.Paths
 import java.io.IOException
 
 private val logger = KotlinLogging.logger {}
@@ -50,6 +51,31 @@ fun main(args: Array<String>) {
 
     // Input
     val sourceCode = buildInput(args[0])
+
+    val linkedLibraries = mutableListOf<String>()
+    val linkedLibrariesDirs = mutableListOf<String>()
+    // Add stdlib .so files
+    val cwd = Paths.get("").toAbsolutePath().toString()
+    // For now assumes that cwd = .../compiler/app and includes from .../compiler/stdlib
+    val stdlibDir = File(cwd.replaceAfterLast("/", "stdlib"))
+    val stdlibs = stdlibDir.walk().filter { it.name.endsWith((".so")) }
+    linkedLibrariesDirs.add(stdlibDir.absolutePath)
+    for(file in stdlibs) {
+        linkedLibraries.add(file.name)
+    }
+
+    var i=1;
+    while (i<args.size-1) {
+        if(args[i] == "-l") {
+            linkedLibraries.add(args[i+1])
+            i++
+        }
+        if(args[i] == "-L") {
+            linkedLibrariesDirs.add(args[i+1])
+            i++
+        }
+        i++
+    }
 
     // Lexer
     val lexer = buildLexer()
@@ -121,8 +147,19 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
     logger.info { "NASM successfully created program.o" }
+    val gccArgs = mutableListOf("gcc", "program.o", "-o", "program")
 
-    val gccProcess = ProcessBuilder("gcc", "program.o", "-o", "program")
+    for (lib in linkedLibraries) {
+        gccArgs.addLast("-l")
+        gccArgs.addLast(lib)
+    }
+
+    for (dir in linkedLibrariesDirs) {
+        gccArgs.addLast("-L")
+        gccArgs.addLast(dir)
+    }
+
+    val gccProcess = ProcessBuilder(*gccArgs.toTypedArray())
         .inheritIO()
         .start()
     gccProcess.waitFor()

@@ -5,6 +5,7 @@ import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
+import StdlibDeclarationsCreator
 /*
 WARNING: there is no AnyVariable to Associate a HereReference to in Assignment.
 This means that AssignmentToDeclaration will not contain Assignments to HereReference, as well as its StructFieldAccess
@@ -35,6 +36,17 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
     private val useToStruct: MutableMap<TypeUse, StructTypeDeclaration> = mutableMapOf()
 
+    init {
+        injectStdlibFunctionsDeclarations()
+    }
+
+    fun injectStdlibFunctionsDeclarations() {
+        var stdFuncsDecls = mutableMapOf<String, ASTNode>()
+        for (decl in StdlibDeclarationsCreator.getDeclarations()) {
+            stdFuncsDecls[decl.name] = decl
+        }
+        declarations.addFirst(stdFuncsDecls)
+    }
 
     fun parse(): OperationResult<NameResolution> {
         processAsBlock {
