@@ -1,8 +1,8 @@
-fun foreign f() -> Int
+foo foreign f() -> Int
 
-fun f() -> Int = foreign
+foo f() -> Int = foreign
 
-fun main() -> Int {
+foo main() -> Int = {
     foreign let x: Int;
     ()
 }

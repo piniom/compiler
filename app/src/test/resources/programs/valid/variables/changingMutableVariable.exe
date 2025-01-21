@@ -5,7 +5,9 @@ foo main() -> Int = {
 
     x = 1;
     flag = true;
-    nope = ()
-
+    nope = ();
+    
     // x should be 1
+    
+    0
 }

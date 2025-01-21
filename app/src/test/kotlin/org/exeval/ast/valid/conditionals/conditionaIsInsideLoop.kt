@@ -30,7 +30,8 @@ val CONDITIONALS_CONDITIONALS_INSIDE_LOOP_AST = Program(
                                             Break(
                                                 identifier = null,
                                                 expression = VariableReference("x")
-                                            )
+                                            ),
+                                            NopeLiteral(),
                                         )
                                     ),
                                     elseBranch = Block(
