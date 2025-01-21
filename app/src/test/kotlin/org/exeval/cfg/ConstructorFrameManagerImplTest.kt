@@ -33,18 +33,6 @@ class ConstructorFrameManagerImplTest {
 
     @Test
     fun `test variable allocation for main with max`() {
-        // foo main() -> Int = {
-        //     let mut a: Int;
-        //     let mut b: Int;
-        //     let max: Int = {
-        //         if(a>b) then {
-        //             a;
-        //         } else {
-        //             b;
-        //         };
-        //     };
-        // }
-
         // Mock variables
         val a = mockk<AnyVariable>()
         val b = mockk<AnyVariable>()
@@ -74,17 +62,6 @@ class ConstructorFrameManagerImplTest {
 
     @Test
     fun `test variable allocation for if-else example`() {
-        // foo main() -> Int = {
-        //     let y: Int = if 5 > 3 then {
-        //         let a: Int = 10;
-        //         a + 5
-        //     } else {
-        //         let b: Int = 20;
-        //         b - 5
-        //     };
-        //     y
-        // }
-
         // Mock variables
         val y = mockk<AnyVariable>()
         val a = mockk<AnyVariable>()
@@ -114,14 +91,6 @@ class ConstructorFrameManagerImplTest {
 
     @Test
     fun `test recursive function fib`() {
-        // foo fib(n: Int) -> Int = {
-        //     if n < 3 then {
-        //         1
-        //     } else {
-        //         fib(n-1) + fib(n-2)
-        //     }
-        // }
-
         // Mock variables
         val n = mockk<AnyVariable>()
 
@@ -138,10 +107,6 @@ class ConstructorFrameManagerImplTest {
 
     @Test
     fun `test recursive function main calling fib`() {
-        // foo main() -> Int = {
-        //     fib(5)
-        // }
-
         // Mock variables
         val fibResult = mockk<AnyVariable>()
 
@@ -158,14 +123,6 @@ class ConstructorFrameManagerImplTest {
 
     @Test
     fun `test variable x in outer function accessed in inner function`() {
-        // foo f() = {
-        //     let x: Int = 0
-        //
-        //     foo g() = {
-        //         x += 1
-        //     }
-        // }
-
         // Mock variable `x`
         val x = mockk<AnyVariable>()
 
