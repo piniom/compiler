@@ -27,8 +27,11 @@ class LivenessCheckerImpl: LivenessChecker {
                 }
 
                 if (instr.isCopy()){
-                    copyGraph[instr.definedRegisters().first()]!!.add(instr.usedRegisters().first())
-                    copyGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
+                    // Not all instructions use and define at least one register
+                    if (instr.definedRegisters().size > 0 && instr.usedRegisters().size > 0) {
+                        copyGraph[instr.definedRegisters().first()]!!.add(instr.usedRegisters().first())
+                        copyGraph[instr.usedRegisters().first()]!!.add(instr.definedRegisters().first())
+                    }
                 }
             }
         }
@@ -40,7 +43,7 @@ class LivenessCheckerImpl: LivenessChecker {
                 for (j in 0..<bb.instructions.size) {
                     val next: List<Instruction> =
                         if (i == basicBlocks.size - 1 && j == bb.instructions.size - 1) listOf()
-                        else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.first() }
+                        else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.firstOrNull() }.filterNotNull()
                             .toList()
                         else listOf(bb.instructions[j + 1])
                     val instruction = bb.instructions[j]
@@ -51,7 +54,10 @@ class LivenessCheckerImpl: LivenessChecker {
                     val newLiveIn = use[instruction]!! union (oldLiveOut subtract def[instruction]!!)
                     var newLiveOut = def[instruction]!!
                     for (nextInstruction in next) {
-                        newLiveOut = newLiveOut union liveIn[nextInstruction]!!
+                        val nextLiveIn = liveIn[nextInstruction]
+                        if (nextLiveIn != null) {
+                            newLiveOut = newLiveOut union nextLiveIn
+                        }
                     }
 
                     liveIn[instruction] = newLiveIn

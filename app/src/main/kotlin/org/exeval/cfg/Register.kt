@@ -30,7 +30,6 @@ enum class PhysicalRegister(val name_: String) : Register {
             return setOf(
                 RAX,
                 RCX,
-                RSP,
                 RBP,
                 RDX,
                 RDI,

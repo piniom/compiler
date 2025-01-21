@@ -14,8 +14,8 @@ class InstructionCovererTest {
 
     @Test
     fun `cover should return instructions based on patterns`() {
-        val left = NumericalConstantTree(1)
-        val right = NumericalConstantTree(2)
+        val left = MemoryTree(NumericalConstantTree(1))
+        val right = MemoryTree(NumericalConstantTree(2))
         // Arrange
         val tree = BinaryOperationTree(left, right, BinaryTreeOperationType.ADD)
         val mockPattern = mockk<InstructionPattern>()
@@ -104,7 +104,7 @@ class InstructionCovererTest {
 
     @Test
     fun `coverer should cover memoryTree`() {
-        val child = NumericalConstantTree(2)
+        val child = MemoryTree(NumericalConstantTree(2))
         // Arrange
         val tree = MemoryTree(child)
         val mockPattern = mockk<InstructionPattern>()
@@ -353,7 +353,7 @@ class InstructionCovererTest {
 
     @Test
     fun `cover of jump should use jump`() {
-        val tree = NumericalConstantTree(1)
+        val tree = MemoryTree(NumericalConstantTree(1))
 
         val inst1 = mockk<Instruction>()
         val unaryOpPattern = object : InstructionPattern {

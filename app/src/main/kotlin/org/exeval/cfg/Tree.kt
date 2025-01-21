@@ -26,6 +26,8 @@ sealed interface Tree {
             }
             is Call -> CallTreeKind
             Return -> ReturnTreeKind
+            is StackPushTree -> StackPushTreeKind
+            is StackPopTree -> StackPopTreeKind
         }
     }
 }
@@ -83,4 +85,7 @@ enum class UnaryTreeOperationType {
 data class Call(val label: Label) : Tree
 
 data object Return : Tree
+
+data class StackPushTree(val source: Tree) : Tree
+data class StackPopTree(val destination: AssignableTree) : Tree
 
