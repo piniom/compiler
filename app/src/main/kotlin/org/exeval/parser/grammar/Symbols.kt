@@ -1,5 +1,6 @@
 package org.exeval.parser.grammar
 
+import kotlinx.serialization.Serializable
 import org.exeval.utilities.TokenCategories as Token
 
 @Serializable
