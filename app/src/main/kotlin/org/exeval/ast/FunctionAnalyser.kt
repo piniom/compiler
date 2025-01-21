@@ -66,8 +66,7 @@ class FunctionAnalyser() {
         if (declaration is AnyFunctionDeclaration) {
             return call.functionName == declaration.name && call.arguments.size == declaration.parameters.size
         } else {
-            // TODO: !!!
-            return true
+            return false
         }
     }
 
@@ -91,7 +90,9 @@ class FunctionAnalyser() {
             is Conditional -> analyseConditional(node, context)
             is Loop -> analyseLoop(node, context)
             is Break -> analyseBreak(node, context)
-            else -> print("Hello")
+            else -> {
+                
+            }
         }
     }
 
