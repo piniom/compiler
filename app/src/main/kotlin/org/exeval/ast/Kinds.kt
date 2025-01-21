@@ -126,7 +126,8 @@ class StructTypeDeclaration(
 ) : Expr()
 
 class ConstructorDeclaration(
-    override val parameters: List<Parameter>
+    override val parameters: List<Parameter>,
+    val body: Expr
 ) : AnyCallableDeclaration()
 
 class StructFieldAccess(

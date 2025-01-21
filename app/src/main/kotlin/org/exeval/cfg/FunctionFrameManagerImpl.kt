@@ -6,6 +6,7 @@ import org.exeval.ast.FunctionDeclaration
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.ffm.interfaces.FunctionFrameManager
+import org.exeval.utilities.TokenCategories
 
 private const val BYTES_IN_WORD = 8
 
@@ -32,7 +33,11 @@ class FunctionFrameManagerImpl(
     init {
         initialiseVariableMap()
         //TODO: Think about it :))
-        label = Label(f.name)
+        if (f.name == TokenCategories.IdentifierEntrypoint.regex) {
+            label = Label(f.name)
+        } else {
+            label = Label("FUNCTION_${f.name}")
+        }
     }
 
     override fun generate_var_access(x: AnyVariable, functionFrameOffset: Tree): AssignableTree {
@@ -136,6 +141,8 @@ class FunctionFrameManagerImpl(
     override fun generate_epilouge(result: Tree?): CFGNode {
         val trees = mutableListOf<Tree>()
 
+        // TODO fix, causes compiled program to segfault
+        /*
         trees.add(
             AssignmentTree(
                 RegisterTree(PhysicalRegister.RSP),
@@ -146,6 +153,7 @@ class FunctionFrameManagerImpl(
                 )
             )
         )
+        */
         trees.addAll(restoreDisplay())
         trees.addAll(restoreRegisters())
 
@@ -176,19 +184,9 @@ class FunctionFrameManagerImpl(
         stackOffset.value += calleSaveRegisters.size
 
         return calleSaveRegisters.map {
-            AssignmentTree(
-                MemoryTree(
-                    BinaryOperationTree(
-                        RegisterTree(PhysicalRegister.RSP),
-                        NumericalConstantTree(calleSaveRegisters.indexOf(it) * Register.SIZE),
-                        BinaryTreeOperationType.ADD
-                    )
-                ),
-                RegisterTree(it)
-            )
-        }
+            pushToStack(RegisterTree(it))
+        }.flatten()
     }
-
 
     private fun restoreRegisters(): List<Tree> {
         return calleSaveRegisters.map { popFromStack(RegisterTree(it)) }.flatten()
@@ -245,28 +243,11 @@ class FunctionFrameManagerImpl(
     }
 
     private fun pushToStack(tree: Tree): List<Tree> {
-        return listOf(
-            BinaryOperationTree(
-                RegisterTree(PhysicalRegister.RSP),
-                NumericalConstantTree(Register.SIZE),
-                BinaryTreeOperationType.SUBTRACT
-            ),
-            AssignmentTree(MemoryTree(RegisterTree(PhysicalRegister.RSP)), tree)
-        )
+        return listOf(StackPushTree(tree))
     }
 
     private fun popFromStack(toAssign: AssignableTree): List<Tree> {
-        return listOf(
-            AssignmentTree(toAssign, MemoryTree(RegisterTree(PhysicalRegister.RSP))),
-            AssignmentTree(
-                RegisterTree(PhysicalRegister.RSP),
-                BinaryOperationTree(
-                    RegisterTree(PhysicalRegister.RSP),
-                    NumericalConstantTree(Register.SIZE),
-                    BinaryTreeOperationType.ADD
-                )
-            )
-        )
+        return listOf(StackPopTree(toAssign))
     }
 
     private fun getDisplayMemory(idx: Long): MemoryTree {

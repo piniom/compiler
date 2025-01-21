@@ -5,8 +5,22 @@ import org.exeval.utilities.LocationRange
 import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.interfaces.Diagnostics
 import org.exeval.utilities.interfaces.OperationResult
+/*
+WARNING: there is no AnyVariable to Associate a HereReference to in Assignment.
+This means that AssignmentToDeclaration will not contain Assignments to HereReference, as well as its StructFieldAccess
+If this is fine, then nothing needs to be done. If you want then associated, you need to:
+1. add AnyVariable `Here` to StructTypeDeclaration
+2. remove `if(variableName != consts.hereRef) {` in getAssignmentType
+3. add `addDecl(consts.hereRef,{Struct's `Here` AnyVariable})` before `processNode(struct.constructorMethod)`
+note that consts.hereRef contains an illegal symbol, therefore there should be no conflicts
+*/
 
 class NameResolutionGenerator(private val astInfo: AstInfo) {
+
+    class consts {companion object{
+        public val hereRef = ":here"
+    }}
+
     data class LoopStackData(var closestLoop: Loop? = null, val loopMap: MutableMap<String, Loop> = mutableMapOf())
 
     private var loopStack = ArrayDeque<LoopStackData>()
@@ -19,6 +33,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private val functionToDecl: MutableMap<FunctionCall, AnyFunctionDeclaration> = mutableMapOf()
     private val variableToDecl: MutableMap<VariableReference, AnyVariable> = mutableMapOf()
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
+    private val useToStruct: MutableMap<TypeUse, StructTypeDeclaration> = mutableMapOf()
 
 
     fun parse(): OperationResult<NameResolution> {
@@ -34,7 +49,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             functionToDecl,
             variableToDecl,
             assignmentToDecl,
-            emptyMap(), // TODO as task Structs #3
+            useToStruct,
         ), diagnostics)
     }
 
@@ -46,6 +61,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is FunctionCall -> processFnCall(astNode)
             is FunctionDeclaration -> processFnDecl(astNode)
             is ForeignFunctionDeclaration -> processForeignFnDecl(astNode)
+            is ConstructorDeclaration -> processConstructor(astNode)
 
             is ConstantDeclaration -> processConstDecl(astNode)
             is MutableVariableDeclaration -> processMutDecl(astNode)
@@ -63,18 +79,49 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             is NamedArgument -> processNamedArgument(astNode)
             is PositionalArgument -> processPositionalArgument(astNode)
 
+            is StructTypeDeclaration -> processStructDecl(astNode)
+
             is Literal -> {}
+            is HereReference -> {}
 
             is MemoryNew -> processMemoryNew(astNode)
             is MemoryDel -> processMemoryDel(astNode)
             is ArrayAccess -> processArrayAccess(astNode)
+            is StructFieldAccess -> processStructFieldAccess(astNode)
 
             else -> addUnknownNodeError(astNode)
         }
     }
 
-    private fun processAsBlock(block: () -> Unit)
-    {
+
+    private fun processStructDecl(struct: StructTypeDeclaration){
+        if(hasSameVarAlreadyInScope(struct.name)){
+            addStructRedefinitionError(struct)
+            return
+        }
+        addDecl(struct.name,struct)
+        if(struct.fields.groupBy{it.name}.any{it.value.size>1}){
+            addDuplicateMemberError(struct)
+            return
+        }
+        processAsBlock{
+            struct.fields.forEach{
+                processNode(it)
+            }
+            processNode(struct.constructorMethod)
+        }
+    }
+
+    private fun processConstructor(constructor: ConstructorDeclaration){
+        processAsBlock {
+            pushLoopStack()
+            processFunParameters(constructor.parameters)
+            processNode(constructor.body)
+            popLoopStack()
+        }
+    }
+
+    private fun processAsBlock(block: () -> Unit) {
         pushBlock()
         block()
         popBlock()
@@ -112,13 +159,16 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         val variableName = when (variable) {
             is VariableReference -> variable.name
             is ArrayAccess -> getNameOfArrayAccess(variable)
+            is StructFieldAccess -> getStructName(variable)
             else -> ""
         }
-        if (variableName == "") 
+        if (variableName == "")
             addUnknownNodeError(variable)
 
-        getVarDecl(assignment, variableName)?. let {
-            assignmentToDecl[assignment] = it
+        if(variableName != consts.hereRef) {
+            getVarDecl(assignment, variableName)?.let {
+                assignmentToDecl[assignment] = it
+            }
         }
 
         processAsBlock { processNode(assignment.value) }
@@ -130,11 +180,22 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
+    private fun processType(typeRef: Type, user: ASTNode){
+        if(typeRef !is TypeUse){
+            return
+        }
+        getStrDecl(typeRef.typeName,user)?.let{
+            useToStruct[typeRef] = it
+        }
+    }
+
     private fun processConstDecl(constDecl: ConstantDeclaration) {
+        processType(constDecl.type,constDecl)
         processVarDecl(constDecl, constDecl.name, constDecl.initializer)
     }
 
     private fun processMutDecl(mutDecl: MutableVariableDeclaration) {
+        processType(mutDecl.type,mutDecl)
         processVarDecl(mutDecl, mutDecl.name, mutDecl.initializer)
     }
 
@@ -177,7 +238,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                         addPositionalAfterNamedArgumentError(it)
                         return
                     }
-                    if(positionalIdx > decl.parameters.size) {
+                    if(positionalIdx >= decl.parameters.size) {
                         addToManyArgumentsError(call)
                         return
                     }
@@ -198,6 +259,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
                         addAlreadyUsedArgError(it)
                         return
                     }
+                    if(idx >= decl.parameters.size) {
+                        addToManyArgumentsError(call)
+                        return
+                    }
 
                     usedParameters.add(idx)
                     argumentToParam[it] = decl.parameters[idx]
@@ -213,6 +278,21 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         if (array is ArrayAccess)
             return getNameOfArrayAccess(array)
         addUnknownNodeError(array)
+        return ""
+    }
+
+    private fun getStructName(str: StructFieldAccess): String {
+        val struct = str.structObject
+        if (struct is HereReference){
+            return consts.hereRef
+        }
+        if (struct is VariableReference){
+            return struct.name
+        }
+        if (struct is ArrayAccess){
+            return getNameOfArrayAccess(struct)
+        }
+        addUnknownNodeError(str)
         return ""
     }
 
@@ -244,6 +324,17 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         return null
     }
 
+    private fun getStrDecl(name:String, using: ASTNode): StructTypeDeclaration? {
+        val found = findDecl(name)
+
+        if (found is StructTypeDeclaration){
+            return found
+        }
+
+        addUnknownStructError(using)
+        return null
+    }
+
     private fun hasSameVarAlreadyInScope(name: String): Boolean {
         if (declarations.isEmpty())
             return false
@@ -265,6 +356,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processFnDecl(functionDecl: FunctionDeclaration) {
         addDecl(functionDecl.name, functionDecl)
+        processType(functionDecl.returnType,functionDecl)
 
         processAsBlock {
             pushLoopStack()
@@ -276,6 +368,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processForeignFnDecl(functionDecl: ForeignFunctionDeclaration) {
         addDecl(functionDecl.name, functionDecl)
+        processType(functionDecl.returnType, functionDecl)
 
         processAsBlock {
             pushLoopStack()
@@ -287,6 +380,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processFunParameters(parameters: List<Parameter>) {
         parameters.forEach{
+            processType(it.type, it)
             if (hasSameVarAlreadyInScope(it.name))
                 addSameNameOfArgumentError(it)
             else
@@ -303,7 +397,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processNamedBreak(breakNode: Break, name: String) {
         getLoopData().loopMap[name]?.let { breakToLoop[breakNode] = it; }
-            ?: addUnknownLoopIdentifierError(breakNode)
+            ?: addUnknownLoopIdentifierError(breakNode, name)
     }
 
     private fun processSimpleBreak(breakNode: Break) {
@@ -329,6 +423,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
 
     private fun processMemoryNew(memoryNew: MemoryNew) {
+        processType(memoryNew.type,memoryNew)
         processAsBlock { memoryNew.constructorArguments.forEach { processNode(it) } }
     }
 
@@ -339,6 +434,10 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun processArrayAccess(arrayAccess: ArrayAccess) {
         processAsBlock { processNode(arrayAccess.array) }
         processAsBlock { processNode(arrayAccess.index) }
+    }
+
+    private fun processStructFieldAccess(sfAccess: StructFieldAccess){
+        processAsBlock{processNode(sfAccess.structObject)}
     }
 
     private fun addDecl(name: String, node: ASTNode) {
@@ -376,14 +475,14 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun addBreakOutsideLoopError(breakNode: Break) {
         addDiagnostic("Break statement must be inside a loop.", breakNode)
     }
-    private fun addUnknownLoopIdentifierError(breakNode: Break) {
-        addDiagnostic("Break use not existing loop identifier.", breakNode)
+    private fun addUnknownLoopIdentifierError(breakNode: Break, identifier: String) {
+        addDiagnostic("Break use not existing loop identifier (${identifier}).", breakNode)
     }
     private fun addUnknownFunctionCallError(functionCall: FunctionCall) {
-        addDiagnostic("Call of a not existing function.", functionCall)
+        addDiagnostic("Call of a not existing function (${functionCall.functionName}).", functionCall)
     }
     private fun addExpectedFunctionDeclarationError(functionCall: FunctionCall) {
-        addDiagnostic("Trying to call not callable thing.", functionCall)
+        addDiagnostic("Trying to call not callable thing (${functionCall.functionName}).", functionCall)
     }
     private fun addUnknownVarError(node: ASTNode) {
         addDiagnostic("Use of a not existing variable.", node)
@@ -398,13 +497,13 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         addDiagnostic("Cannot use positional argument after named argument.", argument)
     }
     private fun addToManyArgumentsError(call: FunctionCall) {
-        addDiagnostic("Trying to pass to many arguments to a function.", call)
+        addDiagnostic("Trying to pass too many arguments to a function.", call)
     }
     private fun addNamedArgNotFoundError(argument: NamedArgument) {
         addDiagnostic("Cannot find a provided name of argument in function declaration (${argument.name}).", argument)
     }
-    private fun addAlreadyUsedArgError(argument: ASTNode) {
-        addDiagnostic("Trying to pass to an already provided parameter.", argument)
+    private fun addAlreadyUsedArgError(argument: NamedArgument) {
+        addDiagnostic("Trying to pass an already provided parameter (${argument.name}).", argument)
     }
     private fun addSameNameOfArgumentError(argument: ASTNode) {
         addDiagnostic("Cannot use the same name for argument twice.", argument)
@@ -414,6 +513,15 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     }
     private fun addSameLoopIdentifierError(loop: Loop) {
         addDiagnostic("Cannot use the same identifier in nessted loop.", loop)
+    }
+    private fun addDuplicateMemberError(struct: StructTypeDeclaration){
+        addDiagnostic("Member names have to be unique.",struct)
+    }
+    private fun addStructRedefinitionError(struct: StructTypeDeclaration){
+        addDiagnostic("struct of this name already exists in scope.",struct)
+    }
+    private fun addUnknownStructError(using: ASTNode){
+        addDiagnostic("Name of referenced type unknown.",using)
     }
 
     private fun addDiagnostic(message: String, astNode: ASTNode) {

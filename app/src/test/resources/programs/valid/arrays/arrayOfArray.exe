@@ -9,4 +9,5 @@ foo main() -> Int = {
     del arr[0];
     del arr[1];
     del arr;
+    0
 }

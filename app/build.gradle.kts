@@ -8,39 +8,48 @@
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
 }
 
 repositories {
-    // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
 
 dependencies {
     // Use the Kotlin JUnit 5 integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation(libs.kotlin.junit5)
 
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.junit.jupiter.params)
 
     // MockK for mocking
-    testImplementation(libs.io.mockk)
+    testImplementation(libs.mockk)
 
     // Cucumber with JUnit engine for larger, flow tests.
-    testImplementation("io.cucumber:cucumber-java:7.20.1")
-    testImplementation("io.cucumber:cucumber-junit:7.20.1")
+    testImplementation(libs.cucumber.java)
+    testImplementation(libs.cucumber.junit)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.junit.platform)
 
     // This dependency is used by the application.
     implementation(libs.guava)
 
     // Easy logger with SLF4J backed.
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.0")
-    implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation(libs.kotlin.logging.jvm)
+    implementation(libs.slf4j.simple)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization)
+}
+
+buildscript {
+    dependencies {
+        classpath(files("${project.layout.buildDirectory}/classes/kotlin/main/org/exeval/parser"))
+    }
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -91,15 +100,11 @@ tasks.register<Test>("cucumberTest") {
             mainClass = "io.cucumber.core.cli.Main"
             classpath = configurations["cucumberRuntime"] + sourceSets["main"].output + sourceSets["test"].output
             args = listOf(
-                "--plugin",
-                if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
+                "--plugin", if (PropertyTestOutput(project).value == PropertyTestOutput.AllowedValues.FULL) {
                     "pretty"
-                }
-                else {
+                } else {
                     "summary"
-                },
-                "--plugin", "html:build/reports/cucumber-report.html",
-                "--tags", tags
+                }, "--plugin", "html:build/reports/cucumber-report.html", "--tags", tags
             )
         }
     }
@@ -108,35 +113,29 @@ tasks.register<Test>("cucumberTest") {
 /* Their value can be specified on the command line with
  * -P<propertyName>="<property_value>"
  */
-sealed class AdditionalProperies<ValueType>(
-     val project: Project,
-     val propertyName: String
- ) {
-     val isSet: Boolean = project.hasProperty(propertyName)
+sealed class AdditionalProperties<ValueType>(
+    project: Project, val propertyName: String
+) {
+    val isSet: Boolean = project.hasProperty(propertyName)
 
-     abstract val value: ValueType
+    abstract val value: ValueType
 }
 
-class PropertyCucumberTags(project: Project)
-: AdditionalProperies<String>(project, "cucumberTags") {
-    override val value: String
-
-    init {
-        value = if (isSet) project.property(propertyName) as String else ""
-    }
+class PropertyCucumberTags(project: Project) : AdditionalProperties<String>(project, "cucumberTags") {
+    override val value: String = if (isSet) project.property(propertyName) as String else ""
 }
 
-class PropertyTestOutput(project: Project)
-: AdditionalProperies<PropertyTestOutput.AllowedValues>(project, "testOutput") {
+class PropertyTestOutput(project: Project) :
+    AdditionalProperties<PropertyTestOutput.AllowedValues>(project, "testOutput") {
     override val value: AllowedValues
-    val default = AllowedValues.FAILURES
+    private val default = AllowedValues.FAILURES
 
     init {
         value = if (isSet) {
             val propValue = project.property(propertyName) as String
-            val converted = AllowedValues.values().firstOrNull{ it.value == propValue }
+            val converted = AllowedValues.values().firstOrNull { it.value == propValue }
             if (converted == null) {
-                val allowed = AllowedValues.values().map{ it.value }.joinToString(separator = ", ")
+                val allowed = AllowedValues.values().joinToString(separator = ", ") { it.value }
                 project.logger.warn("[WARNING] Unknown value '${propValue}' of property '${propertyName}'. Allowed values: [${allowed}]. Using default '${default.value}'")
                 default
             } else converted

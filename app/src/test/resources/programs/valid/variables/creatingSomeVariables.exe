@@ -6,5 +6,6 @@ foo main() -> Int = {
 
     let mut flag: Bool = true;
     let mut counter: Int = 0;
-    let mut uselessNope: Nope = ()
+    let mut uselessNope: Nope = ();
+    0
 }

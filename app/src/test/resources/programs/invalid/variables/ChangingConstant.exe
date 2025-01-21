@@ -1,4 +1,5 @@
 foo main() -> Int = {
     let kRealConst: Int = 17;
     kRealConst = 18;
+    0
 }
