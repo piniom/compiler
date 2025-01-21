@@ -46,12 +46,6 @@ dependencies {
     implementation(libs.kotlinx.serialization)
 }
 
-buildscript {
-    dependencies {
-        classpath(files("${project.layout.buildDirectory}/classes/kotlin/main/org/exeval/parser"))
-    }
-}
-
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
