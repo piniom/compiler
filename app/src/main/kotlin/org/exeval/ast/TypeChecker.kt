@@ -125,9 +125,9 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             return
         }
 
-        val field = activeStruct?.fields?.get(hereReference.name)
+        val field = activeStruct?.fields?.get(hereReference.field)
         if (field == null) {
-            addDiagnostic("Struct does not contain field" + hereReference.name, hereReference)
+            addDiagnostic("Struct does not contain field" + hereReference.field, hereReference)
             typeMap[hereReference] = NopeType
             return
         }

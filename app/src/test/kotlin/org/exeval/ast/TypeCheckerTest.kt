@@ -1078,7 +1078,7 @@ class TypeCheckerTest {
         every { mockNameResolution.assignmentToDecl[any<Assignment>()] } answers {
             val assignment = this.firstArg<Assignment>()
             // Return a corresponding VariableDeclarationBase based on the assignment variable
-            if (assignment.variable is HereReference && (assignment.variable as HereReference).name == "x") {
+            if (assignment.variable is HereReference && (assignment.variable as HereReference).field == "x") {
                 xField
             } else {
                 null // Return null if no matching declaration is found
