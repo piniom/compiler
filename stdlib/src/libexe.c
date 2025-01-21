@@ -15,9 +15,9 @@ int64_t scan_int()
 }
 
 int64_t malloc_exe(int64_t size){
-    return malloc(size)
+    return (int64_t) malloc(size);
 }
 
 void free_exe(int64_t pointer){
-    free(pointer)
+    free((void*)pointer);
 }
