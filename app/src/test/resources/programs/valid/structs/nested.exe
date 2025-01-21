@@ -1,0 +1,13 @@
+uct Inner = {
+    ctor() = {}
+}
+
+uct Outer = {
+    let inner = new Inner();
+    ctor() = {}
+}
+
+foo main() = {
+    let parcel = new Outer();
+    0
+}

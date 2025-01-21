@@ -60,7 +60,13 @@ class FilesToAst {
             "src/test/resources/programs/valid/arrays/simpleDeclaration.exe" to SIMPLE_ARRAY_DECLARATION_AST,
             "src/test/resources/programs/valid/arrays/simpleDealocation.exe" to SIMPLE_ARRAY_DEALOCATION_AST,
             "src/test/resources/programs/valid/arrays/passArrToFuncSimple.exe" to PASS_ARRAY_TO_FUNCTION_AST,
-            "src/test/resources/programs/valid/arrays/simpleArrOfArr.exe" to  ARRAY_OF_ARRAY_AST
+            "src/test/resources/programs/valid/arrays/simpleArrOfArr.exe" to  ARRAY_OF_ARRAY_AST,
+            "src/test/resources/programs/valid/structs/defaultValues.exe" to  STRUCT_DEFAULT_VALUES_AST,
+            "src/test/resources/programs/valid/structs/nested.exe" to  STRUCT_NESTED_AST,
+            "src/test/resources/programs/valid/structs/returnValueMemberAccess.exe" to  STRUCT_RETURN_VALUE_MEMBER_ACCESS_AST,
+            "src/test/resources/programs/valid/structs/rvalue.exe" to  STRUCT_RVALUE_AST,
+            "src/test/resources/programs/valid/structs/withCtor.exe" to  STRUCT_WITH_CTOR_AST,
+            "src/test/resources/programs/valid/structs/withoutCtor.exe" to  STRUCT_WITHOUT_CTOR_AST
         )
     }
 }
