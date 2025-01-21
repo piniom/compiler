@@ -13,9 +13,9 @@ class ConstChecker{
             when(declaration){
                 is ConstantDeclaration -> {
                     errors.add( object: Diagnostics {
-                        override val message: String = "An illegall assignement to a constant value"
-                        override val startLocation: Location = astInfo.locations[declaration]!!.start
-                        override val stopLocation: Location = astInfo.locations[assignemt]!!.start 
+                        override val message: String = "An illegall assignement to a constant variable (${declaration.name})."
+                        override val startLocation: Location = astInfo.locations[assignemt]!!.start
+                        override val stopLocation: Location = astInfo.locations[assignemt]!!.end
                     }) 
                 }
                 else -> {

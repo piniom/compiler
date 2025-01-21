@@ -2,7 +2,6 @@ package org.exeval.parser.grammar
 
 import org.exeval.parser.Production
 import org.exeval.parser.Grammar
-import org.exeval.parser.Parser
 
 interface GrammarSymbol {
 	fun productions(): List<List<GrammarSymbol>>
@@ -18,7 +17,7 @@ interface TerminalGroup : GrammarSymbol {
 }
 
 object LanguageGrammar {
-	val grammar = Grammar<GrammarSymbol>(ProgramSymbol, EndOfProgramSymbol, getAllProductions(ProgramSymbol))
+	val grammar = Grammar(ProgramSymbol, EndOfProgramSymbol, getAllProductions(ProgramSymbol))
 
 	fun getAllProductions(startSymbol: GrammarSymbol): List<Production<GrammarSymbol>> {
 		fun getSymbolProductions(
@@ -37,8 +36,8 @@ object LanguageGrammar {
 			}
 		}
 
-		var processedSymbols: MutableSet<GrammarSymbol> = mutableSetOf()
-		var productions: MutableList<Production<GrammarSymbol>> = mutableListOf()
+		val processedSymbols: MutableSet<GrammarSymbol> = mutableSetOf()
+		val productions: MutableList<Production<GrammarSymbol>> = mutableListOf()
 
 		getSymbolProductions(startSymbol, processedSymbols, productions)
 

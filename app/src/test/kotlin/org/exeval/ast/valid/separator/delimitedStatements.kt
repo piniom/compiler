@@ -72,7 +72,8 @@ val SEPARATOR_DELIMITED_STATEMENTS_AST = Program(
                                 )
                             )
                         )
-                    )
+                    ),
+                    IntLiteral(0),
                 )
             )
         )

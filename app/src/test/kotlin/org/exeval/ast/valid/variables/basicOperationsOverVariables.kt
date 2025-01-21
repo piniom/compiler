@@ -92,7 +92,8 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                             operator = UnaryOperator.NOT,
                             operand = VariableReference(name = "flag")
                         )
-                    )
+                    ),
+                    IntLiteral(0),
                 )
             )
         )

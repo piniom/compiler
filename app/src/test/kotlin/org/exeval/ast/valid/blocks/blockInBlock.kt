@@ -102,7 +102,8 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                 )
                             )
                         )
-                    )
+                    ),
+                    IntLiteral(0)
                 )
             )
         )

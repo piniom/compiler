@@ -435,7 +435,10 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getFunctionDeclarationType(functionDeclaration: FunctionDeclaration) {
         val bodyType = innerParse(functionDeclaration.body)
 
-        if (bodyType != convertTypeNodeToType(functionDeclaration.returnType)) {
+        if (bodyType == null) {
+            addDiagnostic("Could not determine function body type", functionDeclaration.body)
+        }
+        else if (bodyType != convertTypeNodeToType(functionDeclaration.returnType)) {
             addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
@@ -458,28 +461,25 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         val returnType = convertTypeNodeToType(functionDecl.returnType)
         typeMap[functionCall] = returnType
 
-        if (functionCall.arguments.all { it is PositionalArgument }) {
-            functionCall.arguments.forEachIndexed { index, argument ->
-                val positionalArg = argument as PositionalArgument
-                val parameterType = functionDecl?.parameters?.getOrNull(index)?.type
-                val argumentType = innerParse(positionalArg.expression)
+        var index = 0
+        functionCall.arguments.filterIsInstance<PositionalArgument>().forEach { argument ->
+            val parameterType = functionDecl?.parameters?.getOrNull(index)?.type
+            val argumentType = innerParse(argument.expression)
 
-                if (parameterType != argumentType) {
-                    addDiagnostic("Argument type does not match parameter type", positionalArg.expression)
-                }
+            if (parameterType != argumentType) {
+                addDiagnostic("Argument type does not match parameter type", argument.expression)
             }
+
+            index += 1
         }
 
-        if (functionCall.arguments.all { it is NamedArgument }) {
-            val paramMap = functionDecl?.parameters?.associateBy { it.name }
-            functionCall.arguments.forEach { argument ->
-                val namedArg = argument as NamedArgument
-                val parameterType = paramMap?.get(namedArg.name)?.type
-                val argumentType = innerParse(namedArg.expression)
+        val paramMap = functionDecl?.parameters?.associateBy { it.name }
+        functionCall.arguments.filterIsInstance<NamedArgument>().forEach { argument ->
+            val parameterType = paramMap?.get(argument.name)?.type
+            val argumentType = innerParse(argument.expression)
 
-                if (parameterType != argumentType) {
-                    addDiagnostic("Argument type does not match parameter type", namedArg.expression)
-                }
+            if (parameterType != argumentType) {
+                addDiagnostic("Argument type does not match parameter type", argument.expression)
             }
         }
     }

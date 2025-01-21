@@ -45,7 +45,8 @@ val BLOCK_MAX_AST = Program(
                                 )
                             )
                         )
-                    )
+                    ),
+                    IntLiteral(0)
                 )
             )
         )
