@@ -11,7 +11,8 @@ enum class OperationAsm {
     AND, OR, XOR, XCHG, NEG,
     INC, DEC, CALL, RET, CMP,
     JMP, JG, JGE, JE, ADC,
-    CMOVG, CMOVGE, CMOVE, JNE
+    CMOVG, CMOVGE, CMOVE, JNE,
+    JL, JLE, CMOVL, CMOVLE
 }
 
 interface Instruction {
@@ -230,6 +231,22 @@ class JneInstruction(target: OperandArgumentType) : JumpInstructionBase(target) 
     override fun isCopy() = false
 }
 
+class JlInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "JL ${argToString(target, mapping)}"
+    override fun usedRegisters() = emptyList<Register>()
+    override fun definedRegisters() = emptyList<Register>()
+    override fun isCopy() = false
+}
+
+class JleInstruction(target: OperandArgumentType) : JumpInstructionBase(target) {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "JLE ${argToString(target, mapping)}"
+    override fun usedRegisters() = emptyList<Register>()
+    override fun definedRegisters() = emptyList<Register>()
+    override fun isCopy() = false
+}
+
 // Conditional move instructions
 class AdcInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
@@ -258,6 +275,22 @@ class CmovgeInstruction(val dest: AssignableDest, val src: OperandArgumentType) 
 class CmoveInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
     override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
         "CMOVE ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = getRegisters(dest)
+    override fun isCopy() = src is Register // && dest is Register
+}
+
+class CmovlInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "CMOVL ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
+    override fun usedRegisters() = getRegisters(src)
+    override fun definedRegisters() = getRegisters(dest)
+    override fun isCopy() = src is Register // && dest is Register
+}
+
+class CmovleInstruction(val dest: AssignableDest, val src: OperandArgumentType) : Instruction {
+    override fun toAsm(mapping: Map<Register, PhysicalRegister>) =
+        "CMOVLE ${argToString(dest, mapping)}, ${argToString(src, mapping)}"
     override fun usedRegisters() = getRegisters(src)
     override fun definedRegisters() = getRegisters(dest)
     override fun isCopy() = src is Register // && dest is Register

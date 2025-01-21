@@ -41,6 +41,8 @@ class InstructionSetCreator {
             + createSimpleComparisonPatterns(BinaryGreaterTreeKind, OperationAsm.CMOVG, OperationAsm.JG)
             + createSimpleComparisonPatterns(BinaryGreaterEqualTreeKind, OperationAsm.CMOVGE, OperationAsm.JGE)
             + createSimpleComparisonPatterns(BinaryEqualTreeKind, OperationAsm.CMOVE, OperationAsm.JE)
+            + createSimpleComparisonPatterns(BinaryLessTreeKind, OperationAsm.CMOVL, OperationAsm.JL)
+            + createSimpleComparisonPatterns(BinaryLessEqualTreeKind, OperationAsm.CMOVLE, OperationAsm.JLE)
 
             + createNotPatterns()
             + createNegationPatterns()
@@ -369,7 +371,9 @@ class InstructionSetCreator {
                         OperationAsm.CMOVG -> CmovgInstruction(reg1, dest)
                         OperationAsm.CMOVE -> CmoveInstruction(reg1, dest)
                         OperationAsm.CMOVGE -> CmovgeInstruction(reg1, dest)
-                        else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
+                        OperationAsm.CMOVL -> CmovlInstruction(reg1, dest)
+                        OperationAsm.CMOVLE -> CmovleInstruction(reg1, dest)
+                        else -> throw IllegalArgumentException("Bad operation type in createSimpleComparisonPatterns")
                     },
                     MovInstruction(dest, reg1),
                 )
@@ -403,7 +407,9 @@ class InstructionSetCreator {
                         OperationAsm.JG -> JgInstruction(label)
                         OperationAsm.JE -> JeInstruction(label)
                         OperationAsm.JGE -> JgeInstruction(label)
-                        else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
+                        OperationAsm.JL -> JlInstruction(label)
+                        OperationAsm.JLE -> JleInstruction(label)
+                        else -> throw IllegalArgumentException("Bad operation type in createSimpleComparisonPatterns")
                     }
                 )
             },
