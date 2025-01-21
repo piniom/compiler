@@ -1,14 +1,14 @@
 package org.exeval.ast.valid.separator
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val SEPARATOR_INSTRUCTION_BLOCK_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     Block(

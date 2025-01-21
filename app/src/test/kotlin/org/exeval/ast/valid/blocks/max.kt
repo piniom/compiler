@@ -1,29 +1,29 @@
 package org.exeval.ast.valid.blocks
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val BLOCK_MAX_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "a",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "b",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     ConstantDeclaration(
                         name = "max",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = Block(
                             expressions = listOf(
                                 Conditional(

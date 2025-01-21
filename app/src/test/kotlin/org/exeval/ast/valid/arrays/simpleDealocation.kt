@@ -1,24 +1,24 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val SIMPLE_ARRAY_DEALOCATION_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
                         type = Array(
-                            elementType = Int
+                            elementType = IntTypeNode
                         ),
                         initializer = MemoryNew(
                             type = Array(
-                                elementType = Int
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(1))
@@ -34,7 +34,7 @@ val SIMPLE_ARRAY_DEALOCATION_AST = Program(
                     ),
                     ConstantDeclaration(
                         name = "y",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = ArrayAccess(
                             array = VariableReference("x"),
                             index = IntLiteral(0),

@@ -1,44 +1,44 @@
 package org.exeval.ast.valid.indentifiers
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val IDENTIFIERS_FUNCTIONS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = IntLiteral(value = 0)
         ),
         FunctionDeclaration(
             name = "someFunction",
             parameters = listOf(),
-            returnType = Nope,
+            returnType = NopeTypeNode,
             body = NopeLiteral()
         ),
         FunctionDeclaration(
             name = "withArguments",
             parameters = listOf(
-                Parameter(name = "arg1", type = Int),
-                Parameter(name = "longerNamed", type = Bool)
+                Parameter(name = "arg1", type = IntTypeNode),
+                Parameter(name = "longerNamed", type = BoolTypeNode)
             ),
-            returnType = Bool,
+            returnType = BoolTypeNode,
             body = BoolLiteral(value = false)
         ),
         FunctionDeclaration(
             name = "snaked_function",
             parameters = listOf(
-                Parameter(name = "arg_1", type = Int),
-                Parameter(name = "longer_named", type = Bool)
+                Parameter(name = "arg_1", type = IntTypeNode),
+                Parameter(name = "longer_named", type = BoolTypeNode)
             ),
-            returnType = Bool,
+            returnType = BoolTypeNode,
             body = BoolLiteral(value = true)
         ),
         FunctionDeclaration(
             name = "numbered123Name",
             parameters = listOf(),
-            returnType = Nope,
+            returnType = NopeTypeNode,
             body = NopeLiteral()
         )
     )

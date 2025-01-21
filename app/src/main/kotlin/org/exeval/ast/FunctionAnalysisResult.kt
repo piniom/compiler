@@ -6,15 +6,15 @@ data class FunctionAnalysisResult(
     val variableMap: Map<AnyVariable, FunctionDeclaration>,
     val isUsedInNested: Map<AnyVariable, Boolean>
 ) {
-    fun maxNestedFunctionDepth(): kotlin.Int {
-        val depths = mutableMapOf<FunctionDeclaration, kotlin.Int>()
+    fun maxNestedFunctionDepth(): Int {
+        val depths = mutableMapOf<FunctionDeclaration, Int>()
         for (function in staticParents.keys) {
             calculateFunctionDepth(function, depths)
         }
         return depths.maxOf { it.value }
     }
 
-    private fun calculateFunctionDepth(function: FunctionDeclaration, depths: MutableMap<FunctionDeclaration, kotlin.Int>) {
+    private fun calculateFunctionDepth(function: FunctionDeclaration, depths: MutableMap<FunctionDeclaration, Int>) {
         if (depths[function] != null) {
             return
         }

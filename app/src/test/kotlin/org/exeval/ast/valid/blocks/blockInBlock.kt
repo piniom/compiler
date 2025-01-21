@@ -1,41 +1,41 @@
 package org.exeval.ast.valid.blocks
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "a",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "b",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "c",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "d",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     Block(
                         expressions = listOf(
                             MutableVariableDeclaration(
                                 name = "i",
-                                type = Int,
+                                type = IntTypeNode,
                                 initializer = VariableReference("a")
                             ),
                             Conditional(
@@ -69,7 +69,7 @@ val BLOCKS_BLOCK_IN_BLOCK_AST = Program(
                                 expressions = listOf(
                                     MutableVariableDeclaration(
                                         name = "j",
-                                        type = Int,
+                                        type = IntTypeNode,
                                         initializer = VariableReference("a")
                                     ),
                                     Conditional(

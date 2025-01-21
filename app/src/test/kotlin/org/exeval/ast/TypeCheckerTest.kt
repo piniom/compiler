@@ -17,7 +17,7 @@ class TypeCheckerTest {
         val functionDeclaration = FunctionDeclaration(
             name = "g",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = intLiteral
         )
 
@@ -47,7 +47,7 @@ class TypeCheckerTest {
         //   del pointer
         // }
         // ```
-        val type = Array(Int)
+        val type = Array(IntTypeNode)
         val memoryNew = MemoryNew(type, listOf(PositionalArgument(IntLiteral(5))))
         val declaration = ConstantDeclaration("pointer", type,  memoryNew)
         val reference1 = VariableReference("pointer")
@@ -55,7 +55,7 @@ class TypeCheckerTest {
         val reference2 = VariableReference("pointer")
         val memoryDel = MemoryDel(reference2)
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(declaration, arrayAccess, memoryDel)
             )
@@ -88,9 +88,9 @@ class TypeCheckerTest {
         //   new Int (5);
         // }
         // ```
-        val memoryNew = MemoryNew(Int, listOf(PositionalArgument(IntLiteral(5))))
+        val memoryNew = MemoryNew(IntTypeNode, listOf(PositionalArgument(IntLiteral(5))))
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(memoryNew)
             )
@@ -118,9 +118,9 @@ class TypeCheckerTest {
         //   new [Int] (());
         // }
         // ```
-        val memoryNew = MemoryNew(Array(Int), listOf(PositionalArgument(NopeLiteral())))
+        val memoryNew = MemoryNew(Array(IntTypeNode), listOf(PositionalArgument(NopeLiteral())))
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(memoryNew)
             )
@@ -150,7 +150,7 @@ class TypeCheckerTest {
         // ```
         val arrayAccess = ArrayAccess(IntLiteral(1), IntLiteral(2))
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(arrayAccess)
             )
@@ -180,7 +180,7 @@ class TypeCheckerTest {
         // ```
         val memDel = MemoryDel(IntLiteral(5))
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(memDel)
             )
@@ -208,10 +208,10 @@ class TypeCheckerTest {
         //   (new [Int] (1))[()]
         // }
         // ```
-        val memoryNew = MemoryNew(Array(Int), listOf(PositionalArgument(IntLiteral(1))))
+        val memoryNew = MemoryNew(Array(IntTypeNode), listOf(PositionalArgument(IntLiteral(1))))
         val arrayAccess = ArrayAccess(memoryNew, NopeLiteral())
         val function = FunctionDeclaration(
-            "main", emptyList(), Nope,
+            "main", emptyList(), NopeTypeNode,
             Block(
                 listOf(arrayAccess)
             )
@@ -237,7 +237,7 @@ class TypeCheckerTest {
         val functionDeclaration = ForeignFunctionDeclaration(
             name = "g",
             parameters = emptyList(),
-            returnType = Int
+            returnType = IntTypeNode
         )
 
         // Set up AstInfo and NameResolution
@@ -268,7 +268,7 @@ class TypeCheckerTest {
         val functionDeclaration = FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = conditionalExpr
         )
 
@@ -299,8 +299,8 @@ class TypeCheckerTest {
         // }
         // ```
 
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int)
-        val bDeclaration = MutableVariableDeclaration(name = "b", type = Int)
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode)
+        val bDeclaration = MutableVariableDeclaration(name = "b", type = IntTypeNode)
 
         val aReference = VariableReference("a")
         val bReference = VariableReference("b")
@@ -314,7 +314,7 @@ class TypeCheckerTest {
 
         val maxDeclaration = ConstantDeclaration(
             name = "max",
-            type = Int,
+            type = IntTypeNode,
             initializer = conditionalExpr
         )
 
@@ -322,7 +322,7 @@ class TypeCheckerTest {
         val functionDeclaration = FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = functionBody
         )
 
@@ -360,10 +360,10 @@ class TypeCheckerTest {
         val functionDeclaration = FunctionDeclaration(
             name = "add",
             parameters = listOf(
-                Parameter("x", Int),
-                Parameter("y", Int)
+                Parameter("x", IntTypeNode),
+                Parameter("y", IntTypeNode)
             ),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = IntLiteral(0)
         )
 
@@ -393,10 +393,10 @@ class TypeCheckerTest {
         val functionDeclaration = FunctionDeclaration(
             name = "add",
             parameters = listOf(
-                Parameter("x", Int),
-                Parameter("y", Int)
+                Parameter("x", IntTypeNode),
+                Parameter("y", IntTypeNode)
             ),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = IntLiteral(0)
         )
 
@@ -427,7 +427,7 @@ class TypeCheckerTest {
         // ```
 
         // AST construction
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int, initializer = IntLiteral(0))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode, initializer = IntLiteral(0))
         val block = Block(listOf(aDeclaration))
 
         // Set up AstInfo and NameResolution
@@ -464,7 +464,7 @@ class TypeCheckerTest {
 
         // AST Construction
         val aReference = VariableReference("a")
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int, initializer = IntLiteral(0))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode, initializer = IntLiteral(0))
         val aAssignment = Assignment(variable = aReference, value = IntLiteral(42))
         val block = Block(listOf(aDeclaration, aAssignment))
 
@@ -510,8 +510,8 @@ class TypeCheckerTest {
 
         val aReference = VariableReference("a")
         val bReference = VariableReference("b")
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int)
-        val bDeclaration = ConstantDeclaration(name = "b", type = Bool, initializer = BoolLiteral(true))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode)
+        val bDeclaration = ConstantDeclaration(name = "b", type = BoolTypeNode, initializer = BoolLiteral(true))
         val assignment = Assignment(variable = aReference, value = bReference)
         val block = Block(listOf(aDeclaration, bDeclaration, assignment))
 
@@ -554,7 +554,7 @@ class TypeCheckerTest {
 
         // AST construction
         val aReference = VariableReference("a")
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int, initializer = IntLiteral(0))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode, initializer = IntLiteral(0))
         val increment = BinaryOperation(aReference, BinaryOperator.PLUS, IntLiteral(1))
         val assignmentInsideLoop = Assignment(variable = aReference, value = increment)
         val breakStatement = Break(null, aReference)
@@ -711,7 +711,7 @@ class TypeCheckerTest {
 
         // AST Construction
         val aReference = VariableReference("a")
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int, initializer = IntLiteral(0))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode, initializer = IntLiteral(0))
         val aAssignment = Assignment(variable = aReference, value = IntLiteral(1))
         val ifStatement = Conditional(
             condition = BoolLiteral(true),
@@ -750,7 +750,7 @@ class TypeCheckerTest {
 
         // AST Construction
         val aReference = VariableReference("a")
-        val aDeclaration = MutableVariableDeclaration(name = "a", type = Int, initializer = IntLiteral(0))
+        val aDeclaration = MutableVariableDeclaration(name = "a", type = IntTypeNode, initializer = IntLiteral(0))
         val ifStatement = Conditional(
             condition = BoolLiteral(true),
             thenBranch = Block(listOf(IntLiteral(1))),
@@ -933,7 +933,7 @@ class TypeCheckerTest {
         //     let y: Int = 5 + 7;
         // }
         val intLiteral42 = IntLiteral(42)
-        val letX = ConstantDeclaration(name = "x", type = Int, initializer = intLiteral42)
+        val letX = ConstantDeclaration(name = "x", type = IntTypeNode, initializer = intLiteral42)
         val ifStatement = Conditional(
             condition = BoolLiteral(true),
             thenBranch = Block(listOf(letX)),
@@ -941,7 +941,7 @@ class TypeCheckerTest {
         )
 
         val addExpr = BinaryOperation(IntLiteral(5), BinaryOperator.PLUS, IntLiteral(7))
-        val letY = ConstantDeclaration(name = "y", type = Int, initializer = addExpr)
+        val letY = ConstantDeclaration(name = "y", type = IntTypeNode, initializer = addExpr)
         val loop = Loop(null, Block(listOf(ifStatement, letY)))
 
         // Set up AstInfo
@@ -980,8 +980,8 @@ class TypeCheckerTest {
         // ```
 
         // Define StructTypeDeclaration
-        val xField = ConstantDeclaration("x", Int, IntLiteral(0))
-        val yField = ConstantDeclaration("y", Bool, BoolLiteral(true))
+        val xField = ConstantDeclaration("x", IntTypeNode, IntLiteral(0))
+        val yField = ConstantDeclaration("y", BoolTypeNode, BoolLiteral(true))
         val structDeclaration = StructTypeDeclaration(
             name = "S",
             fields = listOf(xField, yField),
@@ -1045,8 +1045,8 @@ class TypeCheckerTest {
         // ```
 
         // Define StructTypeDeclaration
-        val xField = ConstantDeclaration("x", Int, IntLiteral(0))
-        val yField = ConstantDeclaration("y", Bool, BoolLiteral(true))
+        val xField = ConstantDeclaration("x", IntTypeNode, IntLiteral(0))
+        val yField = ConstantDeclaration("y", BoolTypeNode, BoolLiteral(true))
         val constructorBody = Block(
             listOf(
                 Assignment(HereReference("x"), VariableReference("width")),
@@ -1058,8 +1058,8 @@ class TypeCheckerTest {
             fields = listOf(xField, yField),
             constructorMethod = ConstructorDeclaration(
                 parameters = listOf(
-                    Parameter("width", Int),
-                    Parameter("height", Bool)
+                    Parameter("width", IntTypeNode),
+                    Parameter("height", BoolTypeNode)
                 ),
                 body = constructorBody
             )
@@ -1070,7 +1070,7 @@ class TypeCheckerTest {
         every { mockNameResolution.variableToDecl[any<VariableReference>()] } answers {
             val variableReference = this.firstArg<VariableReference>()
             if (variableReference.name == "x") {
-                MutableVariableDeclaration("x", Int, IntLiteral(0))
+                MutableVariableDeclaration("x", IntTypeNode, IntLiteral(0))
             } else {
                 null // Return null if no matching declaration is found
             }
@@ -1107,8 +1107,8 @@ class TypeCheckerTest {
         // Define the Fibonacci function
         val fibFunction = FunctionDeclaration(
             name = "fib",
-            parameters = listOf(Parameter("n", Int)),
-            returnType = Int,
+            parameters = listOf(Parameter("n", IntTypeNode)),
+            returnType = IntTypeNode,
             body = Conditional(
                 condition = BinaryOperation(VariableReference("n"), BinaryOperator.LTE, IntLiteral(1)),
                 thenBranch = VariableReference("n"),
@@ -1126,7 +1126,7 @@ class TypeCheckerTest {
         every { mockNameResolution.variableToDecl } returns variableMap
         every { mockNameResolution.variableToDecl[any<VariableReference>()] } answers {
             val variableReference = this.firstArg<VariableReference>()
-            if (variableReference.name == "n") Parameter("n", Int) else null
+            if (variableReference.name == "n") Parameter("n", IntTypeNode) else null
         }
         val functionMap = mutableMapOf<FunctionCall, FunctionDeclaration>()
         every { mockNameResolution.functionToDecl } returns functionMap

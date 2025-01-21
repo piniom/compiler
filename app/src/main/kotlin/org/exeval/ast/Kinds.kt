@@ -12,9 +12,9 @@ class Block(val expressions: List<Expr>) : Expr()
 
 sealed interface TypeNode : ASTNode
 
-data object Int : TypeNode
-data object Nope : TypeNode
-data object Bool : TypeNode
+data object IntTypeNode : TypeNode
+data object NopeTypeNode : TypeNode
+data object BoolTypeNode : TypeNode
 data class Array(val elementType: TypeNode): TypeNode
 
 sealed interface AnyVariable : ASTNode

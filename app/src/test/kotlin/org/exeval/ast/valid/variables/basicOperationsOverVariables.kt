@@ -1,24 +1,24 @@
 package org.exeval.ast.valid.variables
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "kUniversalConstant",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 42)
                     ),
                     MutableVariableDeclaration(
                         name = "a",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 5)
                     ),
                     Assignment(
@@ -79,7 +79,7 @@ val VARIABLES_BASIC_OPERATIONS_OVER_VARIABLES_AST = Program(
                     ),
                     MutableVariableDeclaration(
                         name = "flag",
-                        type = Bool,
+                        type = BoolTypeNode,
                         initializer = BinaryOperation(
                             left = VariableReference(name = "a"),
                             operator = BinaryOperator.GT,

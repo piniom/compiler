@@ -1,25 +1,25 @@
 package org.exeval.ast.valid.foonctions
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "g",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "a",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = IntLiteral(10)
                     ),
                     FunctionDeclaration(
                         name = "f1",
                         parameters = emptyList(),
-                        returnType = Int,
+                        returnType = IntTypeNode,
                         body = BinaryOperation(
                             left = VariableReference("a"),
                             operator = BinaryOperator.PLUS,
@@ -29,7 +29,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                     FunctionDeclaration(
                         name = "f2",
                         parameters = emptyList(),
-                        returnType = Int,
+                        returnType = IntTypeNode,
                         body = BinaryOperation(
                             left = VariableReference("a"),
                             operator = BinaryOperator.PLUS,
@@ -39,9 +39,9 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                     FunctionDeclaration(
                         name = "f3",
                         parameters = listOf(
-                            Parameter(name = "a", type = Int)
+                            Parameter(name = "a", type = IntTypeNode)
                         ),
-                        returnType = Int,
+                        returnType = IntTypeNode,
                         body = BinaryOperation(
                             left = VariableReference("a"),
                             operator = BinaryOperator.PLUS,
@@ -51,12 +51,12 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
                     FunctionDeclaration(
                         name = "f4",
                         parameters = emptyList(),
-                        returnType = Int,
+                        returnType = IntTypeNode,
                         body = Block(
                             expressions = listOf(
                                 ConstantDeclaration(
                                     name = "a",
-                                    type = Int,
+                                    type = IntTypeNode,
                                     initializer = IntLiteral(1)
                                 ),
                                 BinaryOperation(
@@ -100,7 +100,7 @@ val FOONCTIONS_MULTIPLE_NESTED_FUNCTIONS_AST = Program(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     FunctionCall(

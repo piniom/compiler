@@ -1,17 +1,17 @@
 package org.exeval.ast.valid.foonctions
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val FOONCTIONS_FUNCTION_WITH_ARGUMENTS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "f",
             parameters = listOf(
-                Parameter(name = "a", type = Int),
-                Parameter(name = "b", type = Int)
+                Parameter(name = "a", type = IntTypeNode),
+                Parameter(name = "b", type = IntTypeNode)
             ),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     BinaryOperation(
@@ -25,10 +25,10 @@ val FOONCTIONS_FUNCTION_WITH_ARGUMENTS_AST = Program(
         FunctionDeclaration(
             name = "g",
             parameters = listOf(
-                Parameter(name = "a", type = Int),
-                Parameter(name = "b", type = Int)
+                Parameter(name = "a", type = IntTypeNode),
+                Parameter(name = "b", type = IntTypeNode)
             ),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     BinaryOperation(
@@ -42,7 +42,7 @@ val FOONCTIONS_FUNCTION_WITH_ARGUMENTS_AST = Program(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     BinaryOperation(

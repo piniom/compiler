@@ -1,7 +1,7 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val PASS_ARRAY_TO_FUNCTION_AST = Program(
     functions = listOf(
@@ -11,11 +11,11 @@ val PASS_ARRAY_TO_FUNCTION_AST = Program(
                 Parameter(
                     name = "arr",
                     type = Array(
-                        elementType = Int
+                        elementType = IntTypeNode
                     )
                 ),
             ),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ArrayAccess(
@@ -28,17 +28,17 @@ val PASS_ARRAY_TO_FUNCTION_AST = Program(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
                         type = Array(
-                            elementType = Int
+                            elementType = IntTypeNode
                         ),
                         initializer = MemoryNew(
                             type = Array(
-                                elementType = Int
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(1))

@@ -1,19 +1,19 @@
 package org.exeval.ast.valid.conditionals
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val CONDITIONALS_CONDITIONALS_INSIDE_LOOP_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "x",
-                        type = Int,
+                        type = IntTypeNode,
                         initializer = IntLiteral(0)
                     ),
                     Loop(

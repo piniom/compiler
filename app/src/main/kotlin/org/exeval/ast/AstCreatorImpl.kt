@@ -537,9 +537,9 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         }
 
         return when (getNodeText(node, input)) {
-            "Int" -> Int
-            "Bool" -> Bool
-            "Nope" -> Nope
+            "Int" -> IntTypeNode
+            "Bool" -> BoolTypeNode
+            "Nope" -> NopeTypeNode
             else -> getArrayType(node, input)
         }
     }

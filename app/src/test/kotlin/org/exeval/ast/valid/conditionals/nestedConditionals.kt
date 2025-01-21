@@ -1,14 +1,14 @@
 package org.exeval.ast.valid.conditionals
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val CONDITIONALS_NESTED_CONDITIONALS_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     Conditional(

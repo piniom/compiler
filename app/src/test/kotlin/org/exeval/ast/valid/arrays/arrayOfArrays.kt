@@ -1,27 +1,27 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val ARRAY_OF_ARRAY_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
                         type = Array(
                             elementType = Array(
-                                elementType = Int
+                                elementType = IntTypeNode
                             )
                         ),
                         initializer = MemoryNew(
                             type = Array(
                                 elementType = Array(
-                                    elementType = Int
+                                    elementType = IntTypeNode
                                 )
                             ),
                             constructorArguments = listOf(
@@ -36,7 +36,7 @@ val ARRAY_OF_ARRAY_AST = Program(
                         ), 
                         MemoryNew(
                             type = Array(
-                                elementType = Int
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2))
@@ -50,7 +50,7 @@ val ARRAY_OF_ARRAY_AST = Program(
                         ), 
                         MemoryNew(
                             type = Array(
-                                elementType = Int
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(3))

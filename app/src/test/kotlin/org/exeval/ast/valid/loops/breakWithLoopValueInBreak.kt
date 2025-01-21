@@ -1,14 +1,14 @@
 package org.exeval.ast.valid.loops
 
 import org.exeval.ast.*
-import org.exeval.ast.Int
+import org.exeval.ast.IntTypeNode
 
 val LOOPS_BREAK_WITH_LOOP_VALUE_IN_BREAK_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = Int,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     Loop(

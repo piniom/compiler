@@ -58,7 +58,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         return typeMap[astNode]
     }
 
-    private fun calculateFieldOffset(index: kotlin.Int): Long {
+    private fun calculateFieldOffset(index: Int): Long {
         return 8L * index
     }
 
@@ -68,9 +68,9 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
     private fun convertTypeNodeToType(typeNode: org.exeval.ast.TypeNode): Type {
         return when (typeNode) {
-            is Int -> IntType
-            is Bool -> BoolType
-            is Nope -> NopeType
+            is IntTypeNode -> IntType
+            is BoolTypeNode -> BoolType
+            is NopeTypeNode -> NopeType
             is Array -> ArrayType(convertTypeNodeToType(typeNode.elementType))
             is TypeUse -> getTypeUseType(typeNode)
         }
@@ -396,7 +396,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable declaration type", variableReference)
-                Nope
+                NopeTypeNode
             }
         }
 
@@ -419,7 +419,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)
-                Nope
+                NopeTypeNode
             }
         }
 
