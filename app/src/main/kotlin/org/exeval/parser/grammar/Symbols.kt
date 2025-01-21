@@ -1,7 +1,9 @@
 package org.exeval.parser.grammar
 
+import kotlinx.serialization.Serializable
 import org.exeval.utilities.TokenCategories as Token
 
+@Serializable
 object ValueSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.LiteralInteger,
@@ -10,12 +12,14 @@ object ValueSymbol: TerminalGroup {
 	)
 }
 
+@Serializable
 object VariableReferenceSymbol : TerminalGroup {
 	override fun values() = listOf(
 		Token.IdentifierNontype,
 	)
 }
 
+@Serializable
 object TypeSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -29,6 +33,7 @@ object TypeSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object VariableDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -50,6 +55,7 @@ object VariableDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ConstantDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -63,6 +69,7 @@ object ConstantDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object VariableAssignmentSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -78,6 +85,7 @@ object VariableAssignmentSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -127,6 +135,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object SimpleFunctionDefinitionSymbol : GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -136,6 +145,7 @@ object SimpleFunctionDefinitionSymbol : GrammarSymbol {
 	)
 }
 
+@Serializable
 object BlockFunctionDefinitionSymbol : GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -144,6 +154,8 @@ object BlockFunctionDefinitionSymbol : GrammarSymbol {
 		),
 	)
 }
+
+@Serializable
 object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -159,6 +171,7 @@ object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionParamsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(FunctionParamSymbol),
@@ -170,6 +183,7 @@ object FunctionParamsSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionParamSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -180,6 +194,7 @@ object FunctionParamSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionCallSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -200,6 +215,7 @@ object FunctionCallSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionCallArgumentsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		// Calling with named arguments is indistinguishable
@@ -214,6 +230,7 @@ object FunctionCallArgumentsSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object AllocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -226,6 +243,7 @@ object AllocationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object DeallocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -235,6 +253,7 @@ object DeallocationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ArrayIndexSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -251,6 +270,7 @@ object ArrayIndexSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ArrayAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -270,6 +290,7 @@ object ArrayAccessSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object IfSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -289,6 +310,7 @@ object IfSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object LoopSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -304,6 +326,7 @@ object LoopSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object BreakSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -327,6 +350,7 @@ object BreakSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object Operator2ArgSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.OperatorPlus,
@@ -344,6 +368,7 @@ object Operator2ArgSymbol: TerminalGroup {
 	)
 }
 
+@Serializable
 object Operator1ArgSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.OperatorMinus,
@@ -351,6 +376,7 @@ object Operator1ArgSymbol: TerminalGroup {
 	)
 }
 
+@Serializable
 object ArithmeticExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -392,6 +418,7 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object SimpleExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(ValueSymbol),
@@ -411,6 +438,7 @@ object SimpleExpressionSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ExpressionBlockSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -420,6 +448,7 @@ object ExpressionBlockSymbol: GrammarSymbol {
 		),
 	)
 
+	@Serializable
 	object ExpressionChainSymbol: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(SimpleExpressionSymbol),
@@ -450,6 +479,7 @@ object ExpressionBlockSymbol: GrammarSymbol {
 	}
 }
 
+@Serializable
 object ExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(SimpleExpressionSymbol),
@@ -457,8 +487,10 @@ object ExpressionSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object EndOfProgramSymbol: Terminal
 
+@Serializable
 object ProgramSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -467,6 +499,7 @@ object ProgramSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionsDeclarationsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(

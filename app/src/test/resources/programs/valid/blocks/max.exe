@@ -8,5 +8,6 @@ foo main() -> Int = {
         } else {
             b
         }
-    }
+    };
+    0
 }

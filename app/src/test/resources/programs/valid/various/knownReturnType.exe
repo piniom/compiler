@@ -6,6 +6,6 @@ foo main() -> Int = {
         fun()
     }
     else {
-        ()
+        x
     }
 }

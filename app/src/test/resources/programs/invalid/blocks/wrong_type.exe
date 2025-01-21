@@ -3,6 +3,7 @@ foo main() -> Int = {
     let mut b: Int;
     /**/
     let m: Int = {
-        a>b;
+        a>b
     };
+    0
 }
