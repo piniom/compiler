@@ -591,69 +591,69 @@ object StructAccessSymbol: GrammarSymbol {
 			StructAccessByIdentyfierNonTypeSymbol
 		),
 	)
+}
 
-	@Serializable
-	object StructAccessByArraySymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-			listOf(
-				ArrayAccessSymbol,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-		)
-	}
+@Serializable
+object StructAccessByArraySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+	)
+}
 
-	@Serializable
-	object StructAccessByIdentyfierNonTypeSymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-			listOf(
-				Token.IdentifierNontype,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-		)
-	}
+@Serializable
+object StructAccessByIdentyfierNonTypeSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+	)
+}
 
-	@Serializable
-	object StructAccessByFunctionCallSymbol: GrammarSymbol {
-		override fun productions() = listOf(
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				StructAccessSymbol,
-			),
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				Token.IdentifierNontype,
-			),
-			listOf(
-				FunctionCallSymbol,
-				Token.PunctuationDot,
-				ArrayAccessSymbol,
-			),
-		)
-	}
+@Serializable
+object StructAccessByFunctionCallSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+	)
 }
 
 @Serializable

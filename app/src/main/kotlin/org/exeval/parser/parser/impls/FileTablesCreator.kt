@@ -54,6 +54,9 @@ private val module = SerializersModule {
         subclass(StructAccessSymbol::class)
         subclass(HereAccess::class)
         subclass(ConstructorDeclarationSymbol::class)
+        subclass(StructAccessByArraySymbol::class)
+        subclass(StructAccessByIdentyfierNonTypeSymbol::class)
+        subclass(StructAccessByFunctionCallSymbol::class)
         subclass(ConstructorDeclarationParamsSymbol::class)
     }
     polymorphic(GrammarSymbol::class) {
@@ -90,9 +93,10 @@ private val module = SerializersModule {
         subclass(StructAccessSymbol::class)
         subclass(HereAccess::class)
         subclass(ConstructorDeclarationSymbol::class)
+        subclass(StructAccessByArraySymbol::class)
+        subclass(StructAccessByIdentyfierNonTypeSymbol::class)
+        subclass(StructAccessByFunctionCallSymbol::class)
         subclass(ConstructorDeclarationParamsSymbol::class)
-
-
         subclass(TokenCategories::class)
         subclass(EndOfProgramSymbol::class)
 
