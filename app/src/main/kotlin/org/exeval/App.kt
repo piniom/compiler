@@ -68,12 +68,6 @@ fun main(args: Array<String>) {
         logger.warn { "[NameResolution diagnostic] ${diagnostic.message}" }
     }
 
-    val constChecker = ConstChecker()
-    val constErrors = constChecker.check(nameResolutionOutput.result, astInfo)
-    for (diagnostic in constErrors) {
-        logger.warn { "[ConstChecker diagnostic] ${diagnostic.message}" }
-    }
-
     val typeCheckerOutput = TypeChecker(astInfo, nameResolutionOutput.result).parse()
     for (diagnostic in typeCheckerOutput.diagnostics) {
         logger.warn { "[TypeChecker diagnostic] ${diagnostic.message}" }

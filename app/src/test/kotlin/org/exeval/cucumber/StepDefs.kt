@@ -89,19 +89,8 @@ class StepDefs {
         nameResolutionOutput = NameResolutionGenerator(astInfo).parse()
     }
 
-    @When("source code is passed through const checker")
-    fun prepareAndRunConstChecker() {
-        prepareAndRunNameResolution()
-        if (!::nameResolutionOutput.isInitialized || nameResolutionOutput.diagnostics.isNotEmpty()) {
-            return
-        }
-
-        constCheckerOutput = ConstChecker().check(nameResolutionOutput.result, astInfo)
-    }
-
     @When("source code is passed through type checker")
     fun prepareAndRunTypeChecker() {
-        prepareAndRunConstChecker()
         if (!::constCheckerOutput.isInitialized || nameResolutionOutput.diagnostics.isNotEmpty() || constCheckerOutput.isNotEmpty()) {
             return
         }
