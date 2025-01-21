@@ -22,3 +22,7 @@ interface FunctionFrameManager: CallManager {
     fun generate_epilouge(result: Tree?): CFGNode
     fun alloc_frame_memory(): AssignableTree
 }
+
+interface ConstructorFrameManager: FunctionFrameManager {
+    fun generate_here_access(functionFrameOffset: Tree): AssignableTree
+}

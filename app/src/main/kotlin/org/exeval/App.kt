@@ -83,7 +83,7 @@ fun main(args: Array<String>) {
         frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
     for (structure in astInfo.root.structures) {
-        frameManagers[structure.constructorMethod] = FunctionFrameManagerImpl(structure, functionAnalisisResult, frameManagers)
+        frameManagers[structure.constructorMethod] = ConstructorFrameManagerImpl(structure, functionAnalisisResult, frameManagers)
     }
 
     val foreignFs = astInfo.root.functions.filterIsInstance<ForeignFunctionDeclaration>()

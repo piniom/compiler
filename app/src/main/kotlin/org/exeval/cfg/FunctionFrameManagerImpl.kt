@@ -3,22 +3,24 @@ package org.exeval.cfg
 import org.exeval.ast.*
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.interfaces.UsableMemoryCell
+import org.exeval.ffm.interfaces.ConstructorFrameManager
 import org.exeval.ffm.interfaces.FunctionFrameManager
 import org.exeval.utilities.TokenCategories
 
 private const val BYTES_IN_WORD = 8
 
-class FunctionFrameManagerImpl(
+
+abstract class CallableFrameManagerImpl(
     private val name: String,
-    private val declaration: AnyCallableDeclaration,
-    private val analyser: FunctionAnalysisResult,
+    protected val declaration: AnyCallableDeclaration,
+    protected val parameters: List<Parameter>,
+    protected val analyser: FunctionAnalysisResult,
     private val otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
 ) : FunctionFrameManager {
-    private val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
-    private var stackOffset = LockableBox<Long>(0)
+    protected val variableMap = mutableMapOf<AnyVariable, UsableMemoryCell>()
+    protected val stackOffset = LockableBox<Long>(0)
     private var displayBackupVirtualRegister: VirtualRegister = VirtualRegister()
 
-    private val parameters: List<Parameter>
 
     val label: Label
     private val calleSaveRegisters = listOf(
@@ -31,32 +33,10 @@ class FunctionFrameManagerImpl(
         PhysicalRegister.R15,
     )
 
-    constructor(
-        declaration: AnyFunctionDeclaration,
-        functionAnalysisResult: FunctionAnalysisResult,
-        otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
-    ) : this(declaration.name, declaration, functionAnalysisResult, otherManagers)
+    abstract fun initialiseVariableMap()
 
-    constructor(
-        structure: StructTypeDeclaration,
-        functionAnalysisResult: FunctionAnalysisResult,
-        otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
-    ) : this(structure.name + "_constructor", structure.constructorMethod, functionAnalysisResult, otherManagers)
 
     init {
-        parameters = when (declaration) {
-            is AnyFunctionDeclaration -> {
-                declaration.parameters
-            }
-
-            is ConstructorDeclaration -> {
-                declaration.parameters
-            }
-
-            else -> {
-                throw Error("Unexpected declaration")
-            }
-        }
         initialiseVariableMap()
         //TODO: Think about it :))
         label = if (name == TokenCategories.IdentifierEntrypoint.regex) {
@@ -218,23 +198,6 @@ class FunctionFrameManagerImpl(
         return calleSaveRegisters.map { popFromStack(RegisterTree(it)) }.flatten()
     }
 
-    private fun initialiseVariableMap() {
-        analyser.variableMap.forEach { (variable, functionDeclaration) ->
-            if (functionDeclaration == declaration) {
-                val isNested = analyser.isUsedInNested[variable] ?: false
-                val memoryCell: UsableMemoryCell
-
-                if (isNested) {
-                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * BYTES_IN_WORD)
-                    stackOffset.value += 1
-                } else {
-                    memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
-                }
-
-                variableMap[variable] = memoryCell
-            }
-        }
-    }
 
     private fun updateDisplay(): List<Tree> {
         val trees = mutableListOf<Tree>()
@@ -297,6 +260,69 @@ class FunctionFrameManagerImpl(
 
         return result
     }
+}
+
+class FunctionFrameManagerImpl(
+    declaration: FunctionDeclaration,
+    analyser: FunctionAnalysisResult,
+    otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
+) : CallableFrameManagerImpl(declaration.name, declaration, declaration.parameters, analyser, otherManagers) {
+    override fun initialiseVariableMap() {
+        super.analyser.variableMap.forEach { (variable, functionDeclaration) ->
+            if (functionDeclaration == declaration) {
+                val isNested = analyser.isUsedInNested[variable] ?: false
+                val memoryCell: UsableMemoryCell
+
+                if (isNested) {
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * BYTES_IN_WORD)
+                    super.stackOffset.value += 1
+                } else {
+                    memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
+                }
+
+                super.variableMap[variable] = memoryCell
+            }
+        }
+    }
+}
+
+class ConstructorFrameManagerImpl(
+    struct: StructTypeDeclaration,
+    analyser: FunctionAnalysisResult,
+    otherManagers: Map<AnyCallableDeclaration, FunctionFrameManager>
+) : CallableFrameManagerImpl(
+    struct.name + "__constructor__",
+    struct.constructorMethod,
+    listOf(Parameter("hereReference__", IntType)) + struct.constructorMethod.parameters,
+    analyser,
+    otherManagers
+),
+    ConstructorFrameManager {
+    override fun generate_here_access(functionFrameOffset: Tree): AssignableTree {
+        return VarAccessGenerator(functionFrameOffset).generateVarAccess(variableMap[super.parameters[0]]!!)
+    }
+
+    override fun initialiseVariableMap() {
+        if (declaration is ConstructorDeclaration) {
+            variableMap[super.parameters[0]] = UsableMemoryCell.VirtReg(VirtualRegister())
+        }
+        super.analyser.variableMap.forEach { (variable, functionDeclaration) ->
+            if (functionDeclaration == declaration) {
+                val isNested = analyser.isUsedInNested[variable] ?: false
+                val memoryCell: UsableMemoryCell
+
+                if (isNested) {
+                    memoryCell = UsableMemoryCell.MemoryPlace(stackOffset.value * BYTES_IN_WORD)
+                    super.stackOffset.value += 1
+                } else {
+                    memoryCell = UsableMemoryCell.VirtReg(VirtualRegister())
+                }
+
+                super.variableMap[variable] = memoryCell
+            }
+        }
+    }
+
 }
 
 class LockableBox<T>(value: T) {
