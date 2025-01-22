@@ -30,11 +30,11 @@ class AstCreatorImplTest {
 
         val programBranch = Br(
             Production<GrammarSymbol>(
-                ProgramSymbol, listOf(FunctionsDeclarationsSymbol)
+                ProgramSymbol, listOf(TopLevelStatementsDeclarationsSymbol)
             ), listOf(
                 Br(
                     Production<GrammarSymbol>(
-                        FunctionsDeclarationsSymbol, listOf(FunctionDeclarationSymbol)
+                        TopLevelStatementsDeclarationsSymbol, listOf(FunctionDeclarationSymbol)
                     ), listOf(
                         Br(
                             Production<GrammarSymbol>(

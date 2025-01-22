@@ -35,7 +35,8 @@ class FunctionAnalyserTest {
                         arguments = listOf(PositionalArgument(VariableReference("y")))
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap()) // Mock location map as it's not important here
@@ -106,7 +107,8 @@ class FunctionAnalyserTest {
                         right = IntLiteral(2)
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val body = (program.functions[0] as FunctionDeclaration).body as Block
@@ -139,7 +141,10 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with empty program`() {
         // Test case with no functions
-        val program = Program(functions = emptyList())
+        val program = Program(
+            functions = emptyList(),
+             structures = listOf(),
+        )
         val astInfo = AstInfo(program, locations = emptyMap())
 
         val analyser = FunctionAnalyser()
@@ -170,7 +175,8 @@ class FunctionAnalyserTest {
         val program = Program(
             functions = listOf(
                 fooDeclaration
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -214,7 +220,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -257,7 +264,8 @@ class FunctionAnalyserTest {
                     returnType = intType,
                     body = IntLiteral(42)
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -301,7 +309,8 @@ class FunctionAnalyserTest {
                     returnType = intType,
                     body = IntLiteral(42)
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -354,7 +363,8 @@ class FunctionAnalyserTest {
                     returnType = intType,
                     body = IntLiteral(-1)
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -388,7 +398,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -441,7 +452,8 @@ class FunctionAnalyserTest {
                     returnType = intType,
                     body = IntLiteral(24)
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -483,7 +495,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -529,7 +542,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -580,7 +594,8 @@ class FunctionAnalyserTest {
                         )))
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -635,7 +650,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
@@ -690,7 +706,8 @@ class FunctionAnalyserTest {
                         )
                     )
                 )
-            )
+            ),
+            structures = listOf(),
         )
 
         val astInfo = AstInfo(program, locations = emptyMap())
