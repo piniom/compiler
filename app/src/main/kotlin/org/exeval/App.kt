@@ -199,7 +199,7 @@ private fun registersDomain(linearizedFunction: List<BasicBlock>) =
         }
     }.flatten().flatten().flatten().distinct().toSet()
 
-private fun functionNodes(
+fun functionNodes(
     functions: List<FunctionDeclaration>,
     functionAnalisisResult: FunctionAnalysisResult,
     nameResolutionOutput: OperationResult<NameResolution>,
