@@ -17,7 +17,6 @@ class BigTablesCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) : Tab
 
     init {
         val startingState = getStartingState()
-
         val statesGotoPair = getAllStatesAndOldGoto(startingState)
         val allStates: Set<RealState<S>> = statesGotoPair.first
         val oldGoto: Map<Pair<S, RealState<S>>, RealState<S>> = statesGotoPair.second
@@ -113,7 +112,6 @@ class BigTablesCreator<S>(private val analyzedGrammar: AnalyzedGrammar<S>) : Tab
 
         while (!queue.isEmpty()) {
             val cci = queue.remove()
-
             for (item in cci.items) {
                 val placeholderSymbol = item.production.right.getOrNull(item.placeholder) ?: continue
                 val newCC = getGoto(cci, placeholderSymbol)
