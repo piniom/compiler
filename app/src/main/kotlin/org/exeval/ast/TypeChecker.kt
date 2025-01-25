@@ -289,24 +289,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     }
 
     private fun getAssignmentType(assignment: Assignment) {
-        val variable = nameResolutionResult.assignmentToDecl[assignment]
-        val variableType = when (variable) {
-            is ConstantDeclaration -> {
-                innerParse(variable)
-                variable.type
-            }
-
-            is MutableVariableDeclaration -> {
-                innerParse(variable)
-                variable.type
-            }
-
-            is Parameter -> variable.type
-            else -> {
-                addDiagnostic("Unknown variable assignment type", assignment)
-                NopeType
-            }
-        }
+        val variable = assignment.variable
+        val variableType = innerParse(variable)
 
         val valueType = innerParse(assignment.value)
 
