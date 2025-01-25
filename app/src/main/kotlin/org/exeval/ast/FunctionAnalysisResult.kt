@@ -1,20 +1,20 @@
 package org.exeval.ast
 
 data class FunctionAnalysisResult(
-    val callGraph: CallGraph,
-    val staticParents: Map<FunctionDeclaration, FunctionDeclaration?>,
-    val variableMap: Map<AnyVariable, FunctionDeclaration>,
+    val callGraph: MutableMap<AnyCallableDeclaration, MutableSet<AnyCallableDeclaration>>,
+    val staticParents: Map<AnyCallableDeclaration, AnyCallableDeclaration?>,
+    val variableMap: Map<AnyVariable, AnyCallableDeclaration>,
     val isUsedInNested: Map<AnyVariable, Boolean>
 ) {
     fun maxNestedFunctionDepth(): Int {
-        val depths = mutableMapOf<FunctionDeclaration, Int>()
+        val depths = mutableMapOf<AnyCallableDeclaration, Int>()
         for (function in staticParents.keys) {
             calculateFunctionDepth(function, depths)
         }
         return depths.maxOf { it.value }
     }
 
-    private fun calculateFunctionDepth(function: FunctionDeclaration, depths: MutableMap<FunctionDeclaration, Int>) {
+    private fun calculateFunctionDepth(function: AnyCallableDeclaration, depths: MutableMap<AnyCallableDeclaration, Int>) {
         if (depths[function] != null) {
             return
         }

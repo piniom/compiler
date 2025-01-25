@@ -163,15 +163,15 @@ class FunctionAnalyserTest {
         // A program with a function that doesn't call anything
         val intType: Type = mockType()
         val fooDeclaration = FunctionDeclaration(
-                name = "foo",
-                parameters = listOf(Parameter("x", intType)),
-                returnType = intType,
-                body = BinaryOperation(
-                    left = VariableReference("x"),
-                    operator = BinaryOperator.PLUS,
-                    right = IntLiteral(1)
-                )
+            name = "foo",
+            parameters = listOf(Parameter("x", intType)),
+            returnType = intType,
+            body = BinaryOperation(
+                left = VariableReference("x"),
+                operator = BinaryOperator.PLUS,
+                right = IntLiteral(1)
             )
+        )
         val program = Program(
             functions = listOf(
                 fooDeclaration
@@ -210,13 +210,15 @@ class FunctionAnalyserTest {
                         thenBranch = IntLiteral(1),
                         elseBranch = FunctionCall(
                             functionName = "factorial",
-                            arguments = listOf(PositionalArgument(
-                                BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(1)
+                            arguments = listOf(
+                                PositionalArgument(
+                                    BinaryOperation(
+                                        left = VariableReference("n"),
+                                        operator = BinaryOperator.MINUS,
+                                        right = IntLiteral(1)
+                                    )
                                 )
-                            ))
+                            )
                         )
                     )
                 )
@@ -533,11 +535,15 @@ class FunctionAnalyserTest {
                             operator = BinaryOperator.MULTIPLY,
                             right = FunctionCall(
                                 functionName = "factorial",
-                                arguments = listOf(PositionalArgument(BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(1)
-                                )))
+                                arguments = listOf(
+                                    PositionalArgument(
+                                        BinaryOperation(
+                                            left = VariableReference("n"),
+                                            operator = BinaryOperator.MINUS,
+                                            right = IntLiteral(1)
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
@@ -587,11 +593,15 @@ class FunctionAnalyserTest {
                     returnType = intType,
                     body = FunctionCall(
                         functionName = "foo",
-                        arguments = listOf(PositionalArgument(BinaryOperation(
-                            left = VariableReference("n"),
-                            operator = BinaryOperator.MINUS,
-                            right = IntLiteral(1)
-                        )))
+                        arguments = listOf(
+                            PositionalArgument(
+                                BinaryOperation(
+                                    left = VariableReference("n"),
+                                    operator = BinaryOperator.MINUS,
+                                    right = IntLiteral(1)
+                                )
+                            )
+                        )
                     )
                 )
             ),
@@ -632,20 +642,28 @@ class FunctionAnalyserTest {
                         elseBranch = BinaryOperation(
                             left = FunctionCall(
                                 functionName = "fibonacci",
-                                arguments = listOf(PositionalArgument(BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(1)
-                                )))
+                                arguments = listOf(
+                                    PositionalArgument(
+                                        BinaryOperation(
+                                            left = VariableReference("n"),
+                                            operator = BinaryOperator.MINUS,
+                                            right = IntLiteral(1)
+                                        )
+                                    )
+                                )
                             ),
                             operator = BinaryOperator.PLUS,
                             right = FunctionCall(
                                 functionName = "fibonacci",
-                                arguments = listOf(PositionalArgument(BinaryOperation(
-                                    left = VariableReference("n"),
-                                    operator = BinaryOperator.MINUS,
-                                    right = IntLiteral(2)
-                                )))
+                                arguments = listOf(
+                                    PositionalArgument(
+                                        BinaryOperation(
+                                            left = VariableReference("n"),
+                                            operator = BinaryOperator.MINUS,
+                                            right = IntLiteral(2)
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
@@ -721,6 +739,81 @@ class FunctionAnalyserTest {
         assertTrue(callGraph.containsKey(program.functions[0])) // "outerFunction"
         assertTrue(callGraph[program.functions[0]]!!.contains(middleFunction)) // "outerFunction" calls "middleFunction"
         assertTrue(callGraph[middleFunction]!!.contains(innerFunc)) // "middleFunction" calls "innerFunction"
+    }
+
+    @Test
+    fun `test function analysis with simple constructor`() {
+        // Create a simple AST with two functions
+        val intType: Type = mockType()
+        val program = Program(
+            functions = listOf(
+                FunctionDeclaration(
+                    name = "foo",
+                    parameters = listOf(Parameter("x", intType)),
+                    returnType = intType,
+                    body = BinaryOperation(
+                        left = VariableReference("x"),
+                        operator = BinaryOperator.PLUS,
+                        right = IntLiteral(1)
+                    )
+                ),
+                FunctionDeclaration(
+                    name = "bar",
+                    parameters = listOf(Parameter("y", intType)),
+                    returnType = intType,
+                    body = FunctionCall(
+                        functionName = "foo",
+                        arguments = listOf(PositionalArgument(VariableReference("y")))
+                    )
+                )
+            ),
+            structures = listOf(
+                StructTypeDeclaration(
+                    "struct", listOf(ConstantDeclaration("field", IntType, IntLiteral(1))),
+                    ConstructorDeclaration(
+                        listOf(Parameter("arg", IntType)), Block(
+                            listOf(
+                                Assignment(StructFieldAccess(HereReference(), "field"), VariableReference("arg")),
+                                FunctionCall(
+                                    functionName = "foo",
+                                    arguments = listOf(PositionalArgument(VariableReference("y")))
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val astInfo = AstInfo(program, locations = emptyMap()) // Mock location map as it's not important here
+
+        // Create the analyzer instance
+        val analyser = FunctionAnalyser()
+
+        // Perform analysis
+        val analysisResult = analyser.analyseFunctions(astInfo)
+
+        // Test Call Graph
+        val callGraph = analysisResult.callGraph
+        assertTrue(callGraph.containsKey(program.functions[1])) // "bar" should call "foo"
+        assertTrue(callGraph[program.functions[1]]?.contains(program.functions[0]) == true)
+        assertTrue(callGraph.containsKey(program.structures[0].constructorMethod)) // "constructor" should call "foo"
+        assertTrue(callGraph[program.structures[0].constructorMethod]?.contains(program.functions[0]) == true)
+
+        // Test Static Parents
+        val staticParents = analysisResult.staticParents
+        assertEquals(staticParents[program.functions[0]], null) // "foo" has no parent, it's global
+        assertEquals(staticParents[program.functions[1]], null) // "bar" is also global here (no parent)
+
+        // Test Variable Map
+        val variableMap = analysisResult.variableMap
+        assertTrue(variableMap.containsKey(program.functions[0].parameters[0])) // "foo" has parameter "x"
+        assertTrue(variableMap.containsKey(program.functions[1].parameters[0])) // "bar" has parameter "y"
+
+        // Test Nested Variable Usage
+        val isUsedInNested = analysisResult.isUsedInNested
+        assertFalse(isUsedInNested[program.functions[0].parameters[0]] == true) // "x" is used directly in "foo"
+        assertFalse(isUsedInNested[program.functions[1].parameters[0]] == true) // "y" is used directly in "bar"
     }
 
 }
