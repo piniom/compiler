@@ -32,8 +32,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
 
         val astNode: ASTNode
         if (symbol === ProgramSymbol) {
-            val functionsList = unwrapFunctions(children[0], input, FunctionDeclaration::class)
-            astNode = Program(functionsList)
+            val topLevelStatements = unwrapTopLevelStatements(children[0], input)
+            astNode = Program(topLevelStatements.functions, topLevelStatements.structures)
         } else if (symbol === SimpleFunctionDefinitionSymbol || symbol === BlockFunctionDefinitionSymbol) {
             var name: String? = null
             var parameters: List<Parameter> = listOf()
@@ -325,14 +325,13 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         return null
     }
 
-    private fun <T : ASTNode> unwrapFunctions(
+    private fun unwrapTopLevelStatements(
         head: ParseTree<GrammarSymbol>,
-        input: Input,
-        wantedNodeClass: KClass<T>
-    ): List<T> {
-        val res = mutableListOf<T>()
+        input: Input
+    ): TopLevelStatements {
+        val res = TopLevelStatements()
 
-        if (head is Branch && head.production.left == FunctionsDeclarationsSymbol) {
+        if (head is Branch && head.production.left == TopLevelStatementsDeclarationsSymbol) {
             for (child in head.children) {
                 val childSymbol = getSymbol(child)
 
@@ -340,9 +339,11 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     childSymbol === BlockFunctionDefinitionSymbol ||
                     childSymbol === ForeignFunctionDeclarationSymbol) {
                     val node = createAux(child, input)
-                    res.add(wantedNodeClass.cast(node))
-                } else if (childSymbol === FunctionsDeclarationsSymbol) {
-                    res.addAll(unwrapFunctions(child, input, wantedNodeClass))
+                    res.functions.add(node as FunctionDeclaration)
+                } else if (childSymbol === TopLevelStatementsDeclarationsSymbol) {
+                    val recursionResult = unwrapTopLevelStatements(child, input)
+                    res.functions.addAll(recursionResult.functions)
+                    res.structures.addAll(recursionResult.structures)
                 } else {
                     continue
                 }
@@ -381,13 +382,19 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         for (child in children) {
             val childSymbol = getSymbol(child)
 
+            val range = LocationRange(child.startLocation, child.endLocation)
+
             when {
                 childSymbol === ExpressionSymbol && isVariableAssignment(child) -> {
                     val variableAssignment = createAux(child, input) as Assignment
-                    arguments.add(NamedArgument(getNameOfVariableToAssign(variableAssignment.variable), variableAssignment.value))
+                    val argument = NamedArgument(getNameOfVariableToAssign(variableAssignment.variable), variableAssignment.value)
+                    arguments.add(argument)
+                    locationsMap.put(argument, range)
                 }
                 childSymbol === ExpressionSymbol -> {
-                    arguments.add(PositionalArgument(createAux(child, input) as Expr))
+                    val argument = PositionalArgument(createAux(child, input) as Expr)
+                    arguments.add(argument)
+                    locationsMap.put(argument, range)
                 }
                 childSymbol === FunctionCallArgumentsSymbol -> {
                     arguments.addAll(parseFunctionCallArguments(child, input))
@@ -542,5 +549,10 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
             "Nope" -> NopeType
             else -> getArrayType(node, input)
         }
+    }
+
+    private class TopLevelStatements {
+        val functions: MutableList<FunctionDeclaration> = mutableListOf();
+        val structures: MutableList<StructTypeDeclaration> = mutableListOf();
     }
 }

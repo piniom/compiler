@@ -133,4 +133,29 @@ Single line `//` and multiline `/* some text */` comments are allowed. Comments 
 
 Additionaly the `Int` type supports `>`, `>=`, `<`, `<=` with standard behaviour.
 
+## Structures
 
+- `uct` - keyword for struct declaration
+- `ctor` - keyword used for struct constructor declaration
+- `here` - keyword which can be used inside contructor to indicate usage or struct variable, 
+- `nothing` - keyword for null pointer
+- `.` - is used for accessing fields of the struct
+
+```
+uct S = { 
+    let x: T = ...; 
+    let mut y: U; 
+
+    ctor(...) = {
+        here.x = 5;
+        let a: T = here.x; 
+        ...
+    }
+}
+
+...
+
+let mut s: S = new S(...); // construction used as in arrays
+s.x = ...;
+s = nothing
+```

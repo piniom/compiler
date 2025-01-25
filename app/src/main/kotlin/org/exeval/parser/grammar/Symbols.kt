@@ -1,21 +1,26 @@
 package org.exeval.parser.grammar
 
+import kotlinx.serialization.Serializable
 import org.exeval.utilities.TokenCategories as Token
 
+@Serializable
 object ValueSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.LiteralInteger,
 		Token.LiteralBoolean,
 		Token.LiteralNope,
+		Token.LiteralNothing,
 	)
 }
 
+@Serializable
 object VariableReferenceSymbol : TerminalGroup {
 	override fun values() = listOf(
 		Token.IdentifierNontype,
 	)
 }
 
+@Serializable
 object TypeSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -29,6 +34,7 @@ object TypeSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object VariableDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -50,6 +56,7 @@ object VariableDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ConstantDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -63,6 +70,7 @@ object ConstantDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object VariableAssignmentSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -75,9 +83,52 @@ object VariableAssignmentSymbol: GrammarSymbol {
 			Token.OperatorAssign,
 			ExpressionSymbol,
 		),
+		listOf(
+			StructAccessSymbol,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		),
+		listOf(
+			HereAccess,
+			Token.OperatorAssign,
+			ExpressionSymbol,
+		)
 	)
 }
 
+@Serializable
+object ConstructorDeclarationParamsSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordCtor,
+			Token.PunctuationLeftRoundBracket,
+			FunctionParamsSymbol,
+			Token.PunctuationRightRoundBracket,
+			Token.OperatorAssign,
+		),
+		listOf(
+			Token.KeywordCtor,
+			Token.LiteralNope,
+			Token.OperatorAssign,
+		),
+	)
+}
+
+@Serializable
+object ConstructorDeclarationSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			ConstructorDeclarationParamsSymbol,
+			SimpleExpressionSymbol,
+		),
+		listOf(
+			ConstructorDeclarationParamsSymbol,
+			ExpressionBlockSymbol,
+		),
+	)
+}
+
+@Serializable
 object FunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -127,6 +178,7 @@ object FunctionDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object SimpleFunctionDefinitionSymbol : GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -136,6 +188,7 @@ object SimpleFunctionDefinitionSymbol : GrammarSymbol {
 	)
 }
 
+@Serializable
 object BlockFunctionDefinitionSymbol : GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -144,6 +197,8 @@ object BlockFunctionDefinitionSymbol : GrammarSymbol {
 		),
 	)
 }
+
+@Serializable
 object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -159,6 +214,7 @@ object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionParamsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(FunctionParamSymbol),
@@ -170,6 +226,7 @@ object FunctionParamsSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionParamSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -180,6 +237,7 @@ object FunctionParamSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionCallSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -200,6 +258,7 @@ object FunctionCallSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object FunctionCallArgumentsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		// Calling with named arguments is indistinguishable
@@ -214,6 +273,7 @@ object FunctionCallArgumentsSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object AllocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -226,6 +286,7 @@ object AllocationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object DeallocationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -235,6 +296,7 @@ object DeallocationSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ArrayIndexSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -251,6 +313,7 @@ object ArrayIndexSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object ArrayAccessSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -270,6 +333,7 @@ object ArrayAccessSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object IfSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -289,6 +353,7 @@ object IfSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object LoopSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -304,6 +369,7 @@ object LoopSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object BreakSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -327,6 +393,7 @@ object BreakSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object Operator2ArgSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.OperatorPlus,
@@ -344,6 +411,7 @@ object Operator2ArgSymbol: TerminalGroup {
 	)
 }
 
+@Serializable
 object Operator1ArgSymbol: TerminalGroup {
 	override fun values() = listOf(
 		Token.OperatorMinus,
@@ -351,6 +419,7 @@ object Operator1ArgSymbol: TerminalGroup {
 	)
 }
 
+@Serializable
 object ArithmeticExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -374,6 +443,16 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 			ExpressionSymbol,
 		),
 		listOf(
+			StructAccessSymbol,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
+		listOf(
+			HereAccess,
+			Operator2ArgSymbol,
+			ExpressionSymbol,
+		),
+		listOf(
 			Operator1ArgSymbol,
 			ExpressionSymbol,
 		),
@@ -392,6 +471,7 @@ object ArithmeticExpressionSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object SimpleExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(ValueSymbol),
@@ -408,9 +488,12 @@ object SimpleExpressionSymbol: GrammarSymbol {
 		listOf(AllocationSymbol),
 		listOf(DeallocationSymbol),
 		listOf(ArrayAccessSymbol),
+		listOf(StructAccessSymbol),
+		listOf(HereAccess),
 	)
 }
 
+@Serializable
 object ExpressionBlockSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
@@ -420,6 +503,7 @@ object ExpressionBlockSymbol: GrammarSymbol {
 		),
 	)
 
+	@Serializable
 	object ExpressionChainSymbol: GrammarSymbol {
 		override fun productions() = listOf(
 			listOf(SimpleExpressionSymbol),
@@ -450,6 +534,7 @@ object ExpressionBlockSymbol: GrammarSymbol {
 	}
 }
 
+@Serializable
 object ExpressionSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(SimpleExpressionSymbol),
@@ -457,17 +542,175 @@ object ExpressionSymbol: GrammarSymbol {
 	)
 }
 
+@Serializable
 object EndOfProgramSymbol: Terminal
 
+@Serializable
 object ProgramSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 	)
 }
 
-object FunctionsDeclarationsSymbol: GrammarSymbol {
+@Serializable
+object HereAccess: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordHere,
+		),
+		listOf(
+			Token.KeywordHere,
+			Token.PunctuationDot,
+			StructAccessSymbol
+		),
+		listOf(
+			Token.KeywordHere,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			Token.KeywordHere,
+			Token.PunctuationDot,
+			ArrayAccessSymbol
+		),
+	)
+}
+
+@Serializable
+object StructAccessSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			StructAccessByArraySymbol
+		),
+		listOf(
+			StructAccessByFunctionCallSymbol
+		),
+		listOf(
+			StructAccessByIdentyfierNonTypeSymbol
+		),
+	)
+}
+
+@Serializable
+object StructAccessByArraySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+		listOf(
+			ArrayAccessSymbol,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+	)
+}
+
+@Serializable
+object StructAccessByIdentyfierNonTypeSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+		listOf(
+			Token.IdentifierNontype,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+	)
+}
+
+@Serializable
+object StructAccessByFunctionCallSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			StructAccessSymbol,
+		),
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			Token.IdentifierNontype,
+		),
+		listOf(
+			FunctionCallSymbol,
+			Token.PunctuationDot,
+			ArrayAccessSymbol,
+		),
+	)
+}
+
+@Serializable
+object StructDefinitionSymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			Token.KeywordUct,
+			Token.IdentifierType,
+			Token.OperatorAssign,
+			Token.PunctuationLeftCurlyBracket,
+			StructDefinitionBodySymbol,
+			Token.PunctuationRightCurlyBracket,
+		),
+	)
+}
+
+@Serializable
+object StructDefinitionBodySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			Token.PunctuationSemicolon,
+			StructDefinitionBodySymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			StructDefinitionBodySymbol,
+		),
+	)
+}
+
+@Serializable
+object StructDefinitionBodyPropertySymbol: GrammarSymbol {
+	override fun productions() = listOf(
+		listOf(
+			VariableDeclarationSymbol,
+		),
+		listOf(
+			ConstantDeclarationSymbol,
+		),
+		listOf(
+			Token.KeywordLet,
+			Token.IdentifierNontype,
+			Token.PunctuationColon,
+			TypeSymbol,
+		),
+		listOf(
+			ConstructorDeclarationSymbol,
+		),
+	)
+}
+
+@Serializable
+object TopLevelStatementsDeclarationsSymbol: GrammarSymbol {
 	override fun productions() = listOf(
 		listOf(
 			SimpleFunctionDefinitionSymbol,
@@ -477,15 +720,31 @@ object FunctionsDeclarationsSymbol: GrammarSymbol {
 		listOf(
 			SimpleFunctionDefinitionSymbol,
 			Token.PunctuationSemicolon,
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
 			BlockFunctionDefinitionSymbol,
-			FunctionsDeclarationsSymbol,
+			TopLevelStatementsDeclarationsSymbol,
 		),
 		listOf(
 			ForeignFunctionDeclarationSymbol,
-			FunctionsDeclarationsSymbol
+			TopLevelStatementsDeclarationsSymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			TopLevelStatementsDeclarationsSymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			Token.PunctuationSemicolon,
+			TopLevelStatementsDeclarationsSymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+		),
+		listOf(
+			StructDefinitionBodyPropertySymbol,
+			Token.PunctuationSemicolon,
 		),
 	)
 }

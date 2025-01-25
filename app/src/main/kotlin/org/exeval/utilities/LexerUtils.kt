@@ -1,5 +1,6 @@
 package org.exeval.utilities
 
+import org.exeval.input.SimpleLocation
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.utilities.interfaces.LexerToken
@@ -22,6 +23,10 @@ class LexerUtils {
                 var category = TokenCategories.IdentifierNontype
                 if(newCategories.size == 1) {
                     category = newCategories.first() as TokenCategories
+                } 
+                else if (newCategories.size == 2 && newCategories.contains(TokenCategories.LiteralNothing) && newCategories.contains(TokenCategories.OperatorNot)) {
+                    // 'not' is substring of 'nothing' so if it is in categories, 'nothing' wins over 'not' keyword
+                    category = TokenCategories.LiteralNothing
                 } else if(newCategories.size > 1) {
                     throw UnambiguesTokenCategories(token)
                 }
@@ -29,7 +34,7 @@ class LexerUtils {
             }
 
             // add last endOfParse to leaves
-            val lastLocation = leaves.last().endLocation
+            val lastLocation = if (leaves.isNotEmpty()) leaves.last().endLocation else SimpleLocation(0, 0)
             leaves.add(ParseTree.Leaf(LanguageGrammar.grammar.endOfParse, lastLocation, lastLocation))
 
             return leaves

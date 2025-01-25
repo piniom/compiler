@@ -6,4 +6,5 @@ foo main() -> Int = {
     arr[2] = 3;
 
     del arr;
+    0
 }

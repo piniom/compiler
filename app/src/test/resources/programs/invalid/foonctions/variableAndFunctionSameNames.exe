@@ -1,6 +1,6 @@
 foo g() -> Int = 12;
 
 foo main() -> Int = {
-    var g: Int = 42;
+    let g: Int = 42;
     g()
 }

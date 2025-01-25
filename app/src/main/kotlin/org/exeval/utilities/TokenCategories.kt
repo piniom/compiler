@@ -1,14 +1,17 @@
 package org.exeval.utilities
 
+import kotlinx.serialization.Serializable
 import org.exeval.utilities.interfaces.TokenCategory
 import org.exeval.parser.grammar.Terminal
 
+@Serializable
 enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	PunctuationSemicolon(";"),
 	PunctuationColon(":"),
 	PunctuationComma(","),
 	PunctuationArrow("->"),
 	PunctuationMonkey("@"),
+	PunctuationDot("\\."),
 	PunctuationLeftCurlyBracket("{"),
 	PunctuationRightCurlyBracket("}"),
 	PunctuationLeftSquareBracket("["),
@@ -18,6 +21,7 @@ enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	LiteralInteger("(\\d)(\\d)*"),
 	LiteralBoolean("(true|false)"),
 	LiteralNope("\\(\\)"),
+	LiteralNothing("nothing"),
 	OperatorPlus("+"),
 	OperatorMinus("-"),
 	OperatorStar("\\*"),
@@ -45,6 +49,9 @@ enum class TokenCategories(val regex: String) : TokenCategory, Terminal {
 	KeywordMut("mut"),
 	KeywordNew("new"),
 	KeywordDel("del"),
+	KeywordHere("here"),
+	KeywordCtor("ctor"),
+	KeywordUct("uct"),
 	IdentifierType("\\u(\\l|\\u)*"),
 	IdentifierNontype("(\\l|_)(\\i)*"),
 	IdentifierEntrypoint("main"),
