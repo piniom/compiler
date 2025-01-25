@@ -52,6 +52,7 @@ class DFAParserImplTest{
         )
         // NFA for "a(b | c)*"
         var nfa = SimpleNFA(start, accepting, t, et)
+        @Suppress("UNCHECKED_CAST")
         var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(!parsedDFA.isAccepting(state))
@@ -83,6 +84,7 @@ class DFAParserImplTest{
             0 to setOf(1)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
+        @Suppress("UNCHECKED_CAST")
         var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
@@ -97,6 +99,7 @@ class DFAParserImplTest{
         var t = mapOf<Int, Map<Char, Int>>()
         var et = mapOf<Int, Set<Int>>()
         var nfa = SimpleNFA(start, accepting, t, et)
+        @Suppress("UNCHECKED_CAST")
         var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
@@ -119,6 +122,7 @@ class DFAParserImplTest{
             0 to setOf(2)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
+        @Suppress("UNCHECKED_CAST")
         var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         var state = parsedDFA.startState
         assert(parsedDFA.isAccepting(state))
@@ -147,6 +151,7 @@ class DFAParserImplTest{
             6 to setOf(7)
         )
         var nfa = SimpleNFA(start, accepting, t, et)
+        @Suppress("UNCHECKED_CAST")
         var parsedDFA = DFAParserImpl<Int>().parse(nfa) as DFA<Int>
         // AA
         var state = parsedDFA.startState

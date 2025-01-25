@@ -13,6 +13,7 @@ class NFAParserImplTest {
     fun testAtomRegexParsing() {
         val atomRegex = Regex.Atom('a')
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(atomRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)
@@ -26,6 +27,7 @@ class NFAParserImplTest {
         val atomRegex = Regex.Atom('a')
         val starRegex = Regex.Star(atomRegex)
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(starRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertTrue(nfa.eTransitions(nfa.startState).contains(nfa.acceptingState))
@@ -38,6 +40,7 @@ class NFAParserImplTest {
         val atom2 = Regex.Atom('b')
         val unionRegex = Regex.Union(setOf(atom1, atom2))
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(unionRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)
@@ -51,6 +54,7 @@ class NFAParserImplTest {
         val atom2 = Regex.Atom('b')
         val concatRegex = Regex.Concat(listOf(atom1, atom2))
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(concatRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)
@@ -71,6 +75,7 @@ class NFAParserImplTest {
             )
         )
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(unionConcatRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)
@@ -85,6 +90,7 @@ class NFAParserImplTest {
         val atom3 = Regex.Atom('c')
         val unionRegex = Regex.Union(setOf(atom1, atom2, atom3))
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(unionRegex) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)
@@ -100,6 +106,7 @@ class NFAParserImplTest {
         val unionRegex1 = Regex.Union(setOf(atom1, atom2))
         val unionRegex2 = Regex.Union(setOf(unionRegex1, atom3))
 
+        @Suppress("UNCHECKED_CAST")
         val nfa = parser.parse(unionRegex2) as NFAParserImpl.NFAImpl<Any>
 
         assertEquals(0, nfa.startState)

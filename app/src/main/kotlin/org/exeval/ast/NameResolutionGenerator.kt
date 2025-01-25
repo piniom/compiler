@@ -60,7 +60,8 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
             argumentToParam,
             functionToDecl,
             variableToDecl,
-            assignmentToDecl
+            assignmentToDecl,
+            useToStruct
         ), diagnostics)
     }
 
@@ -408,7 +409,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
 
     private fun processNamedBreak(breakNode: Break, name: String) {
         getLoopData().loopMap[name]?.let { breakToLoop[breakNode] = it; }
-            ?: addUnknownLoopIdentifierError(breakNode)
+            ?: addUnknownLoopIdentifierError(breakNode, name)
     }
 
     private fun processSimpleBreak(breakNode: Break) {

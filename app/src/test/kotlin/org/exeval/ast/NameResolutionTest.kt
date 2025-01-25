@@ -2,6 +2,7 @@ package org.exeval.ast
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import kotlin.test.assertTrue
 
 class NameResolutionTest {
 
