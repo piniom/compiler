@@ -32,7 +32,7 @@ class CFGMaker(
     private val nameResolution: NameResolution,
     private val varUsage: VariableUsageAnalysisResult,
     private val typeMap: TypeMap,
-    private val CallManagerMap: Map<AnyFunctionDeclaration, CallManager>
+    private val CallManagerMap: Map<AnyCallableDeclaration, CallManager>
 ) {
     private val loopToNode: MutableMap<Loop, Pair<CFGNode, AssignableTree?>> = mutableMapOf()
 
@@ -40,6 +40,14 @@ class CFGMaker(
         val node = Node()
         val body = walkExpr(ast.body, node)
         val bottom = fm.generate_epilouge(if (body.tree != null) body.tree else body.result)
+        node.branches = Pair(bottom, null)
+        return fm.generate_prolog(body.top)
+    }
+
+    fun makeConstructorCfg(ast: ConstructorDeclaration): CFGNode {
+        val node = Node()
+        val body = walkExpr(ast.body, node)
+        val bottom = fm.generate_epilouge(body.tree)
         node.branches = Pair(bottom, null)
         return fm.generate_prolog(body.top)
     }
