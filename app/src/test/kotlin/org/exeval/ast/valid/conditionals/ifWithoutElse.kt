@@ -1,18 +1,19 @@
 package org.exeval.ast.valid.conditionals
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val CONDITIONALS_IF_WITHOUT_ELSE_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "x",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(10)
                     ),
                     Conditional(

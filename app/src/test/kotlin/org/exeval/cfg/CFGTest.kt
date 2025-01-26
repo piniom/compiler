@@ -66,7 +66,7 @@ class CFGTest{
     ) : CFGNode {}
     fun getCFG(e:Expr, ffmOverride:FunctionFrameManager? = null):CFGNode{
         //ASSUMPTION: NO FUNCTION CALLS
-        val main = FunctionDeclaration("main",listOf(), NopeType,e)
+        val main = FunctionDeclaration("main",listOf(), NopeTypeNode,e)
         val info = AstInfo(main,mapOf())
         val nr = NameResolutionGenerator(info).parse().result
         val tm = TypeChecker(info,nr).parse().result
@@ -256,7 +256,7 @@ class CFGTest{
         */
         var aVarReference = VariableReference("a")
         var ast = Block(listOf(
-            MutableVariableDeclaration("a", IntType),
+            MutableVariableDeclaration("a", org.exeval.ast.IntTypeNode),
             Conditional(BoolLiteral(true),
                 /*if*/Assignment(aVarReference, IntLiteral(1)),
                 /*else*/Assignment(aVarReference, IntLiteral(2))),
@@ -273,7 +273,7 @@ class CFGTest{
         */
         aVarReference = VariableReference("a")
         ast = Block(listOf(
-            MutableVariableDeclaration("a", IntType),
+            MutableVariableDeclaration("a", org.exeval.ast.IntTypeNode),
             Assignment(aVarReference,
                 Conditional(BoolLiteral(true),
                 /*if*/IntLiteral(1),
@@ -287,7 +287,7 @@ class CFGTest{
         
         var aVarReference = VariableReference("a")
         var ast = Block(listOf(
-            MutableVariableDeclaration("a", IntType,IntLiteral(0)),
+            MutableVariableDeclaration("a", org.exeval.ast.IntTypeNode,IntLiteral(0)),
             Loop(null,Block(listOf(
                 Assignment(aVarReference, BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(1)))
             )))
@@ -300,7 +300,7 @@ class CFGTest{
         */
         aVarReference = VariableReference("a")
         ast  = Block(listOf(
-            MutableVariableDeclaration("a", IntType,IntLiteral(0)),
+            MutableVariableDeclaration("a", org.exeval.ast.IntTypeNode,IntLiteral(0)),
             Assignment(aVarReference, Loop(null,Block(listOf(
                 BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(1))
             ))))
@@ -309,14 +309,14 @@ class CFGTest{
     }
     @Test
     fun calcTest(){
-        var ast:Expr = MutableVariableDeclaration("a",IntType,BinaryOperation(
+        var ast:Expr = MutableVariableDeclaration("a",org.exeval.ast.IntTypeNode,BinaryOperation(
             IntLiteral(1),BinaryOperator.PLUS,IntLiteral(2)
         ))
         var value = BinaryOperationTree(Constant(1), Constant(2), BinaryTreeOperationType.ADD)
         assert(calculate(getCFG(ast), value))
         //a=2*(1+1)
         ast = Block(listOf(
-            MutableVariableDeclaration("a",IntType),
+            MutableVariableDeclaration("a",org.exeval.ast.IntTypeNode),
             Assignment(VariableReference("a"), BinaryOperation(
                 IntLiteral(2),
                 BinaryOperator.MULTIPLY,
@@ -341,7 +341,7 @@ class CFGTest{
     fun placeTest(){
         val aVarReference = VariableReference("a")
         val ast = Block(listOf(
-            MutableVariableDeclaration("a",IntType,IntLiteral(0)),
+            MutableVariableDeclaration("a",org.exeval.ast.IntTypeNode,IntLiteral(0)),
             Conditional(BoolLiteral(true),
                 Assignment(aVarReference, IntLiteral(1)),
                 Assignment(aVarReference, IntLiteral(2))
@@ -352,9 +352,9 @@ class CFGTest{
     @Test
     fun simpleBlockTest(){
         val aVarReference = VariableReference("a")
-        val aVarDeclaration = MutableVariableDeclaration("a", IntType, IntLiteral(1))
+        val aVarDeclaration = MutableVariableDeclaration("a", IntTypeNode, IntLiteral(1))
         val bVarReference = VariableReference("b")
-        val bVarDeclaration = MutableVariableDeclaration("b", IntType, IntLiteral(0))
+        val bVarDeclaration = MutableVariableDeclaration("b", IntTypeNode, IntLiteral(0))
         val ast = Block(listOf(
             aVarDeclaration,
             bVarDeclaration,
@@ -388,9 +388,9 @@ class CFGTest{
     @Test
     fun nestedBlockTest(){
         val aVarReference = VariableReference("a")
-        val aVarDeclaration = MutableVariableDeclaration("a", IntType, IntLiteral(1))
+        val aVarDeclaration = MutableVariableDeclaration("a", IntTypeNode, IntLiteral(1))
         val bVarReference = VariableReference("b")
-        val bVarDeclaration = MutableVariableDeclaration("b", IntType, IntLiteral(0))
+        val bVarDeclaration = MutableVariableDeclaration("b", IntTypeNode, IntLiteral(0))
         val ast = Block(listOf(
             aVarDeclaration,
             Block(listOf(

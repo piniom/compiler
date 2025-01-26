@@ -11,6 +11,8 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private var activeLoop: Type? = null
     private val activeLoopMap: MutableMap<String, Type?> = mutableMapOf()
 
+    private var activeStruct: StructType? = null
+
     public fun parse(): OperationResult<TypeMap> {
         innerParse(astInfo.root)
 
@@ -45,14 +47,127 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is MemoryDel -> getMemoryDelType(astNode)
             is ArrayAccess -> getArrayAccessType(astNode)
 
+            is HereReference -> getHereReference(astNode)
+            is ConstructorDeclaration -> getConstructorDeclarationType(astNode)
+            is StructTypeDeclaration -> getStructTypeDeclarationType(astNode)
+            is StructFieldAccess -> getStructFieldAccessType(astNode)
+
             else -> addDiagnostic("Failed to find expression!", astNode)
         }
 
         return typeMap[astNode]
     }
 
+    private fun calculateFieldOffset(index: Int): Long {
+        return 8L * index
+    }
+
+    private fun calculateStructSize(fields: Map<String, Field>): Long {
+        return 8L * fields.size
+    }
+
+    private fun convertTypeNodeToType(typeNode: org.exeval.ast.TypeNode): Type {
+        return when (typeNode) {
+            is IntTypeNode -> IntType
+            is BoolTypeNode -> BoolType
+            is NopeTypeNode -> NopeType
+            is Array -> ArrayType(convertTypeNodeToType(typeNode.elementType))
+            is TypeUse -> getTypeUseType(typeNode)
+        }
+    }
+
+    private fun getTypeUseType(typeUse: TypeUse): Type {
+        val structDeclaration = nameResolutionResult.typeNameToDecl[typeUse]
+
+        if (structDeclaration == null) {
+            addDiagnostic("Unknown type", typeUse)
+            return NopeType
+        }
+
+        innerParse(structDeclaration)
+
+        val fields = mutableMapOf<String, Field>()
+        structDeclaration.fields.withIndex().forEach { (index, field) ->
+            fields[field.name] = Field(
+                type = convertTypeNodeToType(field.type),
+                offset = calculateFieldOffset(index)
+            )
+        }
+
+        val size = calculateStructSize(fields)
+        return StructType(fields = fields, size = size)
+    }
+
+
+    private fun getStructFieldAccessType(fieldAccess: StructFieldAccess) {
+        val structType = innerParse(fieldAccess.structObject)
+
+        if (structType !is StructType) {
+            addDiagnostic("Cannot access field", fieldAccess.structObject)
+            typeMap[fieldAccess] = NopeType
+            return
+        }
+
+        val field = structType.fields[fieldAccess.field]
+        if (field == null) {
+            addDiagnostic("Struct type does not contain field", fieldAccess)
+            typeMap[fieldAccess] = NopeType
+            return
+        }
+
+        typeMap[fieldAccess] = field.type
+    }
+
+    private fun getHereReference(hereReference: HereReference) {
+        if (activeStruct == null) {
+            addDiagnostic("'here' keyword used outside of a struct context", hereReference)
+            typeMap[hereReference] = NopeType
+            return
+        }
+
+        val field = activeStruct?.fields?.get(hereReference.field)
+        if (field == null) {
+            addDiagnostic("Struct does not contain field" + hereReference.field, hereReference)
+            typeMap[hereReference] = NopeType
+            return
+        }
+
+        typeMap[hereReference] = field.type
+    }
+
+
+    private fun getConstructorDeclarationType(constructorDeclaration: ConstructorDeclaration) {
+        innerParse(constructorDeclaration.body)
+
+        typeMap[constructorDeclaration] = NopeType
+    }
+
+    private fun getStructTypeDeclarationType(structDeclaration: StructTypeDeclaration) {
+        val fields = structDeclaration.fields.withIndex().associate { (index, field) ->
+            val resolvedType = innerParse(field) ?: NopeType
+
+            field.name to Field(
+                type = resolvedType,
+                offset = calculateFieldOffset(index)
+            )
+        }
+
+        val structType = StructType(fields = fields, size = calculateStructSize(fields))
+
+        // Subtree has to know about current struct for here/self reference
+        activeStruct = structType
+
+        innerParse(structDeclaration.constructorMethod)
+
+        activeStruct = null
+
+        typeMap[structDeclaration] = structType
+    }
+
+
+
     private fun getMemoryNewType(memoryNew: MemoryNew) {
-        if (memoryNew.type !is ArrayType) {
+        if (memoryNew.type !is Array) {
             addDiagnostic("Only Arrays are allowed with the new keyword", memoryNew)
         }
         if (memoryNew.constructorArguments.isEmpty()) {
@@ -66,7 +181,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             addDiagnostic("Argument to new must be Int", memoryNew)
         }
 
-        typeMap[memoryNew] = memoryNew.type
+        typeMap[memoryNew] = convertTypeNodeToType(memoryNew.type)
     }
 
     private fun getMemoryDelType(memoryDel: MemoryDel) {
@@ -253,7 +368,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getConstantDeclarationType(constantDeclaration: ConstantDeclaration) {
         val initializerType = innerParse(constantDeclaration.initializer)
 
-        if (initializerType != constantDeclaration.type) {
+        if (initializerType != convertTypeNodeToType(constantDeclaration.type)) {
             addDiagnostic("Initializer type does not match declared type", constantDeclaration.initializer)
         }
 
@@ -263,7 +378,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
     private fun getMutableVariableDeclarationType(mutableVariableDeclaration: MutableVariableDeclaration) {
         val initializerType = mutableVariableDeclaration.initializer?.let { innerParse(it) }
 
-        if (initializerType != null && initializerType != mutableVariableDeclaration.type) {
+        if (initializerType != null && initializerType != convertTypeNodeToType(mutableVariableDeclaration.type)) {
             addDiagnostic(
                 "Initializer type does not match declared type",
                 mutableVariableDeclaration.initializer ?: mutableVariableDeclaration
@@ -281,11 +396,11 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable declaration type", variableReference)
-                NopeType
+                NopeTypeNode
             }
         }
 
-        typeMap[variableReference] = variableType
+        typeMap[variableReference] = convertTypeNodeToType(variableType)
     }
 
     private fun getAssignmentType(assignment: Assignment) {
@@ -304,13 +419,13 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             is Parameter -> variable.type
             else -> {
                 addDiagnostic("Unknown variable assignment type", assignment)
-                NopeType
+                NopeTypeNode
             }
         }
 
         val valueType = innerParse(assignment.value)
 
-        if (valueType != variableType) {
+        if (valueType != convertTypeNodeToType(variableType)) {
             addDiagnostic("Assignment type does not match variable type", assignment.value)
         }
 
@@ -323,25 +438,32 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
         if (bodyType == null) {
             addDiagnostic("Could not determine function body type", functionDeclaration.body)
         }
-        else if (bodyType != functionDeclaration.returnType) {
+        else if (bodyType != convertTypeNodeToType(functionDeclaration.returnType)) {
             addDiagnostic("Function return type does not match declared return type", functionDeclaration.body)
         }
 
-        typeMap[functionDeclaration] = functionDeclaration.returnType
+        bodyType?.let { typeMap[functionDeclaration] = convertTypeNodeToType(functionDeclaration.returnType) }
     }
 
     private fun getForeignFunctionDeclarationType(functionDeclaration: ForeignFunctionDeclaration) {
-        typeMap[functionDeclaration] = functionDeclaration.returnType
+        typeMap[functionDeclaration] = convertTypeNodeToType(functionDeclaration.returnType)
     }
 
     private fun getFunctionCallType(functionCall: FunctionCall) {
         val functionDecl = nameResolutionResult.functionToDecl[functionCall]
 
-        val functionType = functionDecl?.let { innerParse(it) }
+        if (functionDecl == null) {
+            addDiagnostic("Function not found", functionCall)
+            typeMap[functionCall] = NopeType
+            return
+        }
+
+        val returnType = convertTypeNodeToType(functionDecl.returnType)
+        typeMap[functionCall] = returnType
 
         var index = 0
         functionCall.arguments.filterIsInstance<PositionalArgument>().forEach { argument ->
-            val parameterType = functionDecl?.parameters?.getOrNull(index)?.type
+            val parameterType = functionDecl?.parameters?.getOrNull(index)?.type?.let { convertTypeNodeToType(it) }
             val argumentType = innerParse(argument.expression)
 
             if (parameterType != argumentType) {
@@ -353,15 +475,13 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
 
         val paramMap = functionDecl?.parameters?.associateBy { it.name }
         functionCall.arguments.filterIsInstance<NamedArgument>().forEach { argument ->
-            val parameterType = paramMap?.get(argument.name)?.type
+            val parameterType = paramMap?.get(argument.name)?.type?.let { convertTypeNodeToType(it) }
             val argumentType = innerParse(argument.expression)
 
             if (parameterType != argumentType) {
                 addDiagnostic("Argument type does not match parameter type", argument.expression)
             }
         }
-
-        functionType?.let { typeMap[functionCall] = functionType }
     }
 
     // Additional private methods

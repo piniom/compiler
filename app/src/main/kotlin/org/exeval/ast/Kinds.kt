@@ -10,23 +10,30 @@ sealed class AssignableExpr : Expr()
 
 class Block(val expressions: List<Expr>) : Expr()
 
+sealed interface TypeNode : ASTNode
+
+data object IntTypeNode : TypeNode
+data object NopeTypeNode : TypeNode
+data object BoolTypeNode : TypeNode
+data class Array(val elementType: TypeNode): TypeNode
+
 sealed interface AnyVariable : ASTNode
 
 sealed class VariableDeclarationBase : AnyVariable, Expr() {
     abstract val name: String
-    abstract val type: Type
+    abstract val type: TypeNode
     abstract val initializer: Expr?
 }
 
 class ConstantDeclaration(
     override val name: String,
-    override val type: Type,
+    override val type: TypeNode,
     override val initializer: Expr
 ) : VariableDeclarationBase()
 
 class MutableVariableDeclaration(
     override val name: String,
-    override val type: Type,
+    override val type: TypeNode,
     override val initializer: Expr? = null
 ) : VariableDeclarationBase()
 
@@ -62,23 +69,23 @@ sealed class AnyFunctionDeclaration() : AnyCallableDeclaration()
 {
     abstract val name: String;
     abstract override val parameters: List<Parameter>;
-    abstract val returnType: Type
+    abstract val returnType: TypeNode
 }
 
 class FunctionDeclaration(
     override val name: String,
     override val parameters: List<Parameter>,
-    override val returnType: Type,
+    override val returnType: TypeNode,
     val body: Expr
 ) : AnyFunctionDeclaration()
 
 class ForeignFunctionDeclaration(
     override val name: String,
     override val parameters: List<Parameter>,
-    override val returnType: Type
+    override val returnType: TypeNode
 ) : AnyFunctionDeclaration()
 
-class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
+class Parameter(val name: String, val type: TypeNode) : AnyVariable, ASTNode
 
 class FunctionCall(
     val functionName: String,
@@ -106,7 +113,7 @@ class Break(
 ) : Expr()
 
 class MemoryNew(
-    val type: Type,
+    val type: TypeNode,
     val constructorArguments: List<Argument>
 ) : Expr()
 
@@ -135,8 +142,8 @@ class StructFieldAccess(
     val field: String
 ) : AssignableExpr()
 
-class HereReference : Expr()
+class HereReference(val field: String?) : AssignableExpr()
 
 class TypeUse(
     val typeName: String
-) : Type
+) : TypeNode

@@ -1,23 +1,24 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val SIMPLE_ARRAY_DECLARATION_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
-                        type = ArrayType(
-                            elementType = IntType
+                        type = Array(
+                            elementType = IntTypeNode
                         ),
                         initializer = MemoryNew(
-                            type = ArrayType(
-                                elementType = IntType
+                            type = Array(
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2)),

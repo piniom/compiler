@@ -14,7 +14,7 @@ class ForeignCallManagerTest {
 
     @Test 
     fun `test generate_function_call with no arguments and no result`() {
-        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), IntType)
+        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), org.exeval.ast.IntTypeNode)
         val callManager = ForeignCallManager(function)
 
         // args
@@ -40,7 +40,7 @@ class ForeignCallManagerTest {
 
     @Test 
     fun `test generate_function_call with no arguments but result`() {
-        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), IntType)
+        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), org.exeval.ast.IntTypeNode)
         val callManager = ForeignCallManager(function)
 
         // args
@@ -74,7 +74,7 @@ class ForeignCallManagerTest {
 
     @Test
     fun `test generate_function_call with no result but some args provided`() {
-        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), IntType)
+        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), org.exeval.ast.IntTypeNode)
         val callManager = ForeignCallManager(function)
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()
@@ -125,7 +125,7 @@ class ForeignCallManagerTest {
 
     @Test
     fun `test generate_function_call with result and some args provided`() {
-        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), IntType)
+        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), org.exeval.ast.IntTypeNode)
         val callManager = ForeignCallManager(function)
         val reg1 = VirtualRegister()
         val reg2 = VirtualRegister()
@@ -185,7 +185,7 @@ class ForeignCallManagerTest {
     @Test
     fun `test generate_function_call with stack used`() {
 
-        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), IntType)
+        val function = ForeignFunctionDeclaration("mockFunctionName", listOf(), org.exeval.ast.IntTypeNode)
         val callManager = ForeignCallManager(function)
         // args
         val trees = (0 until 10).map { it -> NumericalConstantTree(it.toLong()) }

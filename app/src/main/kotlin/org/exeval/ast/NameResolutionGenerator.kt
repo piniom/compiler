@@ -180,7 +180,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun processType(typeRef: Type, user: ASTNode){
+    private fun processType(typeRef: TypeNode, user: ASTNode){
         if(typeRef !is TypeUse){
             return
         }
@@ -229,7 +229,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private fun assignArguments(call: FunctionCall, decl: AnyFunctionDeclaration) {
         var hasNamed = false
         var positionalIdx = 0
-        val usedParameters = mutableSetOf<Int>()
+        val usedParameters = mutableSetOf<kotlin.Int>()
 
         call.arguments.forEach{
             when(it) {

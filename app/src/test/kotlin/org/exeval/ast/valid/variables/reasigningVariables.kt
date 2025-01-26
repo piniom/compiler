@@ -1,43 +1,44 @@
 package org.exeval.ast.valid.variables
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val VARIABLES_REASIGNING_VARIABLES_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "kInt",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 42)
                     ),
                     ConstantDeclaration(
                         name = "kBool",
-                        type = BoolType,
+                        type = BoolTypeNode,
                         initializer = BoolLiteral(value = true)
                     ),
                     ConstantDeclaration(
                         name = "kNope",
-                        type = NopeType,
+                        type = NopeTypeNode,
                         initializer = NopeLiteral()
                     ),
                     MutableVariableDeclaration(
                         name = "x",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 3)
                     ),
                     MutableVariableDeclaration(
                         name = "falsehood",
-                        type = BoolType,
+                        type = BoolTypeNode,
                         initializer = BoolLiteral(value = false)
                     ),
                     MutableVariableDeclaration(
                         name = "nope",
-                        type = NopeType,
+                        type = NopeTypeNode,
                         initializer = NopeLiteral()
                     ),
                     Assignment(
