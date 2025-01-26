@@ -293,7 +293,7 @@ class ConstructorFrameManagerImpl(
 ) : CallableFrameManagerImpl(
     struct.name + "__constructor__",
     struct.constructorMethod,
-    listOf(Parameter("hereReference__", IntType)) + struct.constructorMethod.parameters,
+    listOf(Parameter("hereReference__", IntTypeNode)) + struct.constructorMethod.parameters,
     analyser,
     otherManagers
 ),

@@ -1,26 +1,27 @@
 package org.exeval.ast.valid.foonctions
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val FOONCTIONS_NESTED_FUNTION_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     MutableVariableDeclaration(
                         name = "ext",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(5)
                     ),
                     FunctionDeclaration(
                         name = "nested",
                         parameters = listOf(
-                            Parameter(name = "a", type = IntType)
+                            Parameter(name = "a", type = IntTypeNode)
                         ),
-                        returnType = IntType,
+                        returnType = IntTypeNode,
                         body = Block(
                             expressions = listOf(
                                 Conditional(

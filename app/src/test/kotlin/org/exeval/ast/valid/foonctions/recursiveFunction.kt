@@ -1,15 +1,16 @@
 package org.exeval.ast.valid.foonctions
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val FOONCTIONS_RECURSSIVE_FUNCTION_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "fib",
             parameters = listOf(
-                Parameter(name = "n", type = IntType)
+                Parameter(name = "n", type = IntTypeNode)
             ),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block (
                 expressions = listOf(
                     Conditional(
@@ -61,7 +62,7 @@ val FOONCTIONS_RECURSSIVE_FUNCTION_AST = Program(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     FunctionCall(

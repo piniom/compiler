@@ -1,48 +1,49 @@
 package org.exeval.ast.valid.indentifiers
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val IDENTIFIERS_VARIABLES_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = listOf(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "constant",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 0)
                     ),
                     MutableVariableDeclaration(
                         name = "variable",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     ConstantDeclaration(
                         name = "longConstantName",
-                        type = BoolType,
+                        type = BoolTypeNode,
                         initializer = BoolLiteral(value = true)
                     ),
                     MutableVariableDeclaration(
                         name = "longVariableName",
-                        type = BoolType,
+                        type = BoolTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "snaked_name",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     MutableVariableDeclaration(
                         name = "numbered123",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = null
                     ),
                     ConstantDeclaration(
                         name = "uPPERCASE_CONSTANT",
-                        type = IntType,
+                        type = IntTypeNode,
                         initializer = IntLiteral(value = 42)
                     ),
                     IntLiteral(value = 0)

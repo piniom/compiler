@@ -1,4 +1,5 @@
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 import org.exeval.input.StringInput
 import org.exeval.input.interfaces.Input
 import org.exeval.parser.Production
@@ -88,7 +89,7 @@ class AstCreatorImplTest {
 
         assertEquals("main", functionNode.name)
         assertEquals(0, functionNode.parameters.size)
-        assertTrue(functionNode.returnType is IntType)
+        assertTrue(functionNode.returnType is IntTypeNode)
 
         assertTrue(functionNode is FunctionDeclaration)
         if (functionNode is FunctionDeclaration) {

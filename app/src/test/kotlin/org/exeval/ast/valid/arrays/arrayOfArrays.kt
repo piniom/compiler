@@ -1,26 +1,27 @@
 package org.exeval.ast.valid.arrays
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val ARRAY_OF_ARRAY_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     ConstantDeclaration(
                         name = "x",
-                        type = ArrayType(
-                            elementType = ArrayType(
-                                elementType = IntType
+                        type = Array(
+                            elementType = Array(
+                                elementType = IntTypeNode
                             )
                         ),
                         initializer = MemoryNew(
-                            type = ArrayType(
-                                elementType = ArrayType(
-                                    elementType = IntType
+                            type = Array(
+                                elementType = Array(
+                                    elementType = IntTypeNode
                                 )
                             ),
                             constructorArguments = listOf(
@@ -34,8 +35,8 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(0),
                         ), 
                         MemoryNew(
-                            type = ArrayType(
-                                elementType = IntType
+                            type = Array(
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(2))
@@ -48,8 +49,8 @@ val ARRAY_OF_ARRAY_AST = Program(
                             index = IntLiteral(1),
                         ), 
                         MemoryNew(
-                            type = ArrayType(
-                                elementType = IntType
+                            type = Array(
+                                elementType = IntTypeNode
                             ),
                             constructorArguments = listOf(
                                 PositionalArgument(IntLiteral(3))

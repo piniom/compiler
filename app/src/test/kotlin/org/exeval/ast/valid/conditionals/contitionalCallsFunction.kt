@@ -1,16 +1,17 @@
 package org.exeval.ast.valid.conditionals
 
 import org.exeval.ast.*
+import org.exeval.ast.IntTypeNode
 
 val CONDITIONALS_CONDITIONAL_CALLS_FUNCTION_AST = Program(
     functions = listOf(
         FunctionDeclaration(
             name = "greaterThan",
             parameters = listOf(
-                Parameter(name = "a", type = IntType),
-                Parameter(name = "b", type = IntType)
+                Parameter(name = "a", type = IntTypeNode),
+                Parameter(name = "b", type = IntTypeNode)
             ),
-            returnType = BoolType,
+            returnType = BoolTypeNode,
             body = Block(
                 expressions = listOf(
                     Conditional(
@@ -28,7 +29,7 @@ val CONDITIONALS_CONDITIONAL_CALLS_FUNCTION_AST = Program(
         FunctionDeclaration(
             name = "main",
             parameters = emptyList(),
-            returnType = IntType,
+            returnType = IntTypeNode,
             body = Block(
                 expressions = listOf(
                     Conditional(
