@@ -3,7 +3,8 @@ foo main() -> Int = {
     let mut x: Int = 0;
     loop {
         if x >= 5 then {
-            break x
+            break x;
+            ()
         } else {
             x = x + 1
         }

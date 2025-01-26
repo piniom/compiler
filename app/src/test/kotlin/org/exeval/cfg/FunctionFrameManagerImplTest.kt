@@ -2,6 +2,7 @@ package org.exeval.cfg
 
 import io.mockk.every
 import io.mockk.mockk
+import org.exeval.ast.AnyCallableDeclaration
 import org.exeval.ast.AnyVariable
 import org.exeval.ast.FunctionAnalysisResult
 import org.exeval.ast.FunctionDeclaration
@@ -17,7 +18,7 @@ class FunctionFrameManagerImplTest {
     private lateinit var analyser: FunctionAnalysisResult
     private lateinit var functionDeclaration: FunctionDeclaration
     private lateinit var frameManager: FunctionFrameManagerImpl
-    private val otherFunctions: Map<FunctionDeclaration, FunctionFrameManager> = mockk()
+    private val otherFunctions: Map<AnyCallableDeclaration, FunctionFrameManager> = mockk()
 
     @BeforeEach
     fun setup() {
@@ -27,6 +28,7 @@ class FunctionFrameManagerImplTest {
         every { analyser.variableMap } returns mutableMapOf()
         every { analyser.isUsedInNested } returns mutableMapOf()
         every { functionDeclaration.name } returns "my_function_declaration_name"
+        every { functionDeclaration.parameters } returns listOf()
 
         frameManager = FunctionFrameManagerImpl(functionDeclaration, analyser, otherFunctions)
     }

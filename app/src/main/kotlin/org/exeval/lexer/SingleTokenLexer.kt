@@ -1,8 +1,10 @@
 package org.exeval.lexer
 
 import org.exeval.automata.interfaces.DFA
+import org.exeval.input.NotFinishedCommentException
 import org.exeval.input.interfaces.Input
 import org.exeval.input.interfaces.Location
+import org.exeval.utilities.SimpleDiagnostics
 import org.exeval.utilities.SimpleLexerToken
 import org.exeval.utilities.diagnostics.TextDidNotMatchAnyTokensDiagnostics
 import org.exeval.utilities.interfaces.LexerToken
@@ -29,7 +31,10 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
 
     public fun run(): OperationResult<LexerToken?> {
         while (activeWalkers.isNotEmpty()) {
-            val char = this.input.nextChar() ?: break
+            val (char, diagnostics) = tryGetNextChar()
+            if (diagnostics.isNotEmpty()) return OperationResult(null, diagnostics)
+            if (char == null) break
+
             val walkersToDeactivate = mutableListOf<DFAWalker<*>>() // Create a list to store walkers to deactivate
 
             for ((walker, category) in activeWalkers) {
@@ -75,5 +80,15 @@ class SingleTokenLexer(dfas: Map<DFA<*>, TokenCategory>, input: Input) {
         }
         if (walker.compareTo(any.key) < 0) return
         this.accepted = mutableMapOf(walker to category)
+    }
+
+    private fun tryGetNextChar(): OperationResult<Char?> {
+        return try {
+            OperationResult(this.input.nextChar(), listOf())
+        } catch (e: NotFinishedCommentException) {
+            OperationResult(null, listOf(SimpleDiagnostics("Comment has not been finished at the end of the input file.", this.input.location, this.input.location)))
+        } catch (e: Exception) {
+            OperationResult(null, listOf(SimpleDiagnostics("Error while reading the input file.", this.input.location, this.input.location)))
+        }
     }
 }

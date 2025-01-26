@@ -11,8 +11,6 @@ import org.exeval.cfg.interfaces.UsableMemoryCell
 import org.exeval.cfg.interfaces.CFGNode
 
 interface FunctionFrameManager: CallManager {
-    val f: FunctionDeclaration
-
     fun generate_var_access(
         x: AnyVariable,
         functionFrameOffset: Tree = RegisterTree(PhysicalRegister.RBP)
@@ -23,4 +21,8 @@ interface FunctionFrameManager: CallManager {
     fun generate_prolog(then: CFGNode): CFGNode
     fun generate_epilouge(result: Tree?): CFGNode
     fun alloc_frame_memory(): AssignableTree
+}
+
+interface ConstructorFrameManager: FunctionFrameManager {
+    fun generate_here_access(functionFrameOffset: Tree): AssignableTree
 }

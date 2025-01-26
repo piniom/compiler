@@ -485,13 +485,19 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         for (child in children) {
             val childSymbol = getSymbol(child)
 
+            val range = LocationRange(child.startLocation, child.endLocation)
+
             when {
                 childSymbol === ExpressionSymbol && isVariableAssignment(child) -> {
                     val variableAssignment = createAux(child, input) as Assignment
-                    arguments.add(NamedArgument(getNameOfVariableToAssign(variableAssignment.variable), variableAssignment.value))
+                    val argument = NamedArgument(getNameOfVariableToAssign(variableAssignment.variable), variableAssignment.value)
+                    arguments.add(argument)
+                    locationsMap.put(argument, range)
                 }
                 childSymbol === ExpressionSymbol -> {
-                    arguments.add(PositionalArgument(createAux(child, input) as Expr))
+                    val argument = PositionalArgument(createAux(child, input) as Expr)
+                    arguments.add(argument)
+                    locationsMap.put(argument, range)
                 }
                 childSymbol === FunctionCallArgumentsSymbol -> {
                     arguments.addAll(parseFunctionCallArguments(child, input))

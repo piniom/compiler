@@ -2,7 +2,7 @@ foo main() -> Int = {
     loop@firstLoop {
         loop@firstLoop {
             // Muliple loops with the same label
-            break@firstLoop 1;
+            break@firstLoop 1
         }
     }
 }
