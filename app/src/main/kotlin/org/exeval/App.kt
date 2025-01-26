@@ -19,7 +19,6 @@ import org.exeval.instructions.InstructionCoverer
 import org.exeval.instructions.InstructionSetCreator
 import org.exeval.instructions.LivenessCheckerImpl
 import org.exeval.instructions.RegisterAllocatorImpl
-import org.exeval.instructions.interfaces.LivenessResult
 import org.exeval.instructions.linearizer.BasicBlock
 import org.exeval.instructions.linearizer.Linearizer
 import org.exeval.lexer.DFAmin
@@ -29,7 +28,7 @@ import org.exeval.lexer.NFAParserImpl
 import org.exeval.lexer.interfaces.Lexer
 import org.exeval.lexer.interfaces.RegexParser
 import org.exeval.lexer.regexparser.RegexParserImpl
-import org.exeval.parser.Parser
+import org.exeval.parser.parser.Parser
 import org.exeval.parser.grammar.GrammarSymbol
 import org.exeval.parser.grammar.LanguageGrammar
 import org.exeval.parser.utilities.GrammarAnalyser
@@ -38,7 +37,7 @@ import org.exeval.utilities.TokenCategories
 import org.exeval.utilities.LexerUtils
 import org.exeval.utilities.interfaces.OperationResult
 import java.io.File
-import java.io.IOException
+import org.exeval.parser.grammar.PrecompiledParserFactory
 
 private val logger = KotlinLogging.logger {}
 
@@ -69,6 +68,12 @@ fun main(args: Array<String>) {
         logger.warn { "[NameResolution diagnostic] ${diagnostic.message}" }
     }
 
+    val constChecker = ConstChecker()
+    val constErrors = constChecker.check(nameResolutionOutput.result, astInfo)
+    for (diagnostic in constErrors) {
+        logger.warn { "[ConstChecker diagnostic] ${diagnostic.message}" }
+    }
+
     val typeCheckerOutput = TypeChecker(astInfo, nameResolutionOutput.result).parse()
     for (diagnostic in typeCheckerOutput.diagnostics) {
         logger.warn { "[TypeChecker diagnostic] ${diagnostic.message}" }
@@ -78,22 +83,35 @@ fun main(args: Array<String>) {
 
     val functions = (astInfo.root as Program).functions.filterIsInstance<FunctionDeclaration>()
 
-    val frameManagers = mutableMapOf<FunctionDeclaration, FunctionFrameManager>()
+    val frameManagers = mutableMapOf<AnyCallableDeclaration, FunctionFrameManager>()
     for (function in functions) {
         frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
+    for (structure in astInfo.root.structures) {
+        frameManagers[structure.constructorMethod] = ConstructorFrameManagerImpl(structure, functionAnalisisResult, frameManagers)
+    }
 
-    val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
+    val foreignFs = astInfo.root.functions.filterIsInstance<ForeignFunctionDeclaration>()
     val fCallMMap = foreignFs.associate{it to ForeignCallManager(it)}
 
     // CFG
-    val nodes = functionNodes(
+    val functionNodes = functionNodes(
         functions,
         functionAnalisisResult,
         nameResolutionOutput,
         frameManagers,
         typeCheckerOutput,
         fCallMMap)
+
+    val constructorNodes = constructorNodes(
+        astInfo.root.structures,
+        functionAnalisisResult,
+        nameResolutionOutput,
+        frameManagers,
+        typeCheckerOutput,
+        fCallMMap)
+
+    val nodes = functionNodes + constructorNodes
 
     val codeBuilder = CodeBuilder(functionAnalisisResult.maxNestedFunctionDepth());
 
@@ -166,7 +184,7 @@ fun buildInput(fileName: String): Input {
 fun buildParser(): Parser<GrammarSymbol> {
     val grammarAnalyser = GrammarAnalyser()
     val analyzedGrammar = grammarAnalyser.analyseGrammar(LanguageGrammar.grammar)
-    val parser = Parser(analyzedGrammar)
+    val parser = PrecompiledParserFactory().create(analyzedGrammar)
     return parser
 }
 
@@ -181,11 +199,11 @@ private fun registersDomain(linearizedFunction: List<BasicBlock>) =
         }
     }.flatten().flatten().flatten().distinct().toSet()
 
-private fun functionNodes(
+fun functionNodes(
     functions: List<FunctionDeclaration>,
     functionAnalisisResult: FunctionAnalysisResult,
     nameResolutionOutput: OperationResult<NameResolution>,
-    frameManagers: MutableMap<FunctionDeclaration, FunctionFrameManager>,
+    frameManagers: MutableMap<AnyCallableDeclaration, FunctionFrameManager>,
     typeCheckerOutput: OperationResult<TypeMap>,
     foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
 ) = functions.map {
@@ -199,3 +217,23 @@ private fun functionNodes(
         frameManagers + foreignCallManagers
     ).makeCfg(it)
 }
+
+private fun constructorNodes(
+    structures: List<StructTypeDeclaration>,
+    functionAnalisisResult: FunctionAnalysisResult,
+    nameResolutionOutput: OperationResult<NameResolution>,
+    frameManagers: MutableMap<AnyCallableDeclaration, FunctionFrameManager>,
+    typeCheckerOutput: OperationResult<TypeMap>,
+    foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
+) = structures.map {
+    val variableUsage =
+        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.constructorMethod.body).run()
+    it.name to CFGMaker(
+        frameManagers[it.constructorMethod]!!,
+        nameResolutionOutput.result,
+        variableUsage,
+        typeCheckerOutput.result,
+        frameManagers + foreignCallManagers
+    ).makeConstructorCfg(it.constructorMethod)
+}
+
