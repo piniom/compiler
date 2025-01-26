@@ -180,7 +180,7 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
         }
     }
 
-    private fun processType(typeRef: Type, user: ASTNode){
+    private fun processType(typeRef: TypeNode, user: ASTNode){
         if(typeRef !is TypeUse){
             return
         }
