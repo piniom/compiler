@@ -744,7 +744,7 @@ class FunctionAnalyserTest {
     @Test
     fun `test function analysis with simple constructor`() {
         // Create a simple AST with two functions
-        val intType: Type = mockType()
+        val intType: TypeNode = mockType()
         val program = Program(
             functions = listOf(
                 FunctionDeclaration(
@@ -769,11 +769,11 @@ class FunctionAnalyserTest {
             ),
             structures = listOf(
                 StructTypeDeclaration(
-                    "struct", listOf(ConstantDeclaration("field", IntType, IntLiteral(1))),
+                    "struct", listOf(ConstantDeclaration("field", IntTypeNode, IntLiteral(1))),
                     ConstructorDeclaration(
-                        listOf(Parameter("arg", IntType)), Block(
+                        listOf(Parameter("arg", IntTypeNode)), Block(
                             listOf(
-                                Assignment(StructFieldAccess(HereReference(), "field"), VariableReference("arg")),
+                                Assignment(StructFieldAccess(HereReference(null), "field"), VariableReference("arg")),
                                 FunctionCall(
                                     functionName = "foo",
                                     arguments = listOf(PositionalArgument(VariableReference("y")))

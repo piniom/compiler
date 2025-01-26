@@ -367,8 +367,8 @@ class NameResolutionTest {
         val decl = StructTypeDeclaration(
             "A",
             listOf(
-                MutableVariableDeclaration("a", IntType),
-                MutableVariableDeclaration("a", IntType)
+                MutableVariableDeclaration("a", IntTypeNode),
+                MutableVariableDeclaration("a", IntTypeNode)
             ),
             ConstructorDeclaration(listOf(),Block(listOf()))
         )
@@ -383,11 +383,11 @@ class NameResolutionTest {
 
     @Test
     fun `should handle constructor`(){
-        val b_decl = MutableVariableDeclaration("b",IntType)
+        val b_decl = MutableVariableDeclaration("b",IntTypeNode)
         val b_ref = VariableReference("b")
-        val c_param = Parameter("c",IntType)
+        val c_param = Parameter("c",IntTypeNode)
         val c_ref = VariableReference("c")
-        val a_decl = MutableVariableDeclaration("a", IntType)
+        val a_decl = MutableVariableDeclaration("a", IntTypeNode)
         val a_mem_ref = VariableReference("a")
         val a_ass = Assignment(a_mem_ref,b_ref)
         val decl = StructTypeDeclaration(
@@ -396,8 +396,8 @@ class NameResolutionTest {
                 a_decl
             ),
             ConstructorDeclaration(listOf(c_param),Block(listOf(
-                Assignment(StructFieldAccess(HereReference(),"a"), b_ref),
-                Assignment(StructFieldAccess(HereReference(),"a"), c_ref),
+                Assignment(StructFieldAccess(HereReference(null),"a"), b_ref),
+                Assignment(StructFieldAccess(HereReference(null),"a"), c_ref),
                 a_ass
             )))
         )
@@ -424,15 +424,15 @@ class NameResolutionTest {
             StructTypeDeclaration(
                 "A",
                 listOf(
-                    MutableVariableDeclaration("a", IntType),
-                    MutableVariableDeclaration("a", IntType)
+                    MutableVariableDeclaration("a", IntTypeNode),
+                    MutableVariableDeclaration("a", IntTypeNode)
                 ),
                 ConstructorDeclaration(listOf(),Block(listOf()))
             ),
             StructTypeDeclaration(
                 "A",
                 listOf(
-                    MutableVariableDeclaration("a", IntType)
+                    MutableVariableDeclaration("a", IntTypeNode)
                 ),
                 ConstructorDeclaration(listOf(),Block(listOf()))
             )
