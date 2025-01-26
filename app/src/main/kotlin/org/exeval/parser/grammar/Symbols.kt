@@ -198,6 +198,7 @@ object BlockFunctionDefinitionSymbol : GrammarSymbol {
 	)
 }
 
+TODO("oopsie")
 @Serializable
 object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(

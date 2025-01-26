@@ -254,6 +254,9 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
         } else if (symbol === ArrayAccessSymbol) {
             astNode = processArrayAccess(children, input) ?: throw IllegalStateException("ArrayAcessSymbol $locationRange")
         }
+        else if (symbol === ForeignFunctionDeclarationSymbol){
+            TODO("Foreign function")
+        }
         else {
             throw IllegalStateException("$symbol $locationRange")
         }

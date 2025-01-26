@@ -36,17 +36,18 @@ class NameResolutionGenerator(private val astInfo: AstInfo) {
     private val assignmentToDecl: MutableMap<Assignment, AnyVariable> = mutableMapOf()
     private val useToStruct: MutableMap<TypeUse, StructTypeDeclaration> = mutableMapOf()
 
-    init {
-        injectStdlibFunctionsDeclarations()
-    }
+    // TODO(i think it is not needed)
+   //  init {
+   //      injectStdlibFunctionsDeclarations()
+   //  }
 
-    fun injectStdlibFunctionsDeclarations() {
-        var stdFuncsDecls = mutableMapOf<String, ASTNode>()
-        for (decl in StdlibDeclarationsCreator.getDeclarations()) {
-            stdFuncsDecls[decl.name] = decl
-        }
-        declarations.addFirst(stdFuncsDecls)
-    }
+   //  fun injectStdlibFunctionsDeclarations() {
+   //      var stdFuncsDecls = mutableMapOf<String, ASTNode>()
+   //      for (decl in StdlibDeclarationsCreator.getDeclarations()) {
+   //          stdFuncsDecls[decl.name] = decl
+   //      }
+   //      declarations.addFirst(stdFuncsDecls)
+   //  }
 
     fun parse(): OperationResult<NameResolution> {
         processAsBlock {
