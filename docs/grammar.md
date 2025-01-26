@@ -1,10 +1,11 @@
 # ExEval formal grammar
 
-A grammatically-correct program file consists only of function definitions:
+A grammatically-correct program file consists only of function and structures definitions:
 
 ```
-<program> ::= <function declarations>
-<function declarations> ::= <function declaration> | <function declaration> <function declarations>
+<program> ::= <Top level statements delcarations>
+<Top level statement delcarations> ::= <function declaration> | <function declaration> <Top level statement delcarations> 
+	| <structure declaration> | <structure declaration> <Top level statement delcarations>
 ```
 
 Function is defined with `foo` keyword. It may take zero or more arguments. In the first case,
@@ -25,6 +26,10 @@ Entrypoint is a special case of function.
 
 <function params> ::= <function param> | <function param> <comma> <function params>
 <function param> ::= <identifier> <colon> <type>
+
+<constructor params> = <ctor> <left curly bracket> <function params> <right curly bracket> <assign> | <ctor> <literalNope> <assign> 
+<constructor declaration> = <constructor params> <expression> 
+
 ```
 
 Functions can be called both with named and unnamed arguments. Grammar does not enforce that
@@ -35,6 +40,38 @@ from a named argument, so no distinction is made. An argument can be any express
 <function call> ::= <identifier> <left round bracket> <function call arguments> <right round bracket>
 	| <identifier> <nope> | <identifier> <left round bracket> <right round bracket>
 <function call arguments> ::= <expression> | <expression> <comma> <functoin call arguments>
+```
+
+Allocation & Deallocation
+
+```
+<alloc> ::= <new> <type> <left round bracket> <function call> <right round bracket>
+<dealloc> ::= <del> <expression>
+```
+
+Structures
+
+```
+<struct definition> ::= <uct> <type> <assign> <left curly bracket> <struct definition body> <right curly bracket>
+<struct definition body> ::= <struct definition body property> | <struct definition body property> <semicolon> <struct definition body>
+	| <struct definition body property> <struct definition body>
+
+<struct definition body property> ::= <variable declaration> | <constant declaration> | <constructor declaration>
+	| <let> <identifier> <colon> <type>
+
+<here access> ::= <here> | <here> <dot> <struct access> | <here> <dot> <identifier> | <here> <dot> <array access>
+
+<struct access> ::= <array access> <dot> <identifier> | <array access> <dot> <array access> | <array access> <dot> <sturct access>
+	| <identifier> <dot> <identifier> | <identifier> <dot> <array access> | <identifier> <dot> <struct access>
+	| <function call> <dot> <struct access> | <function call> <dot> <identifier> | <function call> <dot> <array access>
+```
+
+Arrays are used like in most common languages
+
+```
+<array index> ::= <left square bracket> <expression> <right square bracket> | <left square bracket> <expression> <right square bracket> <array index>
+<array access> ::= <identifier> <array index> | <function call> <array index> | <left round bracket> <expression> <right round bracket> <array index>
+
 ```
 
 Expressions are divided into two types: those that need to end with a semicolon and those that don't.
@@ -57,7 +94,7 @@ the last expression in a block, and all expressions in a block have to be separa
 	| <expression block> <error> <semicolon> <expression chain>
 <simple expression> ::= <value> | <identifier> | <arithmetic expression> | <variable declaration>
 	| <constant declaration> | <variable assignment> | <function declaration> | <functoin call>
-	| <if then else> | <loop> | <break expression>
+	| <if then else> | <loop> | <break expression> | <array access> | <structure access> | <here access>
 <expression with semicolon> ::= <if then> | <break keyword>
 <last expression in block> ::= <if then without semicolon> | <break keyword without semicolon>
 ```
@@ -107,7 +144,8 @@ to be assigned a value at declaration is enforced by grammar. Only variables can
 	| <let> <mut> <identifier> <colon> <type> <assign> <expression>
 <constant declaration> ::= <let> <identifier> <colon> <assign> <expression>
 
-<variable assignment> ::= <identifier> <assign> <expression>
+<variable assignment> ::= <identifier> <assign> <expression> | <array access> <assign> <expression>
+	| <struct access> <assign> <expression> | <here access> <assign> <expression>
 ```
 
 There is one special terminal, `<error>`, which does not correspond to any token. It's sole purpose is
@@ -120,11 +158,14 @@ correspond to tokens defined in [TokenCategories](../app/src/main/kotlin/org/exe
 <colon> = PunctuationColon
 <comma> = PunctuationComma
 <arrow> = PunctuationArrow
+<dot> = PunctuationDot
 <at> = PunctuationMonkey
 <left curly bracket> = PunctuationLeftCurlyBracket
 <right curly bracket> = PunctuationRightCurlyBracket
 <left round bracket> = PunctuationLeftRoundBracket
 <right round bracket> = PunctuationRightRoundBracket
+<left square bracket> = PunctuationLeftSquareBracket
+<right square bracket> = PunctuationRightSquareBracket
 <integer> = LiteralInteger
 <boolean> = LiteralBoolean
 <nope> = LiteralNope
@@ -153,4 +194,10 @@ correspond to tokens defined in [TokenCategories](../app/src/main/kotlin/org/exe
 <identifier> = IdentifierNontype
 <type> = IdentifierType
 <identifier entrypoint> = IdentifierEntrypoint
+<here> = KeywordHere
+<ctor> = KeywordCtor
+<uct> = KeywordUct
+<nothing> = LiteralNothing
+<new> = KeywordNew
+<del> = KeywordDel
 ```

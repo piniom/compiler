@@ -36,7 +36,6 @@ class GrammarAnalyser {
         grammar.productions.forEach {
             transitions.getOrPut(it.left) { mutableSetOf() }.add(it.right)
         }
-
         val nullable = NullableGrammarCreator().getNullable(transitions)
 
         return AnalyzedGrammar(

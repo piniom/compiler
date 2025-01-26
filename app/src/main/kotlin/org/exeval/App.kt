@@ -83,22 +83,35 @@ fun main(args: Array<String>) {
 
     val functions = (astInfo.root as Program).functions.filterIsInstance<FunctionDeclaration>()
 
-    val frameManagers = mutableMapOf<FunctionDeclaration, FunctionFrameManager>()
+    val frameManagers = mutableMapOf<AnyCallableDeclaration, FunctionFrameManager>()
     for (function in functions) {
         frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
+    for (structure in astInfo.root.structures) {
+        frameManagers[structure.constructorMethod] = ConstructorFrameManagerImpl(structure, functionAnalisisResult, frameManagers)
+    }
 
-    val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
+    val foreignFs = astInfo.root.functions.filterIsInstance<ForeignFunctionDeclaration>()
     val fCallMMap = foreignFs.associate{it to ForeignCallManager(it)}
 
     // CFG
-    val nodes = functionNodes(
+    val functionNodes = functionNodes(
         functions,
         functionAnalisisResult,
         nameResolutionOutput,
         frameManagers,
         typeCheckerOutput,
         fCallMMap)
+
+    val constructorNodes = constructorNodes(
+        astInfo.root.structures,
+        functionAnalisisResult,
+        nameResolutionOutput,
+        frameManagers,
+        typeCheckerOutput,
+        fCallMMap)
+
+    val nodes = functionNodes + constructorNodes
 
     val codeBuilder = CodeBuilder(functionAnalisisResult.maxNestedFunctionDepth());
 
@@ -186,11 +199,11 @@ private fun registersDomain(linearizedFunction: List<BasicBlock>) =
         }
     }.flatten().flatten().flatten().distinct().toSet()
 
-private fun functionNodes(
+fun functionNodes(
     functions: List<FunctionDeclaration>,
     functionAnalisisResult: FunctionAnalysisResult,
     nameResolutionOutput: OperationResult<NameResolution>,
-    frameManagers: MutableMap<FunctionDeclaration, FunctionFrameManager>,
+    frameManagers: MutableMap<AnyCallableDeclaration, FunctionFrameManager>,
     typeCheckerOutput: OperationResult<TypeMap>,
     foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
 ) = functions.map {
@@ -204,3 +217,23 @@ private fun functionNodes(
         frameManagers + foreignCallManagers
     ).makeCfg(it)
 }
+
+private fun constructorNodes(
+    structures: List<StructTypeDeclaration>,
+    functionAnalisisResult: FunctionAnalysisResult,
+    nameResolutionOutput: OperationResult<NameResolution>,
+    frameManagers: MutableMap<AnyCallableDeclaration, FunctionFrameManager>,
+    typeCheckerOutput: OperationResult<TypeMap>,
+    foreignCallManagers: Map<ForeignFunctionDeclaration, CallManager>
+) = structures.map {
+    val variableUsage =
+        usageAnalysis(functionAnalisisResult.callGraph, nameResolutionOutput.result, it.constructorMethod.body).run()
+    it.name to CFGMaker(
+        frameManagers[it.constructorMethod]!!,
+        nameResolutionOutput.result,
+        variableUsage,
+        typeCheckerOutput.result,
+        frameManagers + foreignCallManagers
+    ).makeConstructorCfg(it.constructorMethod)
+}
+
