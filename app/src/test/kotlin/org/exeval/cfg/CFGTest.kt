@@ -2,6 +2,8 @@ package org.exeval.cfg
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
+import kotlin.test.Ignore
 import org.exeval.cfg.interfaces.CFGNode
 import org.exeval.cfg.Tree
 import org.exeval.ast.*
@@ -62,14 +64,14 @@ class CFGTest{
         override var branches: Pair<CFGNode,CFGNode?>?,
         override val trees: List<Tree>
     ) : CFGNode {}
-    fun getCFG(e:Expr):CFGNode{
+    fun getCFG(e:Expr, ffmOverride:FunctionFrameManager? = null):CFGNode{
         //ASSUMPTION: NO FUNCTION CALLS
         val main = FunctionDeclaration("main",listOf(), NopeType,e)
         val info = AstInfo(main,mapOf())
         val nr = NameResolutionGenerator(info).parse().result
         val tm = TypeChecker(info,nr).parse().result
         val ar = FunctionAnalyser().analyseFunctions(info)
-        val ffm = FunctionFrameManagerMock(FunctionFrameManagerImpl(main,ar,mapOf()), main)
+        val ffm = ffmOverride ?: FunctionFrameManagerMock(FunctionFrameManagerImpl(main,ar,mapOf()), main)
         val uag = usageAnalysis(ar.callGraph,nr,main)
         uag.run()
         val ua = uag.getAnalysisResult()
@@ -346,5 +348,80 @@ class CFGTest{
         )))
         val value = Constant(1)
         assert(placement(getCFG(ast), value))
+    }
+    @Test
+    fun simpleBlockTest(){
+        val aVarReference = VariableReference("a")
+        val aVarDeclaration = MutableVariableDeclaration("a", IntType, IntLiteral(1))
+        val bVarReference = VariableReference("b")
+        val bVarDeclaration = MutableVariableDeclaration("b", IntType, IntLiteral(0))
+        val ast = Block(listOf(
+            aVarDeclaration,
+            bVarDeclaration,
+            Assignment(bVarReference, BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(3))),
+            bVarReference,
+        ))
+        /*
+        {
+            let mut a = 1;
+            let mut b = 0;
+            b = a + 1;
+            b
+        }
+         */
+
+         val ffm = mockk<FunctionFrameManager>()
+         val aVarRegister = RegisterTree(VirtualRegister())
+         val bVarRegister = RegisterTree(VirtualRegister())
+         every { ffm.generate_var_access(aVarDeclaration, any()) } returns aVarRegister
+         every { ffm.generate_var_access(bVarDeclaration, any()) } returns bVarRegister
+         every { ffm.generate_epilouge(any()) } returns CFGNodeImpl(null, emptyList())
+         every { ffm.generate_prolog(any()) } returnsArgument 0
+         val cfg = getCFG(ast, ffm)
+
+         // Verify that the last instruction, and not null, is used as return statement
+         verify {
+             ffm.generate_epilouge(bVarRegister)
+         }
+    }
+    @Ignore("generate_epilouge is incorrectly called with null")
+    @Test
+    fun nestedBlockTest(){
+        val aVarReference = VariableReference("a")
+        val aVarDeclaration = MutableVariableDeclaration("a", IntType, IntLiteral(1))
+        val bVarReference = VariableReference("b")
+        val bVarDeclaration = MutableVariableDeclaration("b", IntType, IntLiteral(0))
+        val ast = Block(listOf(
+            aVarDeclaration,
+            Block(listOf(
+                bVarDeclaration,
+                Assignment(bVarReference, BinaryOperation(aVarReference, BinaryOperator.PLUS, IntLiteral(3))),
+                bVarReference,
+            ))
+        ))
+        /*
+        {
+            let mut a = 1;
+            {
+                let mut b = 0;
+                b = a + 1;
+                b
+            }
+        }
+         */
+
+         val ffm = mockk<FunctionFrameManager>()
+         val aVarRegister = RegisterTree(VirtualRegister())
+         val bVarRegister = RegisterTree(VirtualRegister())
+         every { ffm.generate_var_access(aVarDeclaration, any()) } returns aVarRegister
+         every { ffm.generate_var_access(bVarDeclaration, any()) } returns bVarRegister
+         every { ffm.generate_epilouge(any()) } returns CFGNodeImpl(null, emptyList())
+         every { ffm.generate_prolog(any()) } returnsArgument 0
+         val cfg = getCFG(ast, ffm)
+
+         // Verify that the last instruction, and not null, is used as return statement
+         verify {
+             ffm.generate_epilouge(bVarRegister)
+         }
     }
 }
