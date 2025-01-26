@@ -466,7 +466,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             val parameterType = functionDecl?.parameters?.getOrNull(index)?.type
             val argumentType = innerParse(argument.expression)
 
-            if (parameterType != argumentType) {
+            if (convertTypeNodeToType(parameterType) != argumentType) {
                 addDiagnostic("Argument type does not match parameter type", argument.expression)
             }
 
@@ -478,7 +478,7 @@ class TypeChecker(private val astInfo: AstInfo, private val nameResolutionResult
             val parameterType = paramMap?.get(argument.name)?.type
             val argumentType = innerParse(argument.expression)
 
-            if (parameterType != argumentType) {
+            if (convertTypeNodeToType(parameterType) != argumentType) {
                 addDiagnostic("Argument type does not match parameter type", argument.expression)
             }
         }
