@@ -220,21 +220,21 @@ class LivenessCheckerTest {
 
         val result = checker.check(input)
         val expectedInterference = mapOf<Register, Set<Register>>(
-            Pair(regs[0], setOf(regs[1], regs[2], regs[4])),
+            Pair(regs[0], setOf(regs[1], regs[2], regs[3], regs[4], regs[5])),
             Pair(regs[1], setOf(regs[0])),
             Pair(regs[2], setOf(regs[0])),
-            Pair(regs[3], setOf()),
+            Pair(regs[3], setOf(regs[0])),
             Pair(regs[4], setOf(regs[0])),
-            Pair(regs[5], setOf()),
+            Pair(regs[5], setOf(regs[0])),
             Pair(regs[6], setOf()),
         )
         val expectedCopy = mapOf<Register, Set<Register>>(
-            Pair(regs[0], setOf(regs[3], regs[5])),
+            Pair(regs[0], setOf()),
             Pair(regs[1], setOf(regs[3])),
             Pair(regs[2], setOf(regs[5])),
-            Pair(regs[3], setOf(regs[0], regs[1], regs[4])),
+            Pair(regs[3], setOf(regs[1], regs[4])),
             Pair(regs[4], setOf(regs[3])),
-            Pair(regs[5], setOf(regs[0], regs[2], regs[6])),
+            Pair(regs[5], setOf(regs[2], regs[6])),
             Pair(regs[6], setOf(regs[5])),
         )
 

@@ -73,9 +73,16 @@ class LivenessCheckerImpl: LivenessChecker {
             if (!instruction.isCopy()) {
                 for (register in registers) {
                     interferenceGraph[register]!!.addAll(liveOut[instruction]!!)
+
+                    for (reg in liveOut[instruction]!!) {
+                        if (reg != register) {
+                            interferenceGraph[reg]!!.addAll(copyGraph[register]!!)
+                        }
+                    }
                 }
             }
         }
+
         //make undirected
         var igCopy = mutableMapOf<Register, Set<Register>>()
         igCopy.putAll(interferenceGraph)
