@@ -176,6 +176,8 @@ class AstCreatorImpl : AstCreator<GrammarSymbol> {
                     valueExpr = createAux(child, input) as Expr
                 } else if (childSymbol === StructAccessSymbol || childSymbol === HereAccess) {
                     variableExpr = createAux(child, input) as AssignableExpr
+                } else if (childSymbol === ArrayAccessSymbol) {
+                    variableExpr = createAux(child, input) as AssignableExpr
                 }
             }
             astNode = Assignment(variableExpr!!, valueExpr!!)
