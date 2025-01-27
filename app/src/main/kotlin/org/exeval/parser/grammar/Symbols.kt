@@ -198,7 +198,6 @@ object BlockFunctionDefinitionSymbol : GrammarSymbol {
 	)
 }
 
-TODO("oopsie")
 @Serializable
 object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 	override fun productions() = listOf(
@@ -212,6 +211,15 @@ object ForeignFunctionDeclarationSymbol: GrammarSymbol {
 			Token.PunctuationArrow,
 			TypeSymbol,
 		),
+		listOf(
+			Token.KeywordForeign,
+			Token.KeywordFoo,
+			Token.IdentifierNontype,
+			Token.PunctuationLeftRoundBracket,
+			Token.PunctuationRightRoundBracket,
+			Token.PunctuationArrow,
+			TypeSymbol,
+		)
 	)
 }
 

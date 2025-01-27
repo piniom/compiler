@@ -1,7 +1,5 @@
 // Program to print the square of given number
 
-foreign foo print_int(num: Int) -> Nope
-
 foo main() -> Int = {
     let mut a: Int;
     a = scan_int();

@@ -1,8 +1,10 @@
 package org.exeval.ast
 
+import StdlibDeclarationsCreator
+
 class FunctionAnalyser() {
 
-    private var callGraph: MutableMap<FunctionDeclaration, MutableSet<FunctionDeclaration>> = mutableMapOf()
+    private var callGraph: MutableMap<FunctionDeclaration, MutableSet<AnyFunctionDeclaration>> = mutableMapOf()
     private var staticParents: MutableMap<FunctionDeclaration, FunctionDeclaration?> = mutableMapOf()
     private var variableMap: MutableMap<AnyVariable, FunctionDeclaration> = mutableMapOf()
     private var isUsedInNested: MutableMap<AnyVariable, Boolean> = mutableMapOf()
@@ -35,8 +37,13 @@ class FunctionAnalyser() {
 
     private fun buildCallGraph() {
         functionCallParent.forEach { (key, value) ->
-            val funcDeclar = getFuctionCallToDeclaration(key, value)
-            
+            var funcDeclar: AnyFunctionDeclaration? = getFuctionCallToDeclaration(key, value)
+
+            if (funcDeclar == null){
+                //Foreign builtin func
+
+               funcDeclar = StdlibDeclarationsCreator.getDeclarations().find { it.name == key.functionName  && it.parameters.size == key.arguments.size}
+            }
             // this value should always be not null otherwise it means there are not func declaration for this call
             if (funcDeclar != null)
                 // add that func 'funcDeclar' is called inside of function 'value'
@@ -76,6 +83,7 @@ class FunctionAnalyser() {
         when (node) {
             is Program -> analyseProgramDeclaration(node, context)
             is FunctionDeclaration -> analyseFunctionDeclaration(node, context)
+            is ForeignFunctionDeclaration -> analyseForeignFunctionDeclaration(node, context)
             is AnyVariable -> analyseAnyVariable(node, context)
             is Block -> analyseBlock(node, context)
             is Assignment -> analyseAssignment(node, context)
@@ -193,6 +201,34 @@ class FunctionAnalyser() {
 
         // Continue analisys and change context
         analyseSubtree(declaration.body, declaration)
+    }
+    private fun analyseForeignFunctionDeclaration(declaration : ForeignFunctionDeclaration, context : FunctionDeclaration?) {
+        // Assign function parent
+        TODO()
+       //  staticParents[declaration] = context
+
+       //  // Initialize function call graph entry if not already present
+       //  if (!callGraph.containsKey(declaration)) {
+       //      callGraph[declaration] = mutableSetOf()
+       //  }
+
+       //  // Perform function's parameters
+       //  declaration.parameters.forEach { param ->
+       //      analyseSubtree(param, declaration )
+       //  }
+
+       //  if (context == null) {
+       //      if(!functionChilds.containsKey(declaration))
+       //          functionChilds[declaration] = mutableSetOf()
+       //      globalFunctions.add(declaration)
+       //  }
+       //  else {
+       //      if(!functionChilds.containsKey(declaration))
+       //          functionChilds[declaration] = mutableSetOf()
+       //      if(!functionChilds.containsKey(context))
+       //          functionChilds[context] = mutableSetOf()
+       //      functionChilds[context]!!.add(declaration)
+       //  }
     }
     
     private fun analyseAnyVariable(variable : AnyVariable, context : FunctionDeclaration?) {

@@ -1,3 +1,3 @@
 package org.exeval.ast
 
-typealias CallGraph = Map<FunctionDeclaration, Set<FunctionDeclaration>>
+typealias CallGraph = Map<FunctionDeclaration, Set<AnyFunctionDeclaration>>

@@ -6,7 +6,7 @@ import org.exeval.ast.NopeType
 
 class StdlibDeclarationsCreator {
     companion object {
-        fun getDeclarations(): List<AnyFunctionDeclaration> {
+        fun getDeclarations(): List<ForeignFunctionDeclaration> {
             return listOf(
                 ForeignFunctionDeclaration(
                     name = "print_int",
