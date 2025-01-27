@@ -384,7 +384,6 @@ class CFGTest{
              ffm.generate_epilouge(bVarRegister)
          }
     }
-    @Ignore("generate_epilouge is incorrectly called with null")
     @Test
     fun nestedBlockTest(){
         val aVarReference = VariableReference("a")
