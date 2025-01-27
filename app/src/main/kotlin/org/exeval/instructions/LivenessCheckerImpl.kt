@@ -70,10 +70,19 @@ class LivenessCheckerImpl: LivenessChecker {
 
         //edges
         for((instruction, registers) in def) {
-            for (register in registers) {
-                interferenceGraph[register]!!.addAll(liveOut[instruction]!!)
+            if (!instruction.isCopy()) {
+                for (register in registers) {
+                    interferenceGraph[register]!!.addAll(liveOut[instruction]!!)
+
+                    for (reg in liveOut[instruction]!!) {
+                        if (reg != register) {
+                            interferenceGraph[reg]!!.addAll(copyGraph[register]!!)
+                        }
+                    }
+                }
             }
         }
+
         //make undirected
         var igCopy = mutableMapOf<Register, Set<Register>>()
         igCopy.putAll(interferenceGraph)
@@ -90,9 +99,9 @@ class LivenessCheckerImpl: LivenessChecker {
             interferenceGraph[register]!!.remove(register)
         }
 
-        //remove CopyGraph edges from inferenceGraph
-        for((register, list) in copyGraph){
-            interferenceGraph[register]!!.removeAll(list)
+        //remove interferenceGraph edges from copyGraph
+        for((register, list) in interferenceGraph){
+            copyGraph[register]!!.removeAll(list)
         }
         return LivenessResult(interferenceGraph,  copyGraph)
     }

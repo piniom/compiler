@@ -41,6 +41,8 @@ class InstructionSetCreator {
             + createSimpleComparisonPatterns(BinaryGreaterTreeKind, OperationAsm.CMOVG, OperationAsm.JG)
             + createSimpleComparisonPatterns(BinaryGreaterEqualTreeKind, OperationAsm.CMOVGE, OperationAsm.JGE)
             + createSimpleComparisonPatterns(BinaryEqualTreeKind, OperationAsm.CMOVE, OperationAsm.JE)
+            + createSimpleComparisonPatterns(BinaryLessTreeKind, OperationAsm.CMOVL, OperationAsm.JL)
+            + createSimpleComparisonPatterns(BinaryLessEqualTreeKind, OperationAsm.CMOVLE, OperationAsm.JLE)
 
             + createNotPatterns()
             + createNegationPatterns()
@@ -221,7 +223,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[0], NumericalConstant(0))
+                        CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     JeInstruction(shortCutLabel)
@@ -233,7 +235,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(1))
+                        CmpInstruction(inputs[1] as AssignableDest, NumericalConstant(1))
                     )
                 } + listOf(
                     JeInstruction(label),
@@ -266,7 +268,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[0], NumericalConstant(0))
+                        CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     // TODO fix labels
@@ -279,7 +281,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                        CmpInstruction(inputs[1], NumericalConstant(0))
+                        CmpInstruction(inputs[1] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
                     JneInstruction(label)
@@ -369,7 +371,9 @@ class InstructionSetCreator {
                         OperationAsm.CMOVG -> CmovgInstruction(reg1, dest)
                         OperationAsm.CMOVE -> CmoveInstruction(reg1, dest)
                         OperationAsm.CMOVGE -> CmovgeInstruction(reg1, dest)
-                        else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
+                        OperationAsm.CMOVL -> CmovlInstruction(reg1, dest)
+                        OperationAsm.CMOVLE -> CmovleInstruction(reg1, dest)
+                        else -> throw IllegalArgumentException("Bad operation type in createSimpleComparisonPatterns")
                     },
                     MovInstruction(dest, reg1),
                 )
@@ -384,16 +388,28 @@ class InstructionSetCreator {
                     throw IllegalArgumentException("Label must be passed to jump operation")
                 }
                 // TODO fix labels
-                create2ArgInstruction(
-                    {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
-                    inputs[0],
-                    inputs[1]
-                ) + listOf(
+                if (inputs[0] is ConstantOperandArgumentType) {
+                    listOf(
+                        MovInstruction(reg1, inputs[0])
+                    ) + create2ArgInstruction(
+                        {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
+                        reg1,
+                        inputs[1]
+                    )
+                } else {
+                    create2ArgInstruction(
+                        {par1: OperandArgumentType, par2: OperandArgumentType -> CmpInstruction(par1 as AssignableDest, par2)},
+                        inputs[0],
+                        inputs[1]
+                    )
+                } + listOf(
                     when(asmJccOperation) {
-                        OperationAsm.JG -> JeInstruction(label)
+                        OperationAsm.JG -> JgInstruction(label)
                         OperationAsm.JE -> JeInstruction(label)
-                        OperationAsm.JGE -> JeInstruction(label)
-                        else -> throw IllegalArgumentException("Bad operation type in createMulDivModInstructions")
+                        OperationAsm.JGE -> JgeInstruction(label)
+                        OperationAsm.JL -> JlInstruction(label)
+                        OperationAsm.JLE -> JleInstruction(label)
+                        else -> throw IllegalArgumentException("Bad operation type in createSimpleComparisonPatterns")
                     }
                 )
             },
@@ -479,7 +495,7 @@ class InstructionSetCreator {
                 }
                 else {
                     listOf(
-                    CmpInstruction(inputs[0], NumericalConstant(0)),
+                    CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0)),
                     )
                 } + listOf(
                     // TODO fix labels

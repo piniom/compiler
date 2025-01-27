@@ -116,6 +116,7 @@ class CFGMaker(
     private fun walkBlock(block: Block, then: CFGNode): WalkResult {
         val reversed = block.expressions.reversed()
         var prev = WalkResult(then, null)
+        var lastNode: WalkResult? = null
         for (e in reversed) {
             val node = if (prev.tree != null) {
                 Node(prev.top, prev.tree!!)
@@ -123,8 +124,12 @@ class CFGMaker(
                 prev.top
             }
             prev = walkExpr(e, node)
+            // Assign on the first walked instruction, i.e. last instruction in block
+            if (lastNode == null) {
+                lastNode = prev
+            }
         }
-        return prev
+        return WalkResult(prev.top, lastNode?.tree)
     }
 
     private fun walkBreak(breakk: Break, then: CFGNode): WalkResult {
@@ -156,7 +161,7 @@ class CFGMaker(
 
         val saveThen = Node(then)
         val thenBranch = walkExpr(conditional.thenBranch, saveThen)
-        saveElse.trees = if (thenBranch.tree != null) { // TODO: watch out - this is null when branch only contains break - check if this is intended
+        saveThen.trees = if (thenBranch.tree != null) { // TODO: watch out - this is null when branch only contains break - check if this is intended
             listOf(CFGAssignment(reg, thenBranch.tree!!))
         } else {
             listOf()
