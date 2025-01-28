@@ -8,7 +8,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.exeval.cfg.Register
-import org.exeval.cfg.VirtualRegister
 import kotlin.test.assertEquals
 
 class LivenessCheckerTest {
@@ -78,8 +77,8 @@ class LivenessCheckerTest {
             Pair(r3, setOf())
         )
 
-        assertEquals(result.interference, expectedInterference, result.interference.toString() + " " + expectedInterference.toString() )
-        assertEquals(result.copy, expectedCopy, result.copy.toString() + " " + expectedCopy.toString())
+        assertEquals(expectedInterference, result.interference, "Interference graph doesn't match expected")
+        assertEquals(expectedCopy, result.copy, "Copy graph doesn't match expected")
     }
     @Test
     fun simpleCopyTest(){
@@ -146,8 +145,8 @@ class LivenessCheckerTest {
             Pair(r3, setOf())
         )
 
-        assertEquals(result.interference, expectedInterference, result.interference.toString() + " " + expectedInterference.toString() )
-        assertEquals(result.copy, expectedCopy, result.copy.toString() + " " + expectedCopy.toString())
+        assertEquals(expectedInterference, result.interference, "Interference graph doesn't match expected")
+        assertEquals(expectedCopy, result.copy, "Copy graph doesn't match expected")
     }
     @Test
     fun copyAndInterferenceTest(){
@@ -173,7 +172,7 @@ class LivenessCheckerTest {
 
         val checker: LivenessChecker = LivenessCheckerImpl()
 
-        val regs = List(7) { VirtualRegister() }
+        val regs = List(7) { mockk<Register>() }
         val constant = NumericalConstant(1)
 
         val variableDefinitions = listOf(
@@ -220,22 +219,114 @@ class LivenessCheckerTest {
 
         val result = checker.check(input)
         val expectedInterference = mapOf<Register, Set<Register>>(
-            Pair(regs[0], setOf(regs[1], regs[2], regs[3], regs[4], regs[5])),
+            Pair(regs[0], setOf(regs[1], regs[2], regs[3], regs[4])),
             Pair(regs[1], setOf(regs[0])),
             Pair(regs[2], setOf(regs[0])),
             Pair(regs[3], setOf(regs[0])),
             Pair(regs[4], setOf(regs[0])),
-            Pair(regs[5], setOf(regs[0])),
+            Pair(regs[5], setOf()),
             Pair(regs[6], setOf()),
         )
         val expectedCopy = mapOf<Register, Set<Register>>(
-            Pair(regs[0], setOf()),
+            Pair(regs[0], setOf(regs[5])),
             Pair(regs[1], setOf(regs[3])),
             Pair(regs[2], setOf(regs[5])),
             Pair(regs[3], setOf(regs[1], regs[4])),
             Pair(regs[4], setOf(regs[3])),
-            Pair(regs[5], setOf(regs[2], regs[6])),
+            Pair(regs[5], setOf(regs[0], regs[2], regs[6])),
             Pair(regs[6], setOf(regs[5])),
+        )
+
+        assertEquals(expectedInterference, result.interference, "Interference graph doesn't match expected")
+        assertEquals(expectedCopy, result.copy, "Copy graph doesn't match expected")
+    }
+    @Test
+    fun complexCopyAndInterferenceTest(){
+        /* Simplified version of valid/blocks/blockInBlock.exe
+         *
+         * let mut a = 1
+         * let mut b = 1
+         * let mut c = 1
+         *
+         * {
+         *    let mut i = a
+         *    i = i + 1
+         *    b = i
+         *
+         *    {
+         *       let mut j = a
+         *       i = j + 1 // Notice the different variable, it's important for this test
+         *       c = i
+         *    }
+         * }
+         *
+         */
+
+        val checker: LivenessChecker = LivenessCheckerImpl()
+
+        val regs = List(7) { mockk<Register>() }
+        val constant = NumericalConstant(1)
+
+        val variableDefinitions = listOf(
+            MovInstruction(regs[0], constant),
+            MovInstruction(regs[1], constant),
+            MovInstruction(regs[2], constant),
+        )
+        val outerBlock = listOf(
+            MovInstruction(regs[3], regs[0]),
+            MovInstruction(regs[4], regs[3]),
+            AddInstruction(regs[4], constant),
+            MovInstruction(regs[3], regs[4]),
+            MovInstruction(regs[1], regs[3]),
+        )
+        val innerBlock = listOf(
+            MovInstruction(regs[5], regs[0]),
+            MovInstruction(regs[6], regs[5]),
+            AddInstruction(regs[6], constant),
+            MovInstruction(regs[3], regs[6]),
+            MovInstruction(regs[2], regs[3])
+        )
+
+        val bb3 = BasicBlock(
+            label = Label("label3"),
+            instructions = innerBlock,
+            successors = listOf()
+        )
+        val bb2 = BasicBlock(
+            label = Label("label2"),
+            instructions = outerBlock,
+            successors = listOf(bb3)
+        )
+        val bb1 = BasicBlock(
+            label = Label("label1"),
+            instructions = variableDefinitions,
+            successors = listOf(bb2)
+        )
+
+        val input: List<BasicBlock> = listOf(
+            bb1,
+            bb2,
+            bb3
+        )
+
+        val result = checker.check(input)
+        val expectedInterference = mapOf<Register, Set<Register>>(
+            Pair(regs[0], setOf(regs[1], regs[2], regs[3], regs[4])),
+            Pair(regs[1], setOf(regs[0])),
+            Pair(regs[2], setOf(regs[0])),
+            Pair(regs[3], setOf(regs[0])),
+            Pair(regs[4], setOf(regs[0])),
+            Pair(regs[5], setOf()),
+            Pair(regs[6], setOf()),
+        )
+        val expectedCopy = mapOf<Register, Set<Register>>(
+            Pair(regs[0], setOf(regs[5])),
+            Pair(regs[1], setOf(regs[3])),
+            Pair(regs[2], setOf(regs[3])),
+            Pair(regs[3], setOf(regs[1], regs[2], regs[4], regs[6])),
+            Pair(regs[4], setOf(regs[3])),
+            Pair(regs[5], setOf(regs[0], regs[6])),
+            Pair(regs[6], setOf(regs[3], regs[5])),
         )
 
         assertEquals(expectedInterference, result.interference, "Interference graph doesn't match expected")

@@ -70,14 +70,24 @@ class LivenessCheckerImpl: LivenessChecker {
 
         //edges
         for((instruction, registers) in def) {
+            /*
+             * There is interference if one variable is alive while another is defined.
+             * This means interference edges in two cases:
+             * 1. Instruction isn't copy - all variables defined in this instruction
+             *    conflict with variables alive after this instruction.
+             * 2. Instruction is copy, but it's a different variable that is copied.
+             *    Eg. in copy "b = c" b interfers with a (if it's alive), but not with c,
+             *    in copy "b = a" b does not interfere with a.
+             */
             if (!instruction.isCopy()) {
                 for (register in registers) {
                     interferenceGraph[register]!!.addAll(liveOut[instruction]!!)
-
-                    for (reg in liveOut[instruction]!!) {
-                        if (reg != register) {
-                            interferenceGraph[reg]!!.addAll(copyGraph[register]!!)
-                        }
+                }
+            }
+            else {
+                for (register in liveOut[instruction]!!) {
+                    if (!instruction.usedRegisters().contains(register)) {
+                        interferenceGraph[register]!!.addAll(instruction.definedRegisters())
                     }
                 }
             }
