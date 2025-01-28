@@ -4,13 +4,13 @@ import StdlibDeclarationsCreator
 
 class FunctionAnalyser() {
 
-    private var callGraph: MutableMap<FunctionDeclaration, MutableSet<AnyFunctionDeclaration>> = mutableMapOf()
+    private var callGraph: MutableMap<AnyFunctionDeclaration, MutableSet<AnyFunctionDeclaration>> = mutableMapOf()
     private var staticParents: MutableMap<FunctionDeclaration, FunctionDeclaration?> = mutableMapOf()
     private var variableMap: MutableMap<AnyVariable, FunctionDeclaration> = mutableMapOf()
     private var isUsedInNested: MutableMap<AnyVariable, Boolean> = mutableMapOf()
     private var functionCallParent: MutableMap<FunctionCall, FunctionDeclaration> = mutableMapOf()
     private var functionChilds: MutableMap<FunctionDeclaration, MutableSet<FunctionDeclaration>> = mutableMapOf()
-    private var globalFunctions: MutableSet<FunctionDeclaration> = mutableSetOf()
+    private var globalFunctions: MutableSet<AnyFunctionDeclaration> = mutableSetOf()
 
     public fun analyseFunctions(astInfo: AstInfo) : FunctionAnalysisResult {
 
@@ -25,10 +25,22 @@ class FunctionAnalyser() {
 
         // Perform analisys from root
         analyseSubtree(astInfo.root, null)
+        StdlibDeclarationsCreator.getDeclarations().forEach {
+            if (!callGraph.containsKey(it)) {
+                callGraph[it] = mutableSetOf()
+            }
+            // Perform function's parameters
+            it.parameters.forEach { param ->
+                analyseSubtree(param, null)
+            }
+
+            globalFunctions.add(it)
+        }
+
         buildCallGraph()
 
         return FunctionAnalysisResult(
-            callGraph = callGraph,
+            callGraph = callGraph as CallGraph,
             staticParents = staticParents,
             variableMap = variableMap,
             isUsedInNested = isUsedInNested
@@ -39,11 +51,6 @@ class FunctionAnalyser() {
         functionCallParent.forEach { (key, value) ->
             var funcDeclar: AnyFunctionDeclaration? = getFuctionCallToDeclaration(key, value)
 
-            if (funcDeclar == null){
-                //Foreign builtin func
-
-               funcDeclar = StdlibDeclarationsCreator.getDeclarations().find { it.name == key.functionName  && it.parameters.size == key.arguments.size}
-            }
             // this value should always be not null otherwise it means there are not func declaration for this call
             if (funcDeclar != null)
                 // add that func 'funcDeclar' is called inside of function 'value'
@@ -51,7 +58,7 @@ class FunctionAnalyser() {
         }
     }
 
-    private fun getFuctionCallToDeclaration(call : FunctionCall, parentDeclaration : FunctionDeclaration?) : FunctionDeclaration? {
+    private fun getFuctionCallToDeclaration(call : FunctionCall, parentDeclaration : FunctionDeclaration?) : AnyFunctionDeclaration? {
         
         // check if it global function call if it no longer have parent function
         if (parentDeclaration == null) 
@@ -70,7 +77,7 @@ class FunctionAnalyser() {
         return getFuctionCallToDeclaration(call, staticParents[parentDeclaration])
     }
 
-    private fun checkIfFuncCallAndDeclarMatch(declaration : FunctionDeclaration, call : FunctionCall) : Boolean {
+    private fun checkIfFuncCallAndDeclarMatch(declaration : AnyFunctionDeclaration, call : FunctionCall) : Boolean {
         return call.functionName == declaration.name && call.arguments.size == declaration.parameters.size
     }
 

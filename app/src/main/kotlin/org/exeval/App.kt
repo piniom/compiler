@@ -3,6 +3,7 @@
  */
 package org.exeval
 
+import StdlibDeclarationsCreator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.exeval.ast.*
 import kotlin.system.exitProcess
@@ -109,7 +110,7 @@ fun main(args: Array<String>) {
         frameManagers[function] = FunctionFrameManagerImpl(function,functionAnalisisResult, frameManagers)
     }
 
-    val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>()
+    val foreignFs = (astInfo.root as Program).functions.filterIsInstance<ForeignFunctionDeclaration>() + StdlibDeclarationsCreator.getDeclarations()
     val fCallMMap = foreignFs.associate{it to ForeignCallManager(it)}
 
     // CFG

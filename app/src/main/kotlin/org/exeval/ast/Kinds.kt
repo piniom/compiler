@@ -75,8 +75,16 @@ class FunctionDeclaration(
 class ForeignFunctionDeclaration(
     override val name: String,
     override val parameters: List<Parameter>,
-    override val returnType: Type
+    override val returnType: Type,
+
 ) : AnyFunctionDeclaration()
+{
+    override fun equals(other: Any?) =
+        (other is ForeignFunctionDeclaration)
+                && name == other.name
+
+    override fun hashCode() = name.hashCode()
+}
 
 class Parameter(val name: String, val type: Type) : AnyVariable, ASTNode
 
