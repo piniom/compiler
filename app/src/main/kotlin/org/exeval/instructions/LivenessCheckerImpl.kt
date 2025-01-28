@@ -43,8 +43,7 @@ class LivenessCheckerImpl: LivenessChecker {
                 for (j in 0..<bb.instructions.size) {
                     val next: List<Instruction> =
                         if (i == basicBlocks.size - 1 && j == bb.instructions.size - 1) listOf()
-                        else if (j == bb.instructions.size - 1) bb.successors.map { b -> b.instructions.firstOrNull() }.filterNotNull()
-                            .toList()
+                        else if (j == bb.instructions.size - 1) findNextInstructions(listOf(bb))
                         else listOf(bb.instructions[j + 1])
                     val instruction = bb.instructions[j]
 
@@ -114,6 +113,29 @@ class LivenessCheckerImpl: LivenessChecker {
             copyGraph[register]!!.removeAll(list)
         }
         return LivenessResult(interferenceGraph,  copyGraph)
+    }
+
+    private fun findNextInstructions(bb: List<BasicBlock>): List<Instruction> {
+        val emptyBlocks = mutableListOf<BasicBlock>()
+        val instructions = mutableListOf<Instruction>()
+
+        for (b in bb) {
+            for (s in b.successors) {
+                if (s.instructions.size == 0) {
+                    emptyBlocks.add(s)
+                }
+                else {
+                    instructions.add(s.instructions.first())
+                }
+            }
+        }
+
+        return if (emptyBlocks.size == 0) {
+            instructions
+        }
+        else {
+            instructions + findNextInstructions(emptyBlocks)
+        }
     }
 
 }
