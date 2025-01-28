@@ -1,0 +1,20 @@
+foo boolToInt(f: Bool) -> Int {
+    if f then 0 else 1
+}
+
+foo pow(x: Int, n: Int) = {
+    let mut r: Int = 1;
+    let mut i: Int = 0;
+
+    loop {
+        if (i == n) {
+            break r;
+        }
+        i = i + 1;
+        r = r * x;
+    }
+}
+
+foo main() -> Int = {
+    boolToInt(pow(10, 5) == 100000)
+}
