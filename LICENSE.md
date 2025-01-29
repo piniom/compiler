@@ -1,6 +1,9 @@
 MIT License
 
-Copyright (c) 2025 Szymon Wojtulewicz
+Copyright (c) 2025
+
+Agata Margas, Dominik Chmura, Jakub Siuta, Jakub Sordyl, Kacper Kozak, Leonid Dorochko, Mikołaj Jachowicz, Mateusz Hurałka, Michał Miziołek, Szymon Wojtulewicz,
+Mateusz Puto
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
