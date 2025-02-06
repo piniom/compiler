@@ -53,7 +53,7 @@ class CoalescenceGraphCreator {
             if (!copyIntGraph.contains(vertex))
                 continue
             for (copyFriend in copyIntGraph[vertex]!!) {
-                if (checkIfMergeIsSafe(connectionIntGraph, vertex, copyFriend, numOfColors)) {
+                if (checkIfMergeIsSafe(connectionIntGraph, vertex, copyFriend, numOfColors, mapIntToDomain)) {
                     findUnion.union(vertex, copyFriend)
                     val vertexLeader = findUnion.find(vertex)
                     if (vertexLeader == vertex) {
@@ -100,7 +100,11 @@ class CoalescenceGraphCreator {
         return result
     }
 
-    private fun checkIfMergeIsSafe(graph : MutableMap<Int, MutableSet<Int>>, u : Int, v : Int, numOfColors : Int) : Boolean {
+    private fun checkIfMergeIsSafe(graph : MutableMap<Int, MutableSet<Int>>, u : Int, v : Int, numOfColors : Int, mapIntToDomain : Map<Int, Register>) : Boolean {
+        if (mapIntToDomain[u] is PhysicalRegister && mapIntToDomain[v] is PhysicalRegister) {
+            return false
+        }
+
         var uNeighbourhood : Set<Int> = setOf()
         var vNeighbourhood : Set<Int> = setOf()
 
