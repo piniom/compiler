@@ -57,8 +57,6 @@ class InstructionSetCreator {
         ).groupBy{ InstructionPatternMapKey(it.rootType, it.kind) }
     }
 
-    // TODO Are labels considered by assembly as "immediate values"?
-
     private fun createAssignmentPatterns(): List<InstructionPattern> {
         /* NOTE Needed only if both operand virtual registers are mapped to memory.
          *      Then has to be a physical register, not memory.
@@ -189,10 +187,21 @@ class InstructionSetCreator {
                 if (inputs.size != 2) {
                     throw IllegalArgumentException("${rootOperation} takes exactly two arguments")
                 }
-                listOf(
-                    // TODO fix if both are memory
-                    MovInstruction(dest, inputs[0])
-                ) + create2ArgInstruction(instrFactory2arg, dest, inputs[1])
+
+                val src = inputs[0]
+                val reg1 = VirtualRegister()
+                val firstList = if (dest is Memory && src is Memory) {
+                    listOf(
+                        MovInstruction(reg1, src),
+                        MovInstruction(dest, reg1)
+                    )
+                } else {
+                    listOf(
+                        MovInstruction(dest, src)
+                    )
+                }
+                val secondList = create2ArgInstruction(instrFactory2arg, dest, inputs[1])
+                firstList + secondList
             },
             // NOTE In EXEC version it's equivalent to no-op
             createEmptyExecPattern(rootOperation)
@@ -214,7 +223,7 @@ class InstructionSetCreator {
                 if (label == null) {
                     throw IllegalArgumentException("Label must be passed to jump operation")
                 }
-                var shortCutLabel = labelFactory.createLabel("ShortcutAndLabel")
+                val shortCutLabel = labelFactory.createLabel("ShortcutAndLabel")
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
                         MovInstruction(reg1, inputs[0]),
@@ -271,7 +280,6 @@ class InstructionSetCreator {
                         CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0))
                     )
                 } + listOf(
-                    // TODO fix labels
                     JneInstruction(label)
                 ) + if (inputs[1] is ConstantOperandArgumentType) {
                     listOf(
@@ -387,7 +395,6 @@ class InstructionSetCreator {
                 if (label == null) {
                     throw IllegalArgumentException("Label must be passed to jump operation")
                 }
-                // TODO fix labels
                 if (inputs[0] is ConstantOperandArgumentType) {
                     listOf(
                         MovInstruction(reg1, inputs[0])
@@ -430,7 +437,6 @@ class InstructionSetCreator {
          */
         val reg1 = VirtualRegister()
 
-        // TODO fix register/memory types
         return if (operand1 is Register) {
             listOf(
                 instrFactory2arg(operand1, operand2)
@@ -442,7 +448,7 @@ class InstructionSetCreator {
                 instrFactory2arg(operand1, reg1)
             )
         }
-        else if (false /* operand2 is Memory */) {
+        else if (operand1 is Memory && operand2 is Memory) {
             listOf(
                 MovInstruction(reg1, operand2),
                 instrFactory2arg(operand1, reg1)
@@ -474,7 +480,7 @@ class InstructionSetCreator {
                     /* Cannot use single instruction NOT, as it works bitwise:
                      * wouldn't just change 0 -> 1, 1 -> 0, but 0001 -> 1110.
                      * Typical 1 - x also cannot be used directly, as first argument
-                     * to SUB cannnot be a constant.
+                     * to SUB cannot be a constant.
                      */
                     SubInstruction(dest, NumericalConstant(1)),
                     NegInstruction(dest)
@@ -498,7 +504,6 @@ class InstructionSetCreator {
                     CmpInstruction(inputs[0] as AssignableDest, NumericalConstant(0)),
                     )
                 } + listOf(
-                    // TODO fix labels
                     JeInstruction(label),
                 )
             },
@@ -519,9 +524,10 @@ class InstructionSetCreator {
                 if (inputs.size != 1) {
                     throw IllegalArgumentException("Negation takes exactly one argument")
                 }
-                if (false /* dest is Memory && inputs[0] is Memory */) {
+                val src = inputs[0]
+                if (dest is Memory && src is Memory) {
                     listOf(
-                        MovInstruction(reg1, inputs[0]),
+                        MovInstruction(reg1, src),
                         MovInstruction(dest, reg1),
                         NegInstruction(dest)
                     )
@@ -587,8 +593,7 @@ class InstructionSetCreator {
 
     private fun createPopPatterns(): List<InstructionPattern> {
         return listOf(
-            // TODO why does InstructionCoverer expect an EXEC pattern here, while it's a VALUE kind?
-            TemplatePattern(StackPopTreeKind, InstructionKind.EXEC, 1) { dest, _, _ ->
+            TemplatePattern(StackPopTreeKind, InstructionKind.VALUE, 1) { dest, _, _ ->
                 if (dest == null) {
                     throw IllegalArgumentException("Destination for pop from stack should not be null")
                 }
