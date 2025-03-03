@@ -1,0 +1,13 @@
+uct Packet = {
+    let val: Int = 404;
+
+    ctor() = {}
+}
+
+foo poll() -> Packet = {
+    new Packet()
+}
+
+foo main() -> Int = {
+    poll().val
+}

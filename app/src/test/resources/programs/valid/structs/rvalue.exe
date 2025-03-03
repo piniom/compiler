@@ -1,0 +1,16 @@
+uct Dependent = {
+    let mut x: Int;
+    let mut doubleX: Int;
+
+    ctor(x: Int) = {
+        here.x = x;
+        let mut a = here.x;
+
+        here.doubleX = 2*a;
+    }
+}
+
+foo main() -> Int = {
+    let pair = new Dependent(14);
+    0
+}

@@ -1,0 +1,10 @@
+uct Box = {
+    let x = 15;
+    let y = 14;
+}
+
+foo main() -> Int {
+    let mut box = new Box();
+    box.x = 1534;
+    0
+}
