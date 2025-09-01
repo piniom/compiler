@@ -13,3 +13,8 @@ build
 kls_database.db
 
 app/bin
+
+# Ignore compiler output files
+app/program.asm
+app/program.o
+app/program
