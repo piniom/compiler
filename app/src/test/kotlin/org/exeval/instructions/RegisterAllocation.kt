@@ -239,4 +239,25 @@ class RegisterAllocation{
         )
         simulate(i,a)
     }
+    @Test
+    fun physicalRegistersCopy(){
+        // Two physical registers connected by copy should still be mapped to themselves
+
+        val reg1 = PhysicalRegister.RAX
+        val reg2 = PhysicalRegister.RCX
+
+        val liveness = LivenessResult(
+            interference = mapOf(),
+            copy = mapOf(reg1 to setOf(reg2), reg2 to setOf(reg1))
+        )
+        val data = allocationData(
+            livenessResult = liveness,
+            domain = setOf(reg1, reg2),
+            range = setOf(reg1, reg2)
+        )
+
+        val allocation = getAllocation(data)
+        assert(reg1 == allocation.mapping[reg1])
+        assert(reg2 == allocation.mapping[reg2])
+    }
 }

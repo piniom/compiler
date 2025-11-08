@@ -28,9 +28,16 @@ enum class PhysicalRegister(val name_: String) : Register {
     companion object {
         fun range(): Set<PhysicalRegister> {
             return setOf(
-                RAX,
+                /*
+                 * We have three special purpose registers that should not be
+                 * automatically overwritten, so it's better not to let register
+                 * allocator use them. Copies are still propagated and coalesced
+                 * nicely.
+                 * - RSP - stack pointer
+                 * - RBP - frame base pointer
+                 * - RAX - return value from function, especially from main
+                 */
                 RCX,
-                RBP,
                 RDX,
                 RDI,
                 RSI,

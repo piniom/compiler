@@ -35,7 +35,9 @@ class CodeBuilder(val maxNestedFunctionDepth: Int) {
         lines.add("${getMangledFunctionName(name)}:")
         for (b in blocks) {
             if (b.label in needed_labels) lines.add(b.label.toAsm())
-            lines.addAll(b.instructions.map { nested(it.toAsm(registerMapping)) })
+            lines.addAll(b.instructions.filter {
+                !(it.isCopy() && registerMapping[it.usedRegisters().firstOrNull()] == registerMapping[it.definedRegisters().firstOrNull()])
+            }.map { nested(it.toAsm(registerMapping)) })
         }
         lines.add("")
     }
