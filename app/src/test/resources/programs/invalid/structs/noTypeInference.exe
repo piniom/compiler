@@ -1,0 +1,9 @@
+uct S = {
+    let x;
+    let mut y;
+}
+
+foo main() -> Int = {
+    let mut eggs : S = nothing;
+    eggs.x;
+}

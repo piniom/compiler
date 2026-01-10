@@ -1,0 +1,11 @@
+uct Default {
+    let x = 10;
+    let y : Bool = true;
+
+    ctor() = {}
+}
+
+foo main() -> {
+    let spam = new Default();
+    spam.x
+}

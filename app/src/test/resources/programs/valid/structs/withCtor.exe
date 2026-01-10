@@ -1,0 +1,14 @@
+uct Option = {
+    let mut val: Int;
+    let mut present: Bool;
+
+    ctor(x: Int) = {
+        here.val = x;
+        here.present = true;
+    }
+}
+
+foo main() -> Int = {
+    let opt = new Option(154);
+    opt.val
+}

@@ -1,0 +1,12 @@
+uct Singleton = {
+    let val = 14;
+
+    ctor() {
+        here.val = 15;
+    }
+}
+
+foo main() -> Int = {
+    let resource = new Singleton();
+    0
+}
