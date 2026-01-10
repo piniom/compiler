@@ -1,0 +1,86 @@
+foo boolToInt(f: Bool) -> Int {
+    if f then 0 else 1
+}
+
+foo main() -> Int {
+    let a11: Int = 0;
+    let a12: Int = 1;
+    let a13: Int = 2;
+    let a14: Int = 3;
+    let a21: Int = 4;
+    let a22: Int = 5;
+    let a23: Int = 6;
+    let a24: Int = 7;
+    let a31: Int = 8;
+    let a32: Int = 9;
+    let a33: Int = 10;
+    let a34: Int = 11;
+    let a41: Int = 12;
+    let a42: Int = 13;
+    let a43: Int = 14;
+    let a44: Int = 15;
+    let b11: Int = 100;
+    let b12: Int = 101;
+    let b13: Int = 102;
+    let b14: Int = 103;
+    let b21: Int = 104;
+    let b22: Int = 105;
+    let b23: Int = 106;
+    let b24: Int = 107;
+    let b31: Int = 108;
+    let b32: Int = 109;
+    let b33: Int = 110;
+    let b34: Int = 111;
+    let b41: Int = 112;
+    let b42: Int = 113;
+    let b43: Int = 114;
+    let b44: Int = 115;
+    let mut c11: Int = 0;
+    let mut c12: Int = 0;
+    let mut c13: Int = 0;
+    let mut c14: Int = 0;
+    let mut c21: Int = 0;
+    let mut c22: Int = 0;
+    let mut c23: Int = 0;
+    let mut c24: Int = 0;
+    let mut c31: Int = 0;
+    let mut c32: Int = 0;
+    let mut c33: Int = 0;
+    let mut c34: Int = 0;
+    let mut c41: Int = 0;
+    let mut c42: Int = 0;
+    let mut c43: Int = 0;
+    let mut c44: Int = 0;
+    c11 = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+    c12 = a11 * b12 + a12 * b44 + a13 * b32 + a14 * b41;
+    c13 = a11 * a13 + a12 * b23 + a13 * b33 + a14 * b43;
+    c14 = b11 * b14 + a12 * b24 + a13 * b34 + b13 * b44;
+    c21 = a21 * b11 + a22 * b21 + a32 * a31 + a24 * b41;
+    c22 = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+    c23 = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+    c24 = a21 * b14 + a22 * b24 + a23 * b34 + b44 * b44;
+    c31 = a31 * b11 + a32 * a21 + a33 * b31 + a34 * b41;
+    c32 = b31 * b12 + a32 * b22 + a33 * b32 + a34 * b11;
+    c33 = a31 * a13 + a32 * a23 + a23 * b33 + a34 * b43;
+    c34 = a31 * b14 + a32 * a24 + a33 * b34 + a34 * b44;
+    c41 = a41 * b11 + a42 * a21 + a43 * b31 + a44 * b41;
+    c42 = a41 * b12 + a42 * a22 + a43 * b32 + a44 * b42;
+    c43 = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+    c44 = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+    boolToInt(c11 == 656 &&
+    c12 == 662 &&
+    c13 == 668 &&
+    c14 == 674 &&
+    c21 == 2352 &&
+    c22 == 2374 &&
+    c23 == 2396 &&
+    c24 == 2418 &&
+    c31 == 4048 &&
+    c32 == 4086 &&
+    c33 == 4124 &&
+    c34 == 4162 &&
+    c41 == 5744 &&
+    c42 == 5798 &&
+    c43 == 5852 &&
+    c44 == 5906)
+}
